@@ -59,3 +59,26 @@ export function makeToastNotification(message) {
         }, 500);
     }, 2000);
 }
+
+/**
+ * Appends a string to the head of the dom as an element.
+ * @param {string} elementString - The string version of an element that needs to be added.
+ */
+export function appendToHead(elementString) {
+
+    const linkElements = document.head.querySelectorAll('link');
+    console.log(linkElements.forEach(pom => console.log(pom)));
+    let elementsPresent = []
+
+    linkElements.forEach(child => {
+        if (child.outerHTML === elementString) {
+            elementsPresent.push(child)
+        }
+    })
+
+    console.log(elementsPresent);
+    if (elementsPresent.length <= 0) {
+        document.head.innerHTML += elementString
+    }
+
+}
