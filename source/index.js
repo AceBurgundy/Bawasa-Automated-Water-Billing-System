@@ -25,7 +25,7 @@ const createWindow = () => {
     icon
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'Pages/Authentication/templates/authentication.html'));
+  mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
   mainWindow.webContents.openDevTools();
 };
