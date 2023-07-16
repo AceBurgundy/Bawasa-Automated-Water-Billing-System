@@ -1,6 +1,5 @@
-import { transition } from "../../../helper.js"
-
 export default function loadRegister() {
+
     const template = `
     <div id="register" class="page">
     
@@ -61,6 +60,6 @@ export default function loadRegister() {
         </p>
     `
 
-    document.getElementById("container").innerHTML = template
+    document.getElementById("container").innerHTML += template
 
 }

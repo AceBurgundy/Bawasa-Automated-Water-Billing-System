@@ -1,4 +1,5 @@
 export default function loadLogin() {
+    
     const template = `
     <div id="login" class="page">
     
@@ -44,6 +45,10 @@ export default function loadLogin() {
         </p>
     `
 
-    document.getElementById("container").innerHTML = template
+    document.getElementById("container").innerHTML += template
+
+    setTimeout(() => {
+        document.getElementById("login").classList.add("active")
+    }, 500);
 
 }
