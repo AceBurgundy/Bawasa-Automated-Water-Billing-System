@@ -1,28 +1,18 @@
 export function transition(callback) {
-    const cover = document.createElement("div");
-    cover.id = "cover";
 
-    const body = document.body;
-    const child = body.firstChild;
+    const box = document.getElementById("container")
 
-    if (child) {
-        body.insertBefore(cover, child);
+    callback()
 
-        setTimeout(() => {
-            cover.classList.add("up");
-        }, 250);
+    setTimeout(() => {
+        box.lastElementChild.style.zIndex = "3"
+        box.lastElementChild.classList.add("active")
+    }, 1000);
 
-        setTimeout(() => {
-            callback();
-        }, 800);
-
-        setTimeout(() => {
-            cover.classList.remove("up");
-            cover.classList.add("down");
-        }, 1000);
-    } else {
-        body.appendChild(cover);
-    }
+    setTimeout(() => {
+        box.firstElementChild.remove()
+        box.lastElementChild.style.zIndex = "2"
+    }, 2000);
 }
 
 /**
