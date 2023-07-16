@@ -61,24 +61,15 @@ svg {
     width: 100vw;
     height: 100vh;
     background-color: var(--background);
-}
-
-#cover {
     position: fixed;
-    transition: 500ms ease-out;
-    width: 100vw;
-    height: 100vh;
-    z-index: 9999;
-    background-color: var(--primary);
     top: 100%;
+    transition: 450ms ease-out;
+    opacity: 0;
 }
 
-#cover.up {
+.page.active {
     top: 0%;
-}
-
-#cover.down {
-    top: 100%;
+    opacity: 1;
 }
 
 #flashes {
