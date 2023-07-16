@@ -1,19 +1,8 @@
-img {
-    position: fixed;
-    bottom: 0%;
-    left: 0%;
-    z-index: 1;
-    opacity: 100%;
-    width: 50%;
-}
-
 .page {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    position: relative;
-    background-color: var(--transparent) !important;
     z-index: 2;
 }
 
