@@ -1,4 +1,4 @@
-import { Entity, Column, OneToMany, BaseEntity } from 'typeorm';
+import { Entity, Column, OneToMany, BaseEntity, CreateDateColumn, UpdateDateColumn, Unique } from 'typeorm';
 import { ClientConnectionStatus } from './ClientConnectionStatus';
 import { ClientAddress } from './ClientAddress';
 import { ClientPhoneNumber } from './ClientPhoneNumber';
@@ -8,8 +8,11 @@ import { ClientBill } from './ClientBill';
 @Entity()
 export class Client  extends BaseEntity {
 
-  @Column({ type: 'date', default: () => 'CURRENT_DATE', nullable: false })
+  @CreateDateColumn()
   creation_date: Date;
+
+  @UpdateDateColumn()
+  date_last_updated: Date;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
   first_name: string;
@@ -24,6 +27,7 @@ export class Client  extends BaseEntity {
   extension: string;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
+  @Unique(['email'])
   email: string;
 
   @Column({ type: 'varchar', length: 255, nullable: false, default: 'profile_picture.webp' })

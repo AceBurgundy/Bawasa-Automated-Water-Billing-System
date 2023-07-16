@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, BaseEntity } from 'typeorm';
+import { Entity, Column, ManyToOne, BaseEntity, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Client } from './Client';
 import { User } from './User';
 
@@ -11,8 +11,11 @@ export class MonthlyReading extends BaseEntity {
   @ManyToOne(() => User, (user) => user.monthlyReadings)
   meter_reader: User;
 
-  @Column({ type: 'date', default: () => 'CURRENT_DATE', nullable: false })
+  @CreateDateColumn()
   creation_date: Date;
+
+  @UpdateDateColumn()
+  date_last_updated: Date;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: false })
   reading: number;

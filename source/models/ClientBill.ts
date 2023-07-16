@@ -1,12 +1,15 @@
-import { Entity, Column, ManyToOne, OneToMany, BaseEntity } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany, BaseEntity, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Client } from './Client';
 import { PartialPayment } from './PartialPayment';
 
 @Entity()
 export class ClientBill extends BaseEntity {
 
-  @Column({ type: 'date', default: () => 'CURRENT_DATE', nullable: false })
+  @CreateDateColumn()
   creation_date: Date;
+
+  @UpdateDateColumn()
+  date_last_updated: Date;
 
   @ManyToOne(() => Client, (client) => client.bills)
   client: Client;

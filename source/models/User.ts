@@ -1,4 +1,4 @@
-import { Entity, Column, OneToMany, BaseEntity } from 'typeorm';
+import { Entity, Column, OneToMany, BaseEntity, CreateDateColumn, UpdateDateColumn, Unique } from 'typeorm';
 import { UserAddress } from './UserAddress';
 import { UserPhoneNumber } from './UserPhoneNumber';
 import { MonthlyReading } from './MonthlyReading';
@@ -6,10 +6,14 @@ import { MonthlyReading } from './MonthlyReading';
 @Entity()
 export class User extends BaseEntity {
 
-  @Column({ type: 'date', default: () => 'CURRENT_DATE', nullable: false })
+  @CreateDateColumn()
   creation_date: Date;
 
+  @UpdateDateColumn()
+  date_last_updated: Date;
+
   @Column({ type: 'varchar', length: 255, nullable: false })
+  @Unique(['email'])
   email: string;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
