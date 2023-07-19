@@ -10,8 +10,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
-    "watch": "nodemon --exec electron .",
-    "dev": "nodemon --watch './**/*.ts' --exec 'ts-node' source/index.js"
+    "watch": "nodemon --exec electron ."
   },
   "keywords": [],
   "author": {
@@ -31,6 +30,7 @@
     "@electron-forge/plugin-auto-unpack-natives": "^6.2.1",
     "electron": "25.2.0",
     "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1",
     "typeorm": "^0.3.17"
   }
 }
