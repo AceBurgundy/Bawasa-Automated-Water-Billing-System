@@ -26,6 +26,6 @@
     "exclude": ["node_modules"],
     "include": [
         "./source/**/*.tsx",
-        "./source/**/*.ts",
+        "./source/**/*.ts", "source/Pages/Dashboard/views.js",
     ]
 }
