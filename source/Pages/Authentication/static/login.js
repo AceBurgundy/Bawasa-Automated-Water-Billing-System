@@ -1,5 +1,8 @@
+import { makeToastNotification, transition } from "../../../helper.js";
+import { renderClientSection } from "../../Clients/static/clients.js";
+import { loadRegister } from "./register.js"
+
 export default function loadLogin() {
-    
     const template = `
     <div id="login" class="page">
     
@@ -15,6 +18,7 @@ export default function loadLogin() {
                     class="authentication-form__input-box__input"
                     required
                     placeholder="Email"
+                    value="Samadriansabalo99@gmail.com"
                     maxlength="255">
 
                 <input 
@@ -24,6 +28,7 @@ export default function loadLogin() {
                     class="authentication-form__input-box__input"
                     required
                     placeholder="Password"
+                    value="Adrian2001."
                     maxlength="255">
             </div>
         
@@ -43,12 +48,75 @@ export default function loadLogin() {
         <p id="to-register-prompt" class="bottom-prompt">
             Don't have an account yet? Register and get verified
         </p>
-    `
+    `;
 
-    document.getElementById("container").innerHTML += template
+    document.getElementById("container").innerHTML += template;
 
     setTimeout(() => {
-        document.getElementById("login").classList.add("active")
+        document.getElementById("login").classList.add("active");
     }, 500);
 
+    window.onclick = async (event) => {
+
+        const elementId = event.target.getAttribute("id");
+
+        if (elementId === "to-register-prompt") {
+            transition(loadRegister);
+        }
+
+        if (elementId === "login-button") {
+
+            event.preventDefault();
+
+            const formData = new FormData(
+                document.getElementById("login-form")
+            );
+
+            let errors = 0;
+
+            // loops through each form and increments errors for each error
+            formData.forEach((value, key) => {
+                if (key === "email") {
+                    if (value.trim() === "") {
+                        makeToastNotification("Email cannot be empty");
+                        errors++;
+                    }
+                    if (!value.trim().includes("@")) {
+                        makeToastNotification("Missing '@'");
+                        errors++;
+                    }
+                    if (value.trim().length > 255) {
+                        makeToastNotification("Cannot be greater than 255");
+                        errors++;
+                    }
+                }
+
+                if (key === "password") {
+                    if (value.trim() === "") {
+                        makeToastNotification("Password cannot be empty");
+                        errors++;
+                    }
+                    if (value.trim().length > 255) {
+                        makeToastNotification("Cannot be greater than 255");
+                        errors++;
+                    }
+                }
+            });
+
+            if (errors === 0) {
+                const response = await window.ipcRenderer.invoke(
+                    "login",
+                    Object.fromEntries(formData.entries())
+                );
+
+                if (response.status === "success") {
+                    transition(renderClientSection);
+                } else {
+                    response.message.forEach(message => {
+                        makeToastNotification(message)
+                    })
+                }
+            }
+        }
+    };
 }
