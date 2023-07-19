@@ -1,18 +1,17 @@
 export function transition(callback) {
+    const box = document.getElementById("container");
 
-    const box = document.getElementById("container")
-
-    callback()
-
-    setTimeout(() => {
-        box.lastElementChild.style.zIndex = "3"
-        box.lastElementChild.classList.add("active")
-    }, 1000);
+    callback();
 
     setTimeout(() => {
-        box.firstElementChild.remove()
-        box.lastElementChild.style.zIndex = "2"
-    }, 2000);
+        box.lastElementChild.style.zIndex = "3";
+        box.lastElementChild.classList.add("active");
+    }, 200);
+
+    setTimeout(() => {
+        box.firstElementChild.remove();
+        box.lastElementChild.style.zIndex = "2";
+    }, 800);
 }
 
 /**
@@ -20,18 +19,19 @@ export function transition(callback) {
  * @param {string} message - The message content of the notification.
  */
 export function makeToastNotification(message) {
-    
-    const flashes = document.getElementById("flashes");
+    let flashes = document.getElementById("flashes");
 
     if (!flashes) {
-        const flashes = document.createElement("div");
-        flashes.id = "flashes";
+        const newFlashes = document.createElement("div");
+        newFlashes.setAttribute("id", "flashes");
 
         if (document.body.firstChild) {
-            document.body.insertBefore(flashes, document.body.firstChild);
+            document.body.insertBefore(newFlashes, document.body.firstChild);
         } else {
-            document.body.appendChild(flashes);
+            document.body.appendChild(newFlashes);
         }
+
+        flashes = newFlashes;
     }
 
     if (message === "") return;
@@ -55,20 +55,39 @@ export function makeToastNotification(message) {
  * @param {string} elementString - The string version of an element that needs to be added.
  */
 export function appendToHead(elementString) {
+    const linkElements = document.head.querySelectorAll("link");
+    let elementsPresent = [];
 
-    const linkElements = document.head.querySelectorAll('link');
-    console.log(linkElements.forEach(pom => console.log(pom)));
-    let elementsPresent = []
-
-    linkElements.forEach(child => {
+    linkElements.forEach((child) => {
         if (child.outerHTML === elementString) {
-            elementsPresent.push(child)
+            elementsPresent.push(child);
         }
-    })
+    });
 
-    console.log(elementsPresent);
     if (elementsPresent.length <= 0) {
-        document.head.innerHTML += elementString
+        document.head.innerHTML += elementString;
     }
+}
 
+/**
+ * Clears DOM Head to give way for new ones.
+ */
+export function clearDOMHead(linkExemptions = [], scriptExemptions = []) {
+    
+        const linkElements = document.head.querySelectorAll("link");
+        const scriptElements = document.head.querySelectorAll("script");
+
+        linkElements.forEach((link) => {
+            if (link.outerHTML !== '<link rel="stylesheet" href="assets/styles/root.css">') {
+                if (!linkExemptions.includes(link.outerHTML)) {
+                    link.remove();
+                }
+            }
+        });
+
+        scriptElements.forEach((script) => {
+            if (!scriptExemptions.includes(script.outerHTML)) {
+                script.remove();
+            }
+        });
 }
