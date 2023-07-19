@@ -1,6 +1,10 @@
-export default function loadRegister() {
+import { makeToastNotification, transition } from "../../../helper.js";
+import loadLogin from "./login.js";
+
+export function loadRegister() {
 
     const template = `
+    
     <div id="register" class="page">
     
         <form data-action="" id="register-form" class="authentication-form">
@@ -11,20 +15,22 @@ export default function loadRegister() {
 
                 <input 
                     type="text"
-                    name="first-name"
+                    name="firstname"
                     id="register-form-first-name" 
                     class="authentication-form__input-box__input"
                     required
                     placeholder="First name"
+                    value="Sam"
                     maxlength="255">
 
                 <input 
                     type="text"
-                    name="last-name"
+                    name="lastname"
                     id="register-form-last-name" 
                     class="authentication-form__input-box__input"
                     required
                     placeholder="Last name"
+                    value="Sabalo"
                     maxlength="255">
 
                 <input 
@@ -34,6 +40,7 @@ export default function loadRegister() {
                     class="authentication-form__input-box__input"
                     required
                     placeholder="Email"
+                    value="samadriansabalo99@gmail.com"
                     maxlength="255">
 
                 <input 
@@ -43,6 +50,7 @@ export default function loadRegister() {
                     class="authentication-form__input-box__input"
                     required
                     placeholder="Password"
+                    value="Adrian2001."
                     maxlength="255">
             </div>
                 
@@ -58,8 +66,98 @@ export default function loadRegister() {
         <p id="to-login-prompt" class="bottom-prompt">
             Already Have an Account? Login instead
         </p>
-    `
+    `;
 
-    document.getElementById("container").innerHTML += template
+    document.getElementById("container").innerHTML += template;
 
+    window.onclick = async (event) => {
+
+        const elementId = event.target.getAttribute("id");
+
+        if (elementId === "to-login-prompt") {
+            transition(loadLogin);
+        }
+
+        if (elementId === "register-button") {
+
+            event.preventDefault();
+
+            const formData = new FormData(
+                document.getElementById("register-form")
+            );
+
+            let errors = 0;
+
+            formData.forEach((value, key) => {
+
+                if (key === "first-name") {
+
+                    if (value.trim() === "") {
+                        makeToastNotification("First name cannot be empty");
+                        errors++;
+                    }
+                    if (value.trim().length > 255) {
+                        makeToastNotification("Cannot be greater than 255");
+                        errors++;
+                    }
+                }
+
+                if (key === "last-name") {
+
+                    if (value.trim() === "") {
+                        makeToastNotification("Last name cannot be empty");
+                        errors++;
+                    }
+                    if (value.trim().length > 255) {
+                        makeToastNotification("Cannot be greater than 255");
+                        errors++;
+                    }
+                }
+
+                if (key === "email") {
+
+                    if (value.trim() === "") {
+                        makeToastNotification("Email cannot be empty");
+                        errors++;
+                    }
+                    if (!value.trim().includes("@")) {
+                        makeToastNotification("Missing '@'");
+                        errors++;
+                    }
+                    if (value.trim().length > 255) {
+                        makeToastNotification("Cannot be greater than 255");
+                        errors++;
+                    }
+                }
+
+                if (key === "password") {
+
+                    if (value.trim() === "") {
+                        makeToastNotification("Password cannot be empty");
+                        errors++;
+                    }
+                    if (value.trim().length > 255) {
+                        makeToastNotification("Cannot be greater than 255");
+                        errors++;
+                    }
+                }
+            });
+
+            if (errors === 0) {
+
+                const response = await window.ipcRenderer.invoke(
+                    "register",
+                    Object.fromEntries(formData.entries())
+                );
+
+                if (response.status === "success") {
+                    transition(loadLogin);
+                } else {
+                    response.message.forEach(message => {
+                        makeToastNotification(message)
+                    })
+                }
+            }
+        }
+    };
 }
