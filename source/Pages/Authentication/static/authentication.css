@@ -1,4 +1,4 @@
-.page {
+#login, #register {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -52,8 +52,8 @@
     width: 4rem;
     height: 4rem;
     border-radius: 50%;
-    background-color: var(--transparent);
     transition: 500ms ease;
+    background-color: var(--primary);
     border: 2px solid var(--text);
 }
 
