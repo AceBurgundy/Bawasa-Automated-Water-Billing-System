@@ -42,12 +42,14 @@ button {
 }
 
 svg {
-    fill: var(--text);
+    fill: black;
 }
 
 .button-primary {
     padding: 0.5rem 0.9rem;
+    font-size: 0.8rem;
     background-color: var(--primary);
+    color: black;
     border-radius: 20px;
     border: none;
     transition: 250ms ease;
@@ -83,6 +85,11 @@ svg {
     pointer-events: none;
 }
 
+#container {
+    width: 100vw;
+    height: 100vh;
+}
+
 .message {
     padding: 0.5em 1.2em;
     font-size: 0.9rem;
@@ -94,7 +101,7 @@ svg {
     opacity: 0;
     position: relative;
     z-index: 10;
-    color: var(--text);
+    color: black;
     background-color: var(--primary);
     transition: 500ms;
     pointer-events: none;
