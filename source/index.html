@@ -4,12 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <script src="Pages/Authentication/static/authentication.js" type="module"></script>
     <link rel="stylesheet" href="assets/styles/root.css">
+    <link rel="stylesheet" href="Pages/Billing/static/billing.css">
+    <link rel="stylesheet" href="Pages/Clients/static/clients.css">
+    <link rel="stylesheet" href="Pages/Authentication/static/authentication.css">
+
+    <script type="module">
+        import loadLogin from "./Pages/Authentication/static/login.js"
+        document.addEventListener("DOMContentLoaded", loadLogin)
+    </script>
+
 </head>
 <body>
 
-    <div id="container"></div>
+    <div id="container">
+    </div>
 
+    <!-- dashboard.js not animating -->
 </body>
 </html>
