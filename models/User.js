@@ -70,7 +70,7 @@ const User = db.define(
                     msg: "Middle name cannot be left blank"
                 },
                 isAlpha: {
-                    msg: "Must not contain a number or a symbol"
+                    msg: "Must not contain a number or a symbol or blank"
                 }
             }
         },
@@ -129,8 +129,7 @@ const User = db.define(
                 }
             }
         },
-
-        
+ 
         age: {
             type: DataTypes.INTEGER,
             allowNull: false,
