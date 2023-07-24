@@ -2,7 +2,7 @@ import { transition } from "../../../helper.js"
 import loadLogin from "../../authentication/static/login.js";
 import { renderBillingSection } from "../../billing/static/billing.js";
 
-export function renderClientSection() {
+export async function renderClientSection() {
             
         const template = `
 
@@ -53,6 +53,9 @@ export function renderClientSection() {
     
     document.getElementById("container").innerHTML += template
 
+    const response = await window.ipcRenderer.invoke("current_user");
+    console.log(`current user is ${response}`);
+    
     window.onclick = event => {
         
         const elementId = event.target.getAttribute("id") 
