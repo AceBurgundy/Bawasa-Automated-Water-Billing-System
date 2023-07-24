@@ -1,6 +1,23 @@
+const UserRelationshipTypes = {
+    Single: "Single",
+    Married: "Married",
+    RatherNotSay: "Rather not say"
+}
+
+const UserTypes = {
+    Admin: "Admin",
+    MeterReader: "Meter reader"
+}
+
+const ConnectionStatusTypes = {
+    Connected: "Connected",
+    DueForDisconnection: "Due for Disconnection", 
+    Disconnected: "Disconnected"
+}
+
 const validations = {
     relationshipOptions: [["Single", "Married", "Rather not say"]],
-    userOptions: [["admin", "meter-reader"]],
+    userOptions: [["Admin", "Meter reader"]],
     connectionStatusOptions: [
         ["Connected", "Due for Disconnection", "Disconnected"],
     ],
@@ -44,4 +61,7 @@ const defaults = {
 module.exports = {
     validations,
     defaults,
+    UserRelationshipTypes,
+    UserTypes,
+    ConnectionStatusTypes
 };
