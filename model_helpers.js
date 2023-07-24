@@ -1,15 +1,15 @@
-const UserRelationshipTypes = {
+const userRelationshipTypes = {
     Single: "Single",
     Married: "Married",
     RatherNotSay: "Rather not say"
 }
 
-const UserTypes = {
+const userTypes = {
     Admin: "Admin",
     MeterReader: "Meter reader"
 }
 
-const ConnectionStatusTypes = {
+const connectionStatusTypes = {
     Connected: "Connected",
     DueForDisconnection: "Due for Disconnection", 
     Disconnected: "Disconnected"
@@ -61,7 +61,7 @@ const defaults = {
 module.exports = {
     validations,
     defaults,
-    UserRelationshipTypes,
-    UserTypes,
-    ConnectionStatusTypes
+    userRelationshipTypes,
+    userTypes,
+    connectionStatusTypes
 };
