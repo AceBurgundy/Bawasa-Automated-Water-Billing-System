@@ -1,4 +1,4 @@
-const { validations } = require("../model_helpers")
+const { validations } = require("../model_helpers.js")
 const { db } = require("../sequelize_init")
 const { DataTypes } = require('sequelize')
 
@@ -166,6 +166,16 @@ const User = db.define(
                 isIn: {
                     args: validations.userOptions,
                     msg: "Invalid user type"
+                }
+            }
+        },
+
+        access_key: {
+            type: DataTypes.STRING(64),
+            allowNull: false,
+            validate: {
+                notNull: {
+                    msg: "Access key is missing"
                 }
             }
         }
