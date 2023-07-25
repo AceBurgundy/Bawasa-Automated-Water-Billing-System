@@ -11,7 +11,7 @@ const userTypes = {
 
 const connectionStatusTypes = {
     Connected: "Connected",
-    DueForDisconnection: "Due for Disconnection", 
+    DueForDisconnection: "Due for Disconnection",
     Disconnected: "Disconnected"
 }
 
@@ -23,45 +23,53 @@ const validations = {
     ],
 };
 
-const defaults = {
-    generateNextAccountNumber: async function () {
-        const lastClient = await Client.findOne({
-            order: [["createdAt", "DESC"]],
-        });
+const generateNextAccountNumber = async function () {
 
-        if (!lastClient) {
-            return "0000-AA";
-        }
+    const lastClient = await Client.findOne({
+        order: [["createdAt", "DESC"]],
+    });
 
-        let nextNumber = "0000";
-        let nextLetter = "AA";
+    if (!lastClient) {
+        return "0000-AA";
+    }
 
-        const lastAccountNumber = lastClient.account_number;
-        const lastNumberPart = parseInt(lastAccountNumber.slice(0, 4), 10);
-        const lastLetterPart = lastAccountNumber.slice(5);
+    let nextNumber = "0000";
+    let nextLetter = "AA";
 
-        if (lastNumberPart === 9999) {
-            nextNumber = "0000";
+    const lastAccountNumber = lastClient.account_number;
+    const lastNumberPart = parseInt(lastAccountNumber.slice(0, 4), 10);
+    const lastLetterPart = lastAccountNumber.slice(5);
 
-            const lastLetterCharCode = lastLetterPart.charCodeAt(1);
+    if (lastNumberPart === 9999) {
+        nextNumber = "0000";
 
-            lastLetterCharCode === 90
-                ? (nextLetter = "AA")
-                : (nextLetter =
-                      "A" + String.fromCharCode(lastLetterCharCode + 1));
-        } else {
-            nextNumber = String("0000" + (lastNumberPart + 1)).slice(-4);
-            nextLetter = lastLetterPart;
-        }
+        const lastLetterCharCode = lastLetterPart.charCodeAt(1);
 
-        return `${nextNumber}-${nextLetter}`;
-    },
-};
+        lastLetterCharCode === 90
+            ? (nextLetter = "AA")
+            : (nextLetter =
+                  "A" + String.fromCharCode(lastLetterCharCode + 1));
+    } else {
+        nextNumber = String("0000" + (lastNumberPart + 1)).slice(-4);
+        nextLetter = lastLetterPart;
+    }
 
-module.exports = {
-    validations,
-    defaults,
-    userRelationshipTypes,
-    userTypes,
-    connectionStatusTypes
-};
+    return `${nextNumber}-${nextLetter}`;
+}
+
+// Export the constants and function based on the environment
+if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
+    module.exports = {
+        validations,
+        generateNextAccountNumber,
+        userRelationshipTypes,
+        userTypes,
+        connectionStatusTypes,
+    };
+} else {
+    window.validations = validations;
+    window.userRelationshipTypes = userRelationshipTypes;
+    window.userTypes = userTypes;
+    window.connectionStatusTypes = connectionStatusTypes;
+    window.generateNextAccountNumber = generateNextAccountNumber;
+}
