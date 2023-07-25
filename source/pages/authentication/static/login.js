@@ -1,8 +1,8 @@
 import { makeToastNotification, transition } from "../../../helper.js";
 import { renderClientSection } from "../../clients/static/clients.js";
 import { loadRegister } from "./register.js"
-
 export default function loadLogin() {
+
     const template = `
     <div id="login" class="page">
     
@@ -76,6 +76,7 @@ export default function loadLogin() {
 
             // loops through each form and increments errors for each error
             formData.forEach((value, key) => {
+
                 if (key === "email") {
                     if (value.trim() === "") {
                         makeToastNotification("Email cannot be empty");

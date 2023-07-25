@@ -1,10 +1,8 @@
 import { makeToastNotification, transition } from "../../../helper.js";
+import "../../../../model_helpers.js";
 import loadLogin from "./login.js";
 
 export function loadRegister() {
-
-    const relationship_status = ["Single", "Married", "Rather not say"];
-    const user_types = ["Admin", "Meter reader"]
 
     const template = `
     
@@ -68,7 +66,7 @@ export function loadRegister() {
                         class="authentication-form__input-box__input"
                         required>
                         <option disabled selected>Relationship Status</option>
-                        ${relationship_status.map((value) => {
+                        ${window.userRelationshipTypes.map((value) => {
                             return `<option value="${value}">${value}</option>`;
                         })}
                     </select>
@@ -97,7 +95,7 @@ export function loadRegister() {
                         class="authentication-form__input-box__input"
                         required>
                         <option disabled selected>User Type</option>
-                        ${user_types.map((value) => {
+                        ${window.userTypes.map((value) => {
                             return `<option value="${value}">${value}</option>`;
                         })}
                     </select>
@@ -195,7 +193,7 @@ export function loadRegister() {
                         );
                         errors++;
                     }
-                    if (!relationship_status.includes(value)) {
+                    if (!window.userRelationshipTypes.includes(value)) {
                         makeToastNotification(
                             "Relationship status not among the choices"
                         );
@@ -239,7 +237,7 @@ export function loadRegister() {
                         makeToastNotification("User type cannot be empty");
                         errors++;
                     }
-                    if (!user_types.includes(value)) {
+                    if (!window.userTypes.includes(value)) {
                         makeToastNotification(
                             "User type not among the choices"
                         );
