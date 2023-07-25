@@ -4,6 +4,7 @@ const session = require("../../../session");
 const { ipcMain } = require("electron");
 
 ipcMain.handle("login", async (event, formData) => {
+    
     const data = {
         status: "error",
         message: [],
@@ -70,7 +71,12 @@ ipcMain.handle("login", async (event, formData) => {
         data.status = "error";
     } else {
         data.message = ["Welcome"];
-        session.login(user.id);
+
+        // updating the users access_key everytime they login
+        user.access_key = await generateAccessKey()
+        await user.save()
+
+        session.login(user.access_key);
     }
 
     return data;
@@ -190,6 +196,11 @@ ipcMain.handle("register", async (event, formData) => {
     if (errors > 0) {
         data.status = "error";
     } else {
+
+        formData.password = await bcrypt.hash(formData.password, 10);
+        formData["access_key"] = await generateAccessKey()
+        
+        User.create(formData);
         data.message = "Welcome";
     }
 
@@ -199,3 +210,10 @@ ipcMain.handle("register", async (event, formData) => {
 ipcMain.handle("current_user", async event => {
     return session.current_user()
 })
+
+async function generateAccessKey() {
+    formData.password = await bcrypt.hash(formData.password, 10);
+    const randomString = crypto.randomBytes(32).toString('hex');
+    const hash = bcrypt.hashSync(randomString, 10);
+    return hash.slice(0, 64);
+}
