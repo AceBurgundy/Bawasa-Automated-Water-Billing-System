@@ -16,52 +16,15 @@ const connectionStatusTypes = {
 }
 
 const validations = {
-    relationshipOptions: [["Single", "Married", "Rather not say"]],
-    userOptions: [["Admin", "Meter reader"]],
-    connectionStatusOptions: [
-        ["Connected", "Due for Disconnection", "Disconnected"],
-    ],
+    relationshipOptions: [Object.values(userRelationshipTypes)],
+    userOptions: [Object.values(userTypes)],
+    connectionStatusOptions: [Object.values(connectionStatusTypes)],
 };
-
-const generateNextAccountNumber = async function () {
-
-    const lastClient = await Client.findOne({
-        order: [["createdAt", "DESC"]],
-    });
-
-    if (!lastClient) {
-        return "0000-AA";
-    }
-
-    let nextNumber = "0000";
-    let nextLetter = "AA";
-
-    const lastAccountNumber = lastClient.account_number;
-    const lastNumberPart = parseInt(lastAccountNumber.slice(0, 4), 10);
-    const lastLetterPart = lastAccountNumber.slice(5);
-
-    if (lastNumberPart === 9999) {
-        nextNumber = "0000";
-
-        const lastLetterCharCode = lastLetterPart.charCodeAt(1);
-
-        lastLetterCharCode === 90
-            ? (nextLetter = "AA")
-            : (nextLetter =
-                  "A" + String.fromCharCode(lastLetterCharCode + 1));
-    } else {
-        nextNumber = String("0000" + (lastNumberPart + 1)).slice(-4);
-        nextLetter = lastLetterPart;
-    }
-
-    return `${nextNumber}-${nextLetter}`;
-}
 
 // Export the constants and function based on the environment
 if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
     module.exports = {
         validations,
-        generateNextAccountNumber,
         userRelationshipTypes,
         userTypes,
         connectionStatusTypes,
@@ -71,5 +34,4 @@ if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
     window.userRelationshipTypes = userRelationshipTypes;
     window.userTypes = userTypes;
     window.connectionStatusTypes = connectionStatusTypes;
-    window.generateNextAccountNumber = generateNextAccountNumber;
 }
