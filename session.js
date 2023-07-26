@@ -1,39 +1,48 @@
-// session.js
-
 const Store = require("electron-store")
 const User = require("./models/User")
-const crypto = require("crypto")
 
-const SESSION_KEY = "user_session";
+const SESSION_KEY = "user_session"
 
 class SessionManager {
 
     constructor() {
-        this.store = new Store();
+        this.store = new Store()
     }
 
-    login(access_key) {
-        this.store.set(SESSION_KEY, access_key);
+    login(accessKey) {
+        this.store.set(SESSION_KEY, accessKey)
     }
 
-    logout() {
-        this.store.delete(SESSION_KEY);
+    logout() {        
+        this.store.clear()
     }
 
     async current_user() {
-        const access_key = this.store.get(SESSION_KEY);
-        if (access_key) {
-            return await User.findOne({
-                where: { 
-                    access_key: access_key
-                }
-            });
+        const accessKey = this.store.get(SESSION_KEY)
+
+        if (!accessKey) {
+            console.log("\n\nAccess key not found\n\n");
+            return null
         }
-        return null;
+
+        try {
+
+            const user = await User.findOne({ where: { accessKey: accessKey } })
+            
+            if (user) {
+                return user.toJSON()
+            } else {
+                return null
+            }
+
+        } catch(error) {
+            console.log(error);
+        }         
+
     }
 
 }
 
 const session = new SessionManager()
 
-module.exports = session;
+module.exports = session
