@@ -1,6 +1,7 @@
-import { makeToastNotification, transition } from "../../../helper.js";
-import "../../../../model_helpers.js";
-import loadLogin from "./login.js";
+import { makeToastNotification, transition } from "../../../helper.js"
+import "../../../../model_helpers.js"
+import "../../input_validations.js"
+import loadLogin from "./login.js"
 
 export function loadRegister() {
 
@@ -18,7 +19,7 @@ export function loadRegister() {
 
                     <input 
                         type="text"
-                        name="firstname"
+                        name="firstName"
                         id="register-form-first-name" 
                         class="authentication-form__input-box__input"
                         required
@@ -28,7 +29,17 @@ export function loadRegister() {
 
                     <input 
                         type="text"
-                        name="lastname"
+                        name="middleName"
+                        id="register-form-middle-name" 
+                        class="authentication-form__input-box__input"
+                        required
+                        placeholder="Middle name"
+                        value="Panganoron"
+                        maxlength="255">
+
+                    <input 
+                        type="text"
+                        name="lastName"
                         id="register-form-last-name" 
                         class="authentication-form__input-box__input"
                         required
@@ -36,6 +47,57 @@ export function loadRegister() {
                         value="Sabalo"
                         maxlength="255">
 
+                    <input 
+                        type="date"
+                        name="birthDate"
+                        id="register-form-birthdate" 
+                        class="authentication-form__input-box__input"
+                        required
+                        value="2001-08-20"
+                        placeholder="Birthdate">
+
+                    <input 
+                        type="number"
+                        name="age"
+                        id="register-form-age" 
+                        class="authentication-form__input-box__input"
+                        required
+                        value="18"
+                        placeholder="Age">
+                        
+                </div>
+
+                <div class="authentication-form__inputs-child">
+
+                    <select 
+                        name="relationshipStatus" 
+                        id="register-form-relationship-status"
+                        class="authentication-form__input-box__input"
+                        required>
+                        <option disabled selected>Relationship Status</option>
+                        ${Object.values(window.userRelationshipTypes).map((value) => {
+                            return (
+                                value === "Single" ?
+                                `<option value="${value}" selected>${value}</option>` :
+                                `<option value="${value}">${value}</option>`
+                            )
+                        })}
+                    </select>
+
+                    <div class="authentication-form__input-box__input number">
+                        <div id="country-code">
+                            +63
+                        </div>
+                        <input 
+                            type="number" 
+                            name="phoneNumber"
+                            id="register-form-phone-number"
+                            required
+                            placeholder="12-345-6789"
+                            value="123456789"
+                            maxlength="9">
+                    </div>
+                    
                     <input 
                         type="email"
                         name="email"
@@ -55,39 +117,6 @@ export function loadRegister() {
                         placeholder="Password"
                         value="Adrian2001."
                         maxlength="255">
-                        
-                </div>
-
-                <div class="authentication-form__inputs-child">
-
-                    <select 
-                        name="relationshipStatus" 
-                        id="register-form-relationship-status"
-                        class="authentication-form__input-box__input"
-                        required>
-                        <option disabled selected>Relationship Status</option>
-                        ${window.userRelationshipTypes.map((value) => {
-                            return `<option value="${value}">${value}</option>`;
-                        })}
-                    </select>
-                    
-                    <input 
-                        type="date"
-                        name="birthdate"
-                        id="register-form-birthdate" 
-                        class="authentication-form__input-box__input"
-                        required
-                        placeholder="Birthdate"
-                    >
-
-                    <input 
-                        type="number"
-                        name="age"
-                        id="register-form-age" 
-                        class="authentication-form__input-box__input"
-                        required
-                        value="18"
-                        placeholder="Age">
 
                     <select 
                         name="userType" 
@@ -95,8 +124,12 @@ export function loadRegister() {
                         class="authentication-form__input-box__input"
                         required>
                         <option disabled selected>User Type</option>
-                        ${window.userTypes.map((value) => {
-                            return `<option value="${value}">${value}</option>`;
+                        ${Object.values(window.userTypes).map((value) => {
+                            return (
+                                value === "Admin" ?
+                                `<option value="${value}" selected>${value}</option>` :
+                                `<option value="${value}">${value}</option>`
+                            )
                         })}
                     </select>
 
@@ -115,151 +148,114 @@ export function loadRegister() {
         <p id="to-login-prompt" class="bottom-prompt">
             Already Have an Account? Login instead
         </p>
-    `;
+    `
 
-    document.getElementById("container").innerHTML += template;
+    document.getElementById("container").innerHTML += template
 
     window.onclick = async (event) => {
-        const elementId = event.target.getAttribute("id");
+
+        const elementId = event.target.getAttribute("id")
+        console.log(elementId);
 
         if (elementId === "to-login-prompt") {
-            transition(loadLogin);
+            transition(loadLogin)
         }
 
         if (elementId === "register-button") {
-            event.preventDefault();
 
-            const formData = new FormData(
-                document.getElementById("register-form")
-            );
+            event.preventDefault()
 
-            let errors = 0;
+            const formData = new FormData(document.getElementById("register-form"))
+
+            const longestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => b.length > a.length ? b : a).length
+            const shortestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => b.length < a.length ? b : a).length
+            const longestUserOption = Object.values(window.userTypes).reduce((a, b) => b.length > a.length ? b : a).length
+            const shortestUserOption = Object.values(window.userTypes).reduce((a, b) => b.length < a.length ? b : a).length
+
+            let errors = 0
+
+            const validationMethods = {
+                
+                firstName: [
+                    [window.isEmpty, "First name"],
+                    [window.isOverThan, 2, 255, "First name"]
+                ],
+
+                middleName: [
+                    [window.isEmpty, "Middle name"],
+                    [window.isOverThan, 2, 255, "Middle name"]
+                ],
+
+                lastName: [
+                    [window.isEmpty, "Last name"],
+                    [window.isOverThan, 2, 255, "Last name"]
+                ],
+                
+                birthDate: [
+                    [window.isEmpty, "Birthdate"],
+                    [window.isBirthDate]
+                ],
+
+                age: [
+                    [window.isEmpty, "Age"],
+                    [window.isOverThan, 15, 70, "Age"]
+                ],
+
+                relationshipStatus: [
+                    [window.isEmpty, "Relationship Status"],
+                    [window.isOverThan, shortestRelationshipOption, longestRelationshipOption, "Relationship Status"],
+                    [window.notIn, [...Object.values(window.userRelationshipTypes)], "Relationship Status"]
+                ],
+
+                phoneNumber: [
+                    [window.isEmpty, "Phone Number"],
+                    [window.isValidPhoneNumber, "Phone Number"]
+                ],
+
+                email: [
+                    [window.isEmpty, "Email"],
+                    [window.isEmail, "Email"],
+                    [window.isOverThan, 10, 255, "Email"]
+                ],
+
+                password: [
+                    [window.isEmpty, "Password"],
+                    [window.isOverThan, 10, 255, "Password"]
+                ],
+
+                userType: [
+                    [window.isEmpty, "User Type"],
+                    [window.isOverThan, shortestUserOption, longestUserOption, "User Type"],
+                    [window.notIn, [...Object.values(window.userTypes)], "User Type"]
+                ]
+            }
 
             formData.forEach((dirtyValue, key) => {
-                const value = dirtyValue.trim();
 
-                if (key === "firstname") {
-                    if (value === "") {
-                        makeToastNotification("First name cannot be empty");
-                        errors++;
-                    }
-                    if (value.length > 255) {
-                        makeToastNotification("Cannot be greater than 255");
-                        errors++;
-                    }
-                }
+                const value = dirtyValue.trim()
 
-                if (key === "lastname") {
-                    if (value === "") {
-                        makeToastNotification("Last name cannot be empty");
-                        errors++;
-                    }
-                    if (value.length > 255) {
-                        makeToastNotification("Cannot be greater than 255");
-                        errors++;
-                    }
-                }
+                if (!validationMethods.hasOwnProperty(key)) {
+                    console.error(`Validation methods for key '${key}' not found.`)
+                    return
+                }    
+                
+                validationMethods[key].forEach(([validationMethod, ...args]) => {
+                    const [validationErrors, validationMessage] = validationMethod(value, ...args)
+                    errors += validationErrors
 
-                if (key === "email") {
-                    if (value === "") {
-                        makeToastNotification("Email cannot be empty");
-                        errors++;
-                    }
-                    if (!value.includes("@")) {
-                        makeToastNotification("Missing '@'");
-                        errors++;
-                    }
-                    if (value.length > 255) {
-                        makeToastNotification("Cannot be greater than 255");
-                        errors++;
-                    }
-                }
-
-                if (key === "password") {
-                    if (value === "") {
-                        makeToastNotification("Password cannot be empty");
-                        errors++;
-                    }
-                    if (value.length > 255) {
-                        makeToastNotification("Cannot be greater than 255");
-                        errors++;
-                    }
-                }
-
-                if (key === "relationshipStatus") {
-                    if (value === "") {
-                        makeToastNotification(
-                            "Relationship status cannot be empty"
-                        );
-                        errors++;
-                    }
-                    if (!window.userRelationshipTypes.includes(value)) {
-                        makeToastNotification(
-                            "Relationship status not among the choices"
-                        );
-                        errors++;
-                    }
-                }
-
-                if (key === "birthdate") {
-
-                    if (value === "") {
-                        makeToastNotification("Birthdate cannot be empty");
-                    }
-
-                    const dateRegex = /^(0?[1-9]|1[0-2])\/(0?[1-9]|[1-2]\d|3[0-1])\/\d{4}$/;
-                    if (!value.match(dateRegex)) {
-                        makeToastNotification("Invalid date format. Please use mm/dd/yyyy");
-                        errors++;
-                    }
-
-                    const enteredDate = new Date(value);
-                    if (isNaN(enteredDate.getTime())) {
-                        makeToastNotification("Please enter a valid date");
-                        errors++;
-                    }
-
-                }
-
-                if (key === "age") {
-                    if (value === "") {
-                        makeToastNotification("Age cannot be empty");
-                        errors++;
-                    }
-                    if (value < 15 && value > 70) {
-                        makeToastNotification("Age limit is 70");
-                        errors++;
-                    }
-                }
-
-                if (key === "userType") {
-                    if (value === "") {
-                        makeToastNotification("User type cannot be empty");
-                        errors++;
-                    }
-                    if (!window.userTypes.includes(value)) {
-                        makeToastNotification(
-                            "User type not among the choices"
-                        );
-                        errors++;
-                    }
-                }
-            });
+                    validationMessage.length > 0 && validationMessage.forEach((message) => makeToastNotification(message))
+                })
+            })
 
             if (errors === 0) {
-                const response = await window.ipcRenderer.invoke(
-                    "register",
-                    Object.fromEntries(formData.entries())
-                );
+                const response = await window.ipcRenderer.invoke("register", Object.fromEntries(formData.entries()));
 
                 if (response.status === "success") {
                     transition(loadLogin);
                 } else {
-                    response.message.forEach((message) => {
-                        makeToastNotification(message);
-                    });
+                    response.message.forEach(message => { makeToastNotification(message) })
                 }
             }
         }
-    };
+    }
 }
