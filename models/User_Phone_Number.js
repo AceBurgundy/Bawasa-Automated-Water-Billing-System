@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize')
 const { db } = require('../sequelize_init')
+const { DataTypes } = require('sequelize')
 const User = require('./User')
 
 const UserPhoneNumber = db.define(
@@ -13,7 +13,7 @@ const UserPhoneNumber = db.define(
             autoIncrement: true
         },
 
-        user_id: {
+        userId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
@@ -23,7 +23,7 @@ const UserPhoneNumber = db.define(
             }
         },
 
-        phone_number: {
+        phoneNumber: {
             type: DataTypes.STRING(20),
             allowNull: false,
             validate: {
@@ -42,10 +42,10 @@ const UserPhoneNumber = db.define(
 )
 
 UserPhoneNumber.belongsTo(User, {
-    foreignKey: 'user_id',
+    foreignKey: 'userId',
 })
 User.hasMany(UserPhoneNumber, {
-    foreignKey: 'user_id',
+    foreignKey: 'userId',
 })
 
 UserPhoneNumber.sync()

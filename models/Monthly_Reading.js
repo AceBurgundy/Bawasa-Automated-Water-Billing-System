@@ -1,5 +1,5 @@
-const { DataTypes } = require("sequelize")
 const { db } = require("../sequelize_init")
+const { DataTypes } = require("sequelize")
 const Client = require("./Client")
 const User = require("./User")
 
@@ -14,7 +14,7 @@ const Monthly_Reading = db.define(
             autoIncrement: true,
         },
 
-        client_id: {
+        clientId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
@@ -28,7 +28,7 @@ const Monthly_Reading = db.define(
             }
         },
 
-        meter_reader_id: {
+        meterReaderId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {

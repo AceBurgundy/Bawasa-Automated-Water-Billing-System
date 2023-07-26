@@ -13,7 +13,7 @@ const Client_Address = db.define(
             autoIncrement: true,
         },
 
-        client_id: {
+        clientId: {
             type: DataTypes.INTEGER,
             allowNull: false,
         },
@@ -89,7 +89,7 @@ const Client_Address = db.define(
             }
         },
 
-        postal_code: {
+        postalCode: {
             type: DataTypes.STRING(10),
             allowNull: false,
             validate: {
@@ -124,8 +124,8 @@ const Client_Address = db.define(
     }
 )
 
-Client.hasMany(Client_Address, { foreignKey: "client_id" })
-Client_Address.belongsTo(Client, { foreignKey: "client_id" })
+Client.hasMany(Client_Address, { foreignKey: "clientId" })
+Client_Address.belongsTo(Client, { foreignKey: "clientId" })
 
 Client_Address.sync()
 

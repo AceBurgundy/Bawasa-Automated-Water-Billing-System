@@ -13,7 +13,7 @@ const Client_Bill = db.define(
             autoIncrement: true
         },
 
-        client_id: {
+        clientId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
@@ -26,7 +26,7 @@ const Client_Bill = db.define(
             }
         },
 
-        previous_reading: {
+        previousReading: {
             type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
@@ -39,7 +39,7 @@ const Client_Bill = db.define(
             }
         },
 
-        current_reading: {
+        currentReading: {
             type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
@@ -65,7 +65,7 @@ const Client_Bill = db.define(
             }
         },
 
-        bill_amount: {
+        billAmount: {
             type: DataTypes.DECIMAL,
             allowNull: false,
             validate: {
@@ -78,7 +78,7 @@ const Client_Bill = db.define(
             }
         },
 
-        payment_status: {
+        paymentStatus: {
             type: DataTypes.STRING(50),
             defaultValue: "unpaid",
             validate: {
@@ -89,7 +89,7 @@ const Client_Bill = db.define(
             }
         },
 
-        payment_amount: {
+        paymentAmount: {
             type: DataTypes.DECIMAL,
             validate: {
                 isDecimal: {
@@ -98,7 +98,7 @@ const Client_Bill = db.define(
             }
         },
 
-        remaining_balance: {
+        remainingBalance: {
             type: DataTypes.DECIMAL,
             validate: {
                 isDecimal: {
@@ -107,7 +107,7 @@ const Client_Bill = db.define(
             }
         },
 
-        payment_excess: {
+        paymentExcess: {
             type: DataTypes.DECIMAL,
             validate: {
                 isDecimal: {
@@ -116,7 +116,7 @@ const Client_Bill = db.define(
             }
         },
 
-        payment_date: {
+        paymentDate: {
             type: DataTypes.DATE,
             validate: {
                 isDate: {
@@ -125,7 +125,7 @@ const Client_Bill = db.define(
             }
         },
 
-        disconnection_date: {
+        disconnectionDate: {
             type: DataTypes.DATE,
             validate: {
                 isDate: {
@@ -136,8 +136,8 @@ const Client_Bill = db.define(
     }
 )
 
-Client_Bill.belongsTo(Client, { foreignKey: "client_id" })
-Client.hasMany(Client_Bill, { foreignKey: "client_id" })
+Client_Bill.belongsTo(Client, { foreignKey: "clientId" })
+Client.hasMany(Client_Bill, { foreignKey: "clientId" })
 
 Client_Bill.sync()
 

@@ -1,6 +1,6 @@
 const validations = require("../model_helpers")
-const { DataTypes } = require('sequelize')
 const { db } = require("../sequelize_init")
+const { DataTypes } = require('sequelize')
 const Client = require("./Client")
 
 const Client_Connection_Status = db.define(
@@ -13,7 +13,7 @@ const Client_Connection_Status = db.define(
             autoIncrement: true
         },
 
-        client_id: {
+        clientId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
@@ -29,7 +29,7 @@ const Client_Connection_Status = db.define(
             }
         },
 
-        connection_status: {
+        connectionStatus: {
             type: DataTypes.STRING(30),
             allowNull: false,
             validate: {
@@ -48,8 +48,8 @@ const Client_Connection_Status = db.define(
     }
 )
 
-Client_Connection_Status.belongsTo(Client, { foreignKey: "client_id" })
-Client.hasMany(Client_Connection_Status, { foreignKey: "client_id" })
+Client_Connection_Status.belongsTo(Client, { foreignKey: "clientId" })
+Client.hasMany(Client_Connection_Status, { foreignKey: "clientId" })
 
 Client_Connection_Status.sync()
 

@@ -1,6 +1,40 @@
-const { defaults, validations } = require("../model_helpers")
+const { validations } = require("../model_helpers")
 const { db } = require("../sequelize_init")
 const { DataTypes } = require("sequelize")
+
+const generateNextAccountNumber = async function () {
+
+    const lastClient = await Client.findOne({
+        order: [["createdAt", "DESC"]],
+    });
+
+    if (!lastClient) {
+        return "0000-AA";
+    }
+
+    let nextNumber = "0000";
+    let nextLetter = "AA";
+
+    const lastAccountNumber = lastClient.account_number;
+    const lastNumberPart = parseInt(lastAccountNumber.slice(0, 4), 10);
+    const lastLetterPart = lastAccountNumber.slice(5);
+
+    if (lastNumberPart === 9999) {
+        nextNumber = "0000";
+
+        const lastLetterCharCode = lastLetterPart.charCodeAt(1);
+
+        lastLetterCharCode === 90
+            ? (nextLetter = "AA")
+            : (nextLetter =
+                  "A" + String.fromCharCode(lastLetterCharCode + 1));
+    } else {
+        nextNumber = String("0000" + (lastNumberPart + 1)).slice(-4);
+        nextLetter = lastLetterPart;
+    }
+
+    return `${nextNumber}-${nextLetter}`;
+}
 
 const Client = db.define(
     "Client",
@@ -13,12 +47,12 @@ const Client = db.define(
             autoIncrement: true
         },
 
-        account_number: {
+        accountNumber: {
             type: DataTypes.STRING(7),
-            defaultValue: defaults.generateNextAccountNumber
+            defaultValue: generateNextAccountNumber
         },
 
-        first_name: {
+        firstName: {
             type: DataTypes.STRING(255),
             allowNull: false,
             validate: {
@@ -34,7 +68,7 @@ const Client = db.define(
             }
         },
 
-        middle_name: {
+        middleName: {
             type: DataTypes.STRING(255),
             allowNull: false,
             validate: {
@@ -50,7 +84,7 @@ const Client = db.define(
             }
         },
 
-        last_name: {
+        lastName: {
             type: DataTypes.STRING(255),
             allowNull: false,
             validate: {
@@ -66,7 +100,7 @@ const Client = db.define(
             }
         },
 
-        birthdate: {
+        birthDate: {
             type: DataTypes.DATEONLY,
             allowNull: false,
             validate: {
@@ -96,7 +130,7 @@ const Client = db.define(
             type: DataTypes.STRING(10),
         },
 
-        relationship_status: {
+        relationshipStatus: {
             type: DataTypes.STRING(35),
             allowNull: false,
             validate: {
@@ -130,12 +164,12 @@ const Client = db.define(
             }
         },
 
-        profile_picture: {
+        profilePicture: {
             type: DataTypes.STRING(255),
             defaultValue: "user.webp"
         },
 
-        house_picture: {
+        housePicture: {
             type: DataTypes.STRING(255),
             defaultValue: "blank_image.webp"
         },
@@ -156,7 +190,7 @@ const Client = db.define(
             }
         },
 
-        meter_number: {
+        meterNumber: {
             type: DataTypes.STRING(25),
             allowNull: false,
             validate: {

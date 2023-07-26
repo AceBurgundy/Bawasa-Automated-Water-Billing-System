@@ -1,6 +1,6 @@
 const Client_Bill = require("./Client_Bill")
-const { DataTypes } = require("sequelize")
 const { db } = require("../sequelize_init")
+const { DataTypes } = require("sequelize")
 
 const Partial_Payment = db.define(
     "Partial_Payment", 
@@ -12,7 +12,7 @@ const Partial_Payment = db.define(
             autoIncrement: true
         },
 
-        client_bill_id: {
+        clientBillId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
@@ -22,12 +22,12 @@ const Partial_Payment = db.define(
             }
         },
 
-        payment_date: {
+        paymentDate: {
             type: DataTypes.DATE,
             defaultValue: DataTypes.NOW
         },
 
-        amount_paid: {
+        amountPaid: {
             type: DataTypes.DECIMAL,
             allowNull: false,
             validate: {
@@ -42,8 +42,8 @@ const Partial_Payment = db.define(
     }
 )
 
-Partial_Payment.belongsTo(Client_Bill, { foreignKey: "client_bill_id" })
-Client_Bill.hasMany(Partial_Payment, { foreignKey: "client_bill_id" })
+Partial_Payment.belongsTo(Client_Bill, { foreignKey: "clientBillId" })
+Client_Bill.hasMany(Partial_Payment, { foreignKey: "clientBillId" })
 
 Partial_Payment.sync()
 

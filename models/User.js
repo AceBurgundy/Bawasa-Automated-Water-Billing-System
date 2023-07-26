@@ -13,6 +13,106 @@ const User = db.define(
             autoIncrement: true
         },
 
+        firstName: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+            validate: {
+                notNull: {
+                    msg: "First name is required"
+                },
+                notEmpty: {
+                    msg: "First cannot be left blank"
+                },
+                isAlpha: {
+                    msg: "Must not contain a number or a symbol"
+                }
+            }
+        },
+
+        middleName: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+            validate: {
+                notNull: {
+                    msg: "Middle name is required"
+                },
+                notEmpty: {
+                    msg: "Middle name cannot be left blank"
+                },
+                isAlpha: {
+                    msg: "Must not contain a number or a symbol or blank"
+                }
+            }
+        },
+
+        lastName: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+            validate: {
+                notNull: {
+                    msg: "Last name is required"
+                },
+                notEmpty: {
+                    msg: "Last name cannot be left blank"
+                },
+                isAlpha: {
+                    msg: "Must not contain a number or a symbol"
+                }
+            }
+        },
+
+        extension: {
+            type: DataTypes.STRING(10),
+            validate: {
+                isAlpha: {
+                    msg: "Must not contain a number or a symbol"
+                }
+            }
+        },
+
+        birthDate: {
+            type: DataTypes.DATEONLY,
+            allowNull: false,
+            validate: {
+                notNull: {
+                    msg: "Birthdate cannot be left blank"
+                },
+                isDate: {
+                    msg: "Only date input is allowed"
+                }
+            }
+        },
+ 
+        age: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            validate: {
+                notNull: {
+                    msg: "Age cannot be left blank"
+                },
+                isNumeric: {
+                    msg: "Age must be a number"
+                }
+            }
+        },
+
+        relationshipStatus: {
+            type: DataTypes.STRING(35),
+            allowNull: false,
+            validate: {
+                notNull: {
+                    msg: "Relationship status is required"
+                },
+                notEmpty: {
+                    msg: "Relationship status cannot be left blank"
+                },
+                isIn: {
+                    args: validations.relationshipOptions,
+                    msg: "Invalid relationship status"
+                }
+            }
+        },
+        
         email: {
             type: DataTypes.STRING(255),
             allowNull: false,
@@ -43,117 +143,17 @@ const User = db.define(
             }
         },
 
-        first_name: {
-            type: DataTypes.STRING(255),
-            allowNull: false,
-            validate: {
-                notNull: {
-                    msg: "First name is required"
-                },
-                notEmpty: {
-                    msg: "First cannot be left blank"
-                },
-                isAlpha: {
-                    msg: "Must not contain a number or a symbol"
-                }
-            }
-        },
-
-        middle_name: {
-            type: DataTypes.STRING(255),
-            allowNull: false,
-            validate: {
-                notNull: {
-                    msg: "Middle name is required"
-                },
-                notEmpty: {
-                    msg: "Middle name cannot be left blank"
-                },
-                isAlpha: {
-                    msg: "Must not contain a number or a symbol or blank"
-                }
-            }
-        },
-
-        last_name: {
-            type: DataTypes.STRING(255),
-            allowNull: false,
-            validate: {
-                notNull: {
-                    msg: "Last name is required"
-                },
-                notEmpty: {
-                    msg: "Last name cannot be left blank"
-                },
-                isAlpha: {
-                    msg: "Must not contain a number or a symbol"
-                }
-            }
-        },
-
-        extension: {
-            type: DataTypes.STRING(10),
-            validate: {
-                isAlpha: {
-                    msg: "Must not contain a number or a symbol"
-                }
-            }
-        },
-
-        relationship_status: {
-            type: DataTypes.STRING(35),
-            allowNull: false,
-            validate: {
-                notNull: {
-                    msg: "Relationship status is required"
-                },
-                notEmpty: {
-                    msg: "Relationship status cannot be left blank"
-                },
-                isIn: {
-                    args: validations.relationshipOptions,
-                    msg: "Invalid relationship status"
-                }
-            }
-        },
-
-        birthdate: {
-            type: DataTypes.DATEONLY,
-            allowNull: false,
-            validate: {
-                notNull: {
-                    msg: "Birthdate cannot be left blank"
-                },
-                isDate: {
-                    msg: "Only date input is allowed"
-                }
-            }
-        },
- 
-        age: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            validate: {
-                notNull: {
-                    msg: "Age cannot be left blank"
-                },
-                isNumeric: {
-                    msg: "Age must be a number"
-                }
-            }
-        },
-
-        profile_picture: {
+        profilePicture: {
             type: DataTypes.STRING(255),
             defaultValue: "user.webp"
         },
 
-        night_mode: {
+        nightMode: {
             type: DataTypes.BOOLEAN,
             defaultValue: false
         },
 
-        user_type: {
+        userType: {
             type: DataTypes.STRING(25),
             allowNull: false,
             validate: {
@@ -170,7 +170,7 @@ const User = db.define(
             }
         },
 
-        access_key: {
+        accessKey: {
             type: DataTypes.STRING(64),
             allowNull: false,
             validate: {
