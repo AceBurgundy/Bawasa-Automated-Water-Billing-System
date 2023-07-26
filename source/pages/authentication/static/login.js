@@ -1,9 +1,12 @@
 import { makeToastNotification, transition } from "../../../helper.js";
 import { renderClientSection } from "../../clients/static/clients.js";
 import { loadRegister } from "./register.js"
+import "../../input_validations.js"
+
 export default function loadLogin() {
 
     const template = `
+
     <div id="login" class="page">
     
         <form data-action="" id="login-form" class="authentication-form">
@@ -18,7 +21,7 @@ export default function loadLogin() {
                     class="authentication-form__input-box__input"
                     required
                     placeholder="Email"
-                    value="Samadriansabalo99@gmail.com"
+                    value="samadriansabalo99@gmail.com"
                     maxlength="255">
 
                 <input 
@@ -68,54 +71,49 @@ export default function loadLogin() {
 
             event.preventDefault();
 
-            const formData = new FormData(
-                document.getElementById("login-form")
-            );
+            const formData = new FormData(document.getElementById("login-form"));
 
             let errors = 0;
 
-            // loops through each form and increments errors for each error
-            formData.forEach((value, key) => {
+            const validationMethods = {
 
-                if (key === "email") {
-                    if (value.trim() === "") {
-                        makeToastNotification("Email cannot be empty");
-                        errors++;
-                    }
-                    if (!value.trim().includes("@")) {
-                        makeToastNotification("Missing '@'");
-                        errors++;
-                    }
-                    if (value.trim().length > 255) {
-                        makeToastNotification("Cannot be greater than 255");
-                        errors++;
-                    }
-                }
+                email: [
+                    [window.isEmpty, "Email"],
+                    [window.isEmail, "Email"],
+                    [window.isOverThan, 10, 255, "Email"]
+                ],
 
-                if (key === "password") {
-                    if (value.trim() === "") {
-                        makeToastNotification("Password cannot be empty");
-                        errors++;
-                    }
-                    if (value.trim().length > 255) {
-                        makeToastNotification("Cannot be greater than 255");
-                        errors++;
-                    }
-                }
-            });
+                password: [
+                    [window.isEmpty, "Password"],
+                    [window.isOverThan, 10, 255, "Password"]
+                ]
+                
+            }
+
+            formData.forEach((dirtyValue, key) => {
+
+                const value = dirtyValue.trim()
+
+                if (!validationMethods.hasOwnProperty(key)) {
+                    console.error(`Validation methods for key '${key}' not found.`)
+                    return
+                }    
+                
+                validationMethods[key].forEach(([validationMethod, ...args]) => {
+                    const [validationErrors, validationMessage] = validationMethod(value, ...args)
+                    errors += validationErrors
+                    validationMessage.length > 0 && validationMessage.forEach((message) => makeToastNotification(message))
+                })
+
+            })
 
             if (errors === 0) {
-                const response = await window.ipcRenderer.invoke(
-                    "login",
-                    Object.fromEntries(formData.entries())
-                );
+                const response = await window.ipcRenderer.invoke("login", Object.fromEntries(formData.entries()));
 
                 if (response.status === "success") {
                     transition(renderClientSection);
                 } else {
-                    response.message.forEach(message => {
-                        makeToastNotification(message)
-                    })
+                    response.message.forEach(message => { makeToastNotification(message) })
                 }
             }
         }
