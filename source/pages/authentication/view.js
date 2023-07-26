@@ -1,219 +1,305 @@
-const { userRelationshipTypes, userTypes } = require("../../../model_helpers");
-const User = require("../../../models/User");
-const session = require("../../../session");
-const { ipcMain } = require("electron");
+const { userRelationshipTypes, userTypes } = require("../../../model_helpers")
+const UserPhoneNumber = require("../../../models/User_Phone_Number")
+const User = require("../../../models/User")
+const session = require("../../../session")
+const { ipcMain } = require("electron")
+const bcrypt = require("bcrypt")
+const crypto = require("crypto")
+
+const {
+    isEmpty,
+    isOverThan,
+    isEmail,
+    notIn,
+    isBirthDate,
+    isValidPhoneNumber
+} = require("../input_validations")
 
 ipcMain.handle("login", async (event, formData) => {
     
     const data = {
-        status: "error",
+        status: "success",
         message: [],
-    };
-
-    const fields = [
-        {
-            name: "email",
-            maxLength: 255,
-            errorMessage: "Email cannot be empty",
-        },
-        {
-            name: "password",
-            maxLength: 255,
-            errorMessage: "Password cannot be empty",
-        },
-    ];
-
-    let errors = 0;
-
-    for (const field of fields) {
-        const value = formData[field.name].trim();
-
-        if (value === "") {
-            data.message.push(field.errorMessage);
-            errors++;
-        } else if (field.name === "email" && !value.includes("@")) {
-            data.message.push("Missing '@'");
-            errors++;
-        } else if (value.length > field.maxLength) {
-            data.message.push(
-                `${field.name} cannot be greater than ${field.maxLength}`
-            );
-            errors++;
-        }
     }
 
-    let user = null;
+    const fields = {
+        email: "Email",
+        password: "Password"
+    }
+
+    const keysArray = Object.keys(formData)
+
+    const missingElements = Object.keys(fields).filter((field) => !keysArray.includes(field))
+
+    if (missingElements.length > 0) {
+        data.status = "error"
+        data.message = [`Missing elements: ${missingElements.map(field => fields[field]).join(", ")}`]
+        return data
+    }
+    
+    let errors = 0
+
+    const validationMethods = {
+
+        email: [
+            [isEmpty, "Email"],
+            [isEmail, "Email"],
+            [isOverThan, 10, 255, "Email"]
+        ],
+
+        password: [
+            [isEmpty, "Password"],
+            [isOverThan, 10, 255, "Password"]
+        ]
+
+    }
+
+    for (const [key, dirtyValue] of Object.entries(formData)) {
+
+        const value = dirtyValue.trim()
+
+        if (!validationMethods.hasOwnProperty(key)) {
+            console.error(`Validation methods for key '${key}' not found.`)
+            return
+        }    
+        
+        validationMethods[key].forEach(([validationMethod, ...args]) => {
+            const [validationErrors, validationMessage] = validationMethod(value, ...args)
+            errors += validationErrors
+            validationMessage.length > 0 && [...data.message, ...validationMessage]
+        })
+
+    }
 
     try {
-        user = User.findOne({
-            where: {
-                email: formData.email,
-            },
-        });
-    } catch (error) {
-        console.log(error.message);
-    }
 
-    if (!user) {
-        data.message.push(`User with email ${formData.email} not found`);
-        errors++;
-    } else {
-        if (user.password !== formData.password) {
-            data.message.push("Password does not match");
-            errors++;
+        const user = await User.findOne({ where: { email: formData.email } })
+    
+        const userJSON = user ? user.toJSON() : null
+        
+        if (userJSON) {
+
+            bcrypt
+                .compare(formData.password, userJSON.password)
+                .then((result) => {
+                    if (!result) {
+                        data.status = "error"
+                        data.message.push("Password does not match!")
+                        return data
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error comparing passwords:", error)
+                })
+
+            const newAccesskey = await generateAccessKey()
+            user.accessKey = newAccesskey
+
+            await user.save()
+
+            session.login(newAccesskey)
+
+        } else {
+            console.error("User is null")
         }
+        
+    } catch (error) {
+        console.error(error.message)
+    }
+        
+    if (errors > 0) {
+        data.status = "error"
     }
 
-    if (errors === 2) {
-        data.status = "error";
-        data.message = ["Missing email and password"];
-    } else if (errors > 0) {
-        data.status = "error";
-    } else {
-        data.message = ["Welcome"];
-
-        // updating the users access_key everytime they login
-        user.access_key = await generateAccessKey()
-        await user.save()
-
-        session.login(user.access_key);
+    if (errors === 0) {
+        data.message = ["Welcome"]
     }
 
-    return data;
-});
+    return data
+})
 
 ipcMain.handle("register", async (event, formData) => {
+    
     const data = {
         status: "success",
         message: [],
-    };
-
-    const fields = [
-        {
-            name: "firstname",
-            maxLength: 255,
-            errorMessage: "First name cannot be empty",
-        },
-        {
-            name: "lastname",
-            maxLength: 255,
-            errorMessage: "Last name cannot be empty",
-        },
-        {
-            name: "email",
-            maxLength: 255,
-            errorMessage: "Email cannot be empty",
-        },
-        {
-            name: "password",
-            maxLength: 255,
-            errorMessage: "Password cannot be empty",
-        },
-        {
-            name: "relationshipStatus",
-            maxLength: 255,
-            errorMessage: "Relationship status cannot be empty",
-        },
-        { name: "birthdate", errorMessage: "Birthdate cannot be empty" },
-        { name: "age", errorMessage: "Age cannot be empty" },
-        {
-            name: "userType",
-            maxLength: 255,
-            errorMessage: "User type cannot be empty",
-        },
-    ];
-
-    let errors = 0;
-
-    for (const field of fields) {
-        const value = formData[field.name].trim();
-
-        if (value === "") {
-            data.message.push(field.errorMessage);
-            errors++;
-        }
-
-        if (field.hasOwnProperty(maxLength)) {
-            if (value.length > field.maxLength) {
-                data.message.push(`Cannot be greater than ${field.maxLength}`);
-                errors++;
-            }
-        }
     }
 
-    if (
-        formData.email.trim().length > 0 &&
-        !formData.email.trim().includes("@")
-    ) {
-        data.message.push("Missing '@'");
-        errors++;
+    const fields = {
+        firstName: "First name",
+        middleName: "Middle name",
+        lastName: "Last name",
+        birthDate: "Birthdate",
+        age: "Age",
+        relationshipStatus: "Relationship Status",
+        phoneNumber: "Phone Number",
+        email: "Email",
+        password: "Password",
+        userType: "User Type"
     }
 
-    if (!userRelationshipTypes.includes(formData.relationshipStatus.value.trim())) {
-        data.message.push("Relationship status not among the choices");
-        errors++;
+    const keysArray = Object.keys(formData)
+
+    const missingElements = Object.keys(fields).filter((field) => !keysArray.includes(field))
+
+    if (missingElements.length > 0) {
+        data.status = "error"
+        data.message = [`Missing elements: ${missingElements.map(field => fields[field]).join(", ")}`]
+        return data
     }
 
-    const dateRegex = /^(0?[1-9]|1[0-2])\/(0?[1-9]|[1-2]\d|3[0-1])\/\d{4}$/;
-    if (!formData.birthdate.trim().match(dateRegex)) {
-        data.message.push("Invalid date format. Please use mm/dd/yyyy");
-        errors++;
+    let errors = 0
+
+    const longestRelationshipOption = Object.values(userRelationshipTypes).reduce((a, b) => b.length > a.length ? b : a).length
+    const shortestRelationshipOption = Object.values(userRelationshipTypes).reduce((a, b) => b.length < a.length ? b : a).length
+    const longestUserOption = Object.values(userTypes).reduce((a, b) => b.length > a.length ? b : a).length
+    const shortestUserOption = Object.values(userTypes).reduce((a, b) => b.length < a.length ? b : a).length
+
+    const validationMethods = {
+                
+        firstName: [
+            [isEmpty, "First name"],
+            [isOverThan, 2, 255, "First name"]
+        ],
+
+        middleName: [
+            [isEmpty, "Middle name"],
+            [isOverThan, 2, 255, "Middle name"]
+        ],
+
+        lastName: [
+            [isEmpty, "Last name"],
+            [isOverThan, 2, 255, "Last name"]
+        ],
+
+        birthDate: [
+            [isEmpty, "Birthdate"],
+            [isBirthDate]
+        ],
+
+        age: [
+            [isEmpty, "Age"],
+            [isOverThan, 15, 70, "Age"]
+        ],
+
+        relationshipStatus: [
+            [isEmpty, "Relationship Status"],
+            [isOverThan, shortestRelationshipOption, longestRelationshipOption, "Relationship Status"],
+            [notIn, [...Object.values(userRelationshipTypes)], "Relationship Status"]
+        ],
+
+        phoneNumber: [
+            [isEmpty, "Phone Number"],
+            [isValidPhoneNumber, "Phone Number"]
+        ],
+
+        email: [
+            [isEmpty, "Email"],
+            [isEmail, "Email"],
+            [isOverThan, 10, 255, "Email"]
+        ],
+
+        password: [
+            [isEmpty, "Password"],
+            [isOverThan, 10, 255, "Password"]
+        ],
+
+        userType: [
+            [isEmpty, "User Type"],
+            [isOverThan, shortestUserOption, longestUserOption, "User Type"],
+            [notIn, [...Object.values(userTypes)], "User Type"]
+        ]
     }
 
-    const enteredDate = new Date(formData.trim().birthdate);
-    if (isNaN(enteredDate.getTime())) {
-        data.message.push("Please enter a valid date");
-        errors++;
-    }
+    for (const [key, dirtyValue] of Object.entries(formData)) {
 
-    if (formData.age.value.trim() < 15 && formData.age.value.trim() > 70) {
-        data.message.push("Age limit is 70");
-        errors++;
-    }
+        const value = dirtyValue.trim()
 
-    if (!userTypes.includes(value)) {
-        data.message.push("User type not among the choices");
-        errors++;
+        if (!validationMethods.hasOwnProperty(key)) {
+            console.error(`Validation methods for key '${key}' not found.`)
+            return
+        }    
+        
+        validationMethods[key].forEach(([validationMethod, ...args]) => {
+            const [validationErrors, validationMessage] = validationMethod(value, ...args)
+            errors += validationErrors
+            validationMessage.length > 0 && [...data.message, ...validationMessage]
+        })
     }
-
-    let user = null;
 
     try {
-        user = User.findOne({
-            where: {
-                email: formData.email,
-            },
-        });
+        const user = await User.findOne({ where: { email: formData.email } })
+
+        if (user) {
+            data.status = "error"
+            data.message.push(`User ${formData.email} is already registered`)
+            return data
+        }
+
     } catch (error) {
-        console.log(error.message);
+        console.error(`\n\n${[...error.errors.map((err) => err.message)]}\n\n`)
     }
 
-    if (user && user.password === formData.password) {
-        data.message.push(`User is already registered`);
-        errors++;
+    formData.password = await bcrypt.hash(formData.password, 10)
+    formData["accessKey"] = await generateAccessKey()
+
+    try {
+
+        const user = await User.create({
+            email: formData.email,
+            password: formData.password,
+            firstName: formData.firstName,
+            middleName: formData.middleName,
+            lastName: formData.lastName,
+            relationshipStatus: formData.relationshipStatus,
+            birthDate: formData.birthDate, 
+            age: formData.age,
+            userType: formData.userType,
+            accessKey: formData.accessKey
+        })
+
+        if (user) {
+
+            data.message.push("New admin added")
+            await UserPhoneNumber.create({
+                userId: user.id,
+                phoneNumber: formData.phoneNumber
+            })
+        }
+
+    } catch (error) {
+
+        data.status = "error"
+        errors++
+
+        if (error.name === "SequelizeValidationError") {
+            data.message.push(...error.errors.map((err) => err.message));
+        } else {
+            data.message.push(error.message);
+        }
+
+        console.error("Errors:", data.message);
+
     }
 
     if (errors > 0) {
-        data.status = "error";
-    } else {
-
-        formData.password = await bcrypt.hash(formData.password, 10);
-        formData["access_key"] = await generateAccessKey()
-        
-        User.create(formData);
-        data.message = "Welcome";
+        data.status = "error"
+    }
+    
+    if (errors === 0) {
+        data.message = ["Welcome"]
     }
 
-    return data;
-});
+    return data
+
+})
 
 ipcMain.handle("current_user", async event => {
-    return session.current_user()
+    return await session.current_user()
 })
 
 async function generateAccessKey() {
-    formData.password = await bcrypt.hash(formData.password, 10);
-    const randomString = crypto.randomBytes(32).toString('hex');
-    const hash = bcrypt.hashSync(randomString, 10);
-    return hash.slice(0, 64);
+    const randomString = crypto.randomBytes(32).toString('hex')
+    const hash = bcrypt.hashSync(randomString, 10)
+    return hash.slice(0, 64)
 }
