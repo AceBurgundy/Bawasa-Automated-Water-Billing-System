@@ -1,6 +1,7 @@
 const { app, BrowserWindow } = require("electron");
 require("./pages/authentication/view.js");
 const { resolve, join } = require("path");
+
 // const { db } = require("../sequelize_init")
 
 // const Client = require("../models/Client");
@@ -56,6 +57,8 @@ const createWindow = async () => {
             minWidth: 1280,
             height: 720,
             width: 1280,
+            fullscreen: true,
+            autoHideMenuBar: true,
             webPreferences: {
                 contextIsolation: true,
                 nodeIntegration: true,
@@ -65,11 +68,7 @@ const createWindow = async () => {
         });
 
         mainWindow.loadFile(join(__dirname, "index.html"));
-    
-        
-        // const { QueryTypes } = require('sequelize');
-        // const users = await sequelize.query("SELECT * FROM `User`", { type: QueryTypes.SELECT });
-        // console.log(users);
+        mainWindow.webContents.openDevTools();
 
     } catch (error) {
         console.error('Error connecting to the database:', error);
