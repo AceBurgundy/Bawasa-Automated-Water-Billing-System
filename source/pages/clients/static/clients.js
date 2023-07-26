@@ -4,7 +4,9 @@ import { renderBillingSection } from "../../billing/static/billing.js";
 
 export async function renderClientSection() {
             
-        const template = `
+    const user = await window.ipcRenderer.invoke("current_user");
+    
+    const template = `
 
         <section id="section-type-container" class="page">
 
@@ -21,7 +23,7 @@ export async function renderClientSection() {
                     <div class="section-child__top">
                         <div>
                             <img src="assets/images/Logo.png" alt="">
-                            <p class="section-child__top-title">Good morning, Sam</p>
+                            <p class="section-child__top-title">${user ? `Welcome, ${user.firstName}` : `Welcome User`}</p>
                         </div>
                         <img src="assets/images/Logo.png" alt="">
                     </div>
@@ -53,9 +55,6 @@ export async function renderClientSection() {
     
     document.getElementById("container").innerHTML += template
 
-    const response = await window.ipcRenderer.invoke("current_user");
-    console.log(`current user is ${response}`);
-    
     window.onclick = event => {
         
         const elementId = event.target.getAttribute("id") 
