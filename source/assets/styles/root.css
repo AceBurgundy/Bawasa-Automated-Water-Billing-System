@@ -43,6 +43,7 @@ button {
 
 svg {
     fill: black;
+    pointer-events: none;
 }
 
 .button-primary {
