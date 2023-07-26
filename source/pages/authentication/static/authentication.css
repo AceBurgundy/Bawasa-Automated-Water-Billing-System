@@ -14,7 +14,7 @@
 }
 
 #register .authentication-form {
-    width: 70vw;
+    width: 800px;
 }
 
 .authentication-form__title {
@@ -43,6 +43,25 @@
     padding: 0.7rem;
     border-radius: 5px;
     border: 2px solid var(--text);
+    height: 47px;
+}
+
+#country-code {
+    width: 11%;
+    font-size: 0.9rem;
+    border-right: 2px solid var(--text);
+}
+
+#register-form-phone-number {
+    width: 90%;
+    border: none;
+    font-size: 0.9rem;
+    padding-left: 0.6rem;
+}
+
+.authentication-form__input-box__input.number {
+    display: flex;
+    align-items: center;
 }
 
 #forgot-password {
