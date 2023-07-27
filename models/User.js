@@ -61,6 +61,16 @@ const User = db.define(
             }
         },
 
+        fullName: {
+            type: DataTypes.VIRTUAL,
+            get() {
+                return `${this.firstName} ${this.middleName.charAt(0).toUpperCase()}. ${this.lastName}`;
+            },
+            set(value) {
+                throw new Error("Do not try to set the `fullName` value!");
+            }
+        },
+        
         extension: {
             type: DataTypes.STRING(10),
             validate: {

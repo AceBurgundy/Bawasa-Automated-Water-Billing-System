@@ -95,8 +95,18 @@ const Client = db.define(
                     msg: "Last name cannot be left blank"
                 },
                 isAlpha: {
-                    msg: "Last name can only contain letters"
-                }
+                    msg: "Last name can only contain letters",
+                },
+            },
+        },
+
+        fullName: {
+            type: DataTypes.VIRTUAL,
+            get() {
+                return `${this.firstName} ${this.middleName.charAt(0).toUpperCase()}. ${this.lastName}`;
+            },
+            set(value) {
+                throw new Error("Do not try to set the `fullName` value!");
             }
         },
 
