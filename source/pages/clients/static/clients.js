@@ -1,11 +1,33 @@
 import { transition } from "../../../helper.js"
-import loadLogin from "../../authentication/static/login.js";
-import { renderBillingSection } from "../../billing/static/billing.js";
+import loadLogin from "../../authentication/static/login.js"
+import { renderBillingSection } from "../../billing/static/billing.js"
 
 export async function renderClientSection() {
             
-    const user = await window.ipcRenderer.invoke("current_user");
-    
+    const user = await window.ipcRenderer.invoke("current_user")
+    let clients = null
+    let responseMessage = null
+
+    async function fetchClientData() {
+
+        try {
+
+            const response = await window.ipcRenderer.invoke("clients")
+
+            if (response.status === "success") {
+                clients = response.data
+                console.log(clients)
+            } else {
+                responseMessage = response.message
+            }
+            
+        } catch (error) {
+            console.error("Error fetching client data:", error)
+        }
+    }
+      
+    await fetchClientData()
+
     const template = `
 
         <section id="section-type-container" class="page">
@@ -46,7 +68,19 @@ export async function renderClientSection() {
                             </div>
                         </div>
                     </div>
-                    <div class="section-child__bottom"></div>
+                    <div class="section-child__bottom">
+                    ${
+                        responseMessage !== null ? `<p>${responseMessage}</p>` : 
+                        
+                        clients !== null &&
+                            clients.map(client => `
+                                <div class="client-info">
+                                    <p>${client.firstName} ${client.middleName} ${client.lastName}</p>
+                                    <p>${client.Meter_Number}</p>
+                                </div>`
+                            ).join("")
+                      }
+                    </div>
                 </div>
             </section>
 
