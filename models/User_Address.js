@@ -87,5 +87,11 @@ User_Address.belongsTo(User, { foreignKey: "userId" })
 User.hasMany(User_Address, { foreignKey: "userId" })
 
 User_Address.sync()
+    .then(() => {
+        console.log("User Address model successfully created or synchronized");
+    })
+    .catch((error) => {
+        console.error("\n\nError creating/synchronizing table for User Address because of error:", error);
+    })
 
 module.exports = User_Address

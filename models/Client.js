@@ -40,16 +40,15 @@ const Client = db.define(
     "Client",
 
     {
-
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: true
+            autoIncrement: true,
         },
 
         accountNumber: {
             type: DataTypes.STRING(7),
-            defaultValue: generateNextAccountNumber
+            defaultValue: generateNextAccountNumber,
         },
 
         firstName: {
@@ -57,15 +56,15 @@ const Client = db.define(
             allowNull: false,
             validate: {
                 notNull: {
-                    msg: "First name is required"
+                    msg: "First name is required",
                 },
                 notEmpty: {
-                    msg: "First name cannot be left blank"
+                    msg: "First name cannot be left blank",
                 },
                 isAlpha: {
-                    msg: "First name can only contain letters"
-                }
-            }
+                    msg: "First name can only contain letters",
+                },
+            },
         },
 
         middleName: {
@@ -73,15 +72,15 @@ const Client = db.define(
             allowNull: false,
             validate: {
                 notNull: {
-                    msg: "Middle name is required"
+                    msg: "Middle name is required",
                 },
                 notEmpty: {
-                    msg: "Middle name cannot be left blank"
+                    msg: "Middle name cannot be left blank",
                 },
                 isAlpha: {
-                    msg: "Middle name can only contain letters"
-                }
-            }
+                    msg: "Middle name can only contain letters",
+                },
+            },
         },
 
         lastName: {
@@ -89,10 +88,10 @@ const Client = db.define(
             allowNull: false,
             validate: {
                 notNull: {
-                    msg: "Last name is required"
+                    msg: "Last name is required",
                 },
                 notEmpty: {
-                    msg: "Last name cannot be left blank"
+                    msg: "Last name cannot be left blank",
                 },
                 isAlpha: {
                     msg: "Last name can only contain letters",
@@ -115,12 +114,12 @@ const Client = db.define(
             allowNull: false,
             validate: {
                 notNull: {
-                    msg: "Birthdate cannot be left blank"
+                    msg: "Birthdate cannot be left blank",
                 },
                 isDate: {
-                    msg: "Only date input is allowed"
-                }
-            }
+                    msg: "Only date input is allowed",
+                },
+            },
         },
 
         age: {
@@ -128,12 +127,12 @@ const Client = db.define(
             allowNull: false,
             validate: {
                 notNull: {
-                    msg: "Age cannot be left blank"
+                    msg: "Age cannot be left blank",
                 },
                 isNumeric: {
-                    msg: "Age must be a number"
-                }
-            }
+                    msg: "Age must be a number",
+                },
+            },
         },
 
         extension: {
@@ -145,16 +144,16 @@ const Client = db.define(
             allowNull: false,
             validate: {
                 notEmpty: {
-                    msg: "Relationship status cannot be left blank"
+                    msg: "Relationship status cannot be left blank",
                 },
                 notNull: {
-                    msg: "Relationship status is required"
+                    msg: "Relationship status is required",
                 },
                 isIn: {
                     args: validations.relationshipOptions,
-                    msg: "Invalid relationship status"
-                }
-            }
+                    msg: "Invalid relationship status",
+                },
+            },
         },
 
         email: {
@@ -163,25 +162,25 @@ const Client = db.define(
             unique: true,
             validate: {
                 notNull: {
-                    msg: "Email is required"
+                    msg: "Email is required",
                 },
                 isEmail: {
-                    msg: "Must be a valid email address"
+                    msg: "Must be a valid email address",
                 },
                 notEmpty: {
-                    msg: "Email cannot be left blank"
-                }
-            }
+                    msg: "Email cannot be left blank",
+                },
+            },
         },
 
         profilePicture: {
             type: DataTypes.STRING(255),
-            defaultValue: "user.webp"
+            defaultValue: "user.webp",
         },
 
         housePicture: {
             type: DataTypes.STRING(255),
-            defaultValue: "blank_image.webp"
+            defaultValue: "blank_image.webp",
         },
 
         occupation: {
@@ -189,15 +188,15 @@ const Client = db.define(
             allowNull: false,
             validate: {
                 notNull: {
-                    msg: "Occupation is required"
+                    msg: "Occupation is required",
                 },
                 notEmpty: {
-                    msg: "Occupation cannot be left blank"
+                    msg: "Occupation cannot be left blank",
                 },
                 isAlpha: {
-                    msg: "Occupation can only contain letters"
-                }
-            }
+                    msg: "Occupation can only contain letters",
+                },
+            },
         },
 
         meterNumber: {
@@ -205,16 +204,22 @@ const Client = db.define(
             allowNull: false,
             validate: {
                 notNull: {
-                    msg: "Meter number is required"
+                    msg: "Meter number is required",
                 },
                 notEmpty: {
-                    msg: "Meter number cannot be left blank"
-                }
-            }
+                    msg: "Meter number cannot be left blank",
+                },
+            },
         },
     }
-)
+);
 
 Client.sync()
+    .then(() => {
+        console.log("Client model successfully created or synchronized");
+    })
+    .catch((error) => {
+        console.error("\n\nError creating/synchronizing table for Client because of error:", error);
+    })
 
 module.exports = Client

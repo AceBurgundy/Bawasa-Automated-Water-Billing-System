@@ -52,5 +52,11 @@ Client_Connection_Status.belongsTo(Client, { foreignKey: "clientId" })
 Client.hasMany(Client_Connection_Status, { foreignKey: "clientId" })
 
 Client_Connection_Status.sync()
+    .then(() => {
+        console.log("Client Connection Status model successfully created or synchronized");
+    })
+    .catch((error) => {
+        console.error("\n\nError creating/synchronizing table for Client Connection Status because of error:", error);
+    });
 
 module.exports = Client_Connection_Status

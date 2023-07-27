@@ -61,5 +61,11 @@ User.belongsToMany(Client, { through: Monthly_Reading })
 Client.belongsToMany(User, { through: Monthly_Reading })
 
 Monthly_Reading.sync()
+    .then(() => {
+        console.log("Monthly Reading model successfully created or synchronized");
+    })
+    .catch((error) => {
+        console.error("\n\nError creating/synchronizing table for Monthly Reading because of error:", error);
+    })
 
 module.exports = Monthly_Reading

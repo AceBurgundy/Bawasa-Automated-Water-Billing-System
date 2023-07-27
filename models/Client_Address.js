@@ -128,5 +128,11 @@ Client.hasMany(Client_Address, { foreignKey: "clientId" })
 Client_Address.belongsTo(Client, { foreignKey: "clientId" })
 
 Client_Address.sync()
+    .then(() => {
+        console.log("Client Address model successfully created or synchronized");
+    })
+    .catch((error) => {
+        console.error("\n\nError creating/synchronizing table for Client Address because of error:", error);
+    });
 
 module.exports = Client_Address

@@ -140,5 +140,11 @@ Client_Bill.belongsTo(Client, { foreignKey: "clientId" })
 Client.hasMany(Client_Bill, { foreignKey: "clientId" })
 
 Client_Bill.sync()
+    .then(() => {
+        console.log("Client Bill model successfully created or synchronized");
+    })
+    .catch((error) => {
+        console.error("\n\nError creating/synchronizing table Client Bill because of error:", error);
+    });
 
 module.exports = Client_Bill

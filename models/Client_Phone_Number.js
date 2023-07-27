@@ -1,9 +1,9 @@
 const { db } = require('../sequelize_init')
 const { DataTypes } = require('sequelize')
-const User = require('./User')
+const Client = require('./Client')
 
-const UserPhoneNumber = db.define(
-    'User_Phone_Number',
+const ClientPhoneNumber = db.define(
+    'Client_Phone_Number',
 
     {
 
@@ -13,12 +13,12 @@ const UserPhoneNumber = db.define(
             autoIncrement: true
         },
 
-        userId: {
+        clientId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
                 notNull: {
-                    msg: 'User ID is required'
+                    msg: 'Client ID is required'
                 }
             }
         },
@@ -41,19 +41,19 @@ const UserPhoneNumber = db.define(
     }
 )
 
-UserPhoneNumber.belongsTo(User, {
-    foreignKey: 'userId',
+ClientPhoneNumber.belongsTo(Client, {
+    foreignKey: 'clientId',
 })
-User.hasMany(UserPhoneNumber, {
-    foreignKey: 'userId',
+Client.hasMany(ClientPhoneNumber, {
+    foreignKey: 'clientId',
 })
 
-UserPhoneNumber.sync()
+ClientPhoneNumber.sync()
     .then(() => {
-        console.log("User Phone Number model successfully created or synchronized");
+        console.log("Client Phone Number model successfully created or synchronized");
     })
     .catch((error) => {
-        console.error("\n\nError creating/synchronizing table for User Phone Number because of error:", error);
-    })
+        console.error("\n\nError creating/synchronizing table for Client Phone Number because of error:", error);
+    });
 
-module.exports = UserPhoneNumber
+module.exports = ClientPhoneNumber

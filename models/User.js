@@ -193,5 +193,11 @@ const User = db.define(
 )
 
 User.sync()
+    .then(() => {
+        console.log("User model successfully created or synchronized");
+    })
+    .catch((error) => {
+        console.error("\n\nError creating/synchronizing table for User because of error:", error);
+    })
 
 module.exports = User

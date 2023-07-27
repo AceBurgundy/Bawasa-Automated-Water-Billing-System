@@ -46,5 +46,11 @@ Partial_Payment.belongsTo(Client_Bill, { foreignKey: "clientBillId" })
 Client_Bill.hasMany(Partial_Payment, { foreignKey: "clientBillId" })
 
 Partial_Payment.sync()
+    .then(() => {
+        console.log("Partial Payment model successfully created or synchronized");
+    })
+    .catch((error) => {
+        console.error("\n\nError creating/synchronizing table for Partial Payment because of error:", error);
+    })
 
 module.exports = Partial_Payment
