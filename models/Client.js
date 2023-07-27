@@ -211,6 +211,29 @@ const Client = db.define(
                 },
             },
         },
+
+        mainAddressId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            unique: true,
+            validate: {
+                notNull: {
+                    msg: "Main Address ID cannot be left blank"
+                }
+            }
+        },
+
+        presentAddressId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            unique: true,
+            validate: {
+                notNull: {
+                    msg: "Present Address ID cannot be left blank"
+                }
+            }
+        },
+
     }
 );
 
