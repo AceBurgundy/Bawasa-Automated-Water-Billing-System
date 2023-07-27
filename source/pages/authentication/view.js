@@ -77,31 +77,31 @@ ipcMain.handle("login", async (event, formData) => {
     
         const userJSON = user ? user.toJSON() : null
         
-        if (userJSON) {
-
-            bcrypt
-                .compare(formData.password, userJSON.password)
-                .then((result) => {
-                    if (!result) {
-                        data.status = "error"
-                        data.message.push("Password does not match!")
-                        return data
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error comparing passwords:", error)
-                })
-
-            const newAccesskey = await generateAccessKey()
-            user.accessKey = newAccesskey
-
-            await user.save()
-
-            session.login(newAccesskey)
-
-        } else {
-            console.error("User is null")
+        if (!userJSON) {
+            data.status = "error"
+            data.message = [`User with email ${formData.email} might not have been registered yet`]
+            return data
         }
+
+        bcrypt
+            .compare(formData.password, userJSON.password)
+            .then((result) => {
+                if (!result) {
+                    data.status = "error"
+                    data.message.push("Password does not match!")
+                    return data
+                }
+            })
+            .catch((error) => {
+                console.error("Error comparing passwords:", error)
+            })
+
+        const newAccesskey = await generateAccessKey()
+        user.accessKey = newAccesskey
+
+        await user.save()
+
+        session.login(newAccesskey)
         
     } catch (error) {
         console.error(error.message)
@@ -156,7 +156,7 @@ ipcMain.handle("register", async (event, formData) => {
     const shortestUserOption = Object.values(userTypes).reduce((a, b) => b.length < a.length ? b : a).length
 
     const validationMethods = {
-                
+
         firstName: [
             [isEmpty, "First name"],
             [isOverThan, 2, 255, "First name"]
