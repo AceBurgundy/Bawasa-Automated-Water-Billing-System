@@ -90,6 +90,10 @@ app.on("window-all-closed", () => {
     }
 })
 
+app.on("before-quit", () => {
+    session.logout()
+})
+
 app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
         createWindow()
