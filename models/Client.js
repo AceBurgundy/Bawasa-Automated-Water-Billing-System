@@ -40,6 +40,7 @@ const Client = db.define(
     "Client",
 
     {
+
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,

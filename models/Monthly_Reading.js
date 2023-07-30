@@ -57,8 +57,8 @@ const Monthly_Reading = db.define(
     }
 )
 
-User.belongsToMany(Client, { through: Monthly_Reading })
-Client.belongsToMany(User, { through: Monthly_Reading })
+User.belongsToMany(Client, { through: Monthly_Reading, foreignKey: 'clientId' })
+Client.belongsToMany(User, { through: Monthly_Reading, foreignKey: 'clientId' })
 
 Monthly_Reading.sync()
     .then(() => {
