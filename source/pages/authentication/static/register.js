@@ -21,7 +21,6 @@ export function loadRegister() {
                         type="text"
                         name="firstName"
                         id="register-form-first-name" 
-                        class="authentication-form__input-box__input"
                         required
                         placeholder="First name"
                         value="Sam"
@@ -31,7 +30,6 @@ export function loadRegister() {
                         type="text"
                         name="middleName"
                         id="register-form-middle-name" 
-                        class="authentication-form__input-box__input"
                         required
                         placeholder="Middle name"
                         value="Panganoron"
@@ -41,7 +39,6 @@ export function loadRegister() {
                         type="text"
                         name="lastName"
                         id="register-form-last-name" 
-                        class="authentication-form__input-box__input"
                         required
                         placeholder="Last name"
                         value="Sabalo"
@@ -51,7 +48,6 @@ export function loadRegister() {
                         type="date"
                         name="birthDate"
                         id="register-form-birthdate" 
-                        class="authentication-form__input-box__input"
                         required
                         value="2001-08-20"
                         placeholder="Birthdate">
@@ -60,7 +56,6 @@ export function loadRegister() {
                         type="number"
                         name="age"
                         id="register-form-age" 
-                        class="authentication-form__input-box__input"
                         required
                         value="18"
                         placeholder="Age">
@@ -72,7 +67,6 @@ export function loadRegister() {
                     <select 
                         name="relationshipStatus" 
                         id="register-form-relationship-status"
-                        class="authentication-form__input-box__input"
                         required>
                         <option disabled selected>Relationship Status</option>
                         ${Object.values(window.userRelationshipTypes).map((value) => {
@@ -102,7 +96,6 @@ export function loadRegister() {
                         type="email"
                         name="email"
                         id="register-form-email" 
-                        class="authentication-form__input-box__input"
                         required
                         placeholder="Email"
                         value="samadriansabalo99@gmail.com"
@@ -112,7 +105,6 @@ export function loadRegister() {
                         type="password" 
                         name="password"
                         id="register-form-password" 
-                        class="authentication-form__input-box__input"
                         required
                         placeholder="Password"
                         value="Adrian2001."
@@ -121,7 +113,6 @@ export function loadRegister() {
                     <select 
                         name="userType" 
                         id="register-form-user-type"
-                        class="authentication-form__input-box__input"
                         required>
                         <option disabled selected>User Type</option>
                         ${Object.values(window.userTypes).map((value) => {
