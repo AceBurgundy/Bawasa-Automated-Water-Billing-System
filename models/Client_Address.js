@@ -90,7 +90,7 @@ const Client_Address = db.define(
         },
 
         postalCode: {
-            type: DataTypes.STRING(10),
+            type: DataTypes.STRING(4),
             allowNull: false,
             validate: {
                 isAlphanumeric: {
@@ -124,8 +124,10 @@ const Client_Address = db.define(
     }
 )
 
-Client.hasMany(Client_Address, { foreignKey: "clientId" })
-Client_Address.belongsTo(Client, { foreignKey: "clientId" })
+Client_Address.belongsTo(Client, { foreignKey: "clientId" });
+
+Client.hasOne(Client_Address, { foreignKey: "id", as: "mainAddress" });
+Client.hasOne(Client_Address, { foreignKey: "id", as: "presentAddress" });
 
 Client_Address.sync()
     .then(() => {
