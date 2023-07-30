@@ -18,7 +18,6 @@ export default function loadLogin() {
                     type="email"
                     name="email"
                     id="login-form-email" 
-                    class="authentication-form__input-box__input"
                     required
                     placeholder="Email"
                     value="samadriansabalo99@gmail.com"
@@ -28,7 +27,6 @@ export default function loadLogin() {
                     type="password" 
                     name="password"
                     id="login-form-password" 
-                    class="authentication-form__input-box__input"
                     required
                     placeholder="Password"
                     value="Adrian2001."
