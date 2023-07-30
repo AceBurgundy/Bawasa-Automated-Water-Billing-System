@@ -1,0 +1,208 @@
+#client-builder, .section-child__center {
+    height: 95vh;
+    overflow-y: scroll;
+}
+
+#new-client-form-title {
+    font-size: 2.2rem;
+    margin: 0.5rem 0 3rem 0;
+}
+
+.section-child__center {
+    /* border: 2px solid black; */
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.section-child__center-box__section-group {
+    display: flex;
+    gap: 2rem;
+    /* border: 2px solid green; */
+}
+
+.section-child__center-box,
+.section-child__center-box__section-group__left {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    /* border: 2px solid orange; */
+}
+
+.section-child__center-box__section-group__left {
+    width: fit-content;
+}
+
+.section-child__center-box__section {
+    display: flex;
+    width: 100%;
+    gap: 2rem;
+}
+
+.section-child__center-box__section__input-box {
+    /* border: 2px solid red; */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.section-child__center-box__section__input-box.no-title {
+    justify-content: flex-end;
+}
+
+.section-child__center-box__section__input-box > p {
+    font-size: 1.2rem;
+    margin-bottom: 3rem;
+}
+
+.section-child__center__child__child {
+    /* border: 2px solid green; */
+    max-width: 1500px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.registration-input-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem
+}
+
+.registration-input-box > input,
+.registration-input-box > label,
+.radio-box > label,
+.radio-box > input {
+    font-size: 0.9rem;
+}
+
+.registration-input-box > input {
+    padding: 0.5rem;
+    height: 2.5rem;
+}
+
+#client-register-client-image-box {
+    width: fit-content;
+    height: fit-content;
+    margin: 0 auto;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#client-register-client-image-template {
+    width: 20vw;
+    height: 20vw;
+    object-fit: contain;
+    position: relative;
+    pointer-events: none;
+    border: 2px solid black;
+}
+
+#client-register-client-image-template {
+    z-index: 2;
+}
+
+#client-register-client-video {
+    width: 20vw;
+    height: 20vw;
+    position: absolute;
+    pointer-events: none;
+    border: 2px solid black;
+    z-index: 1;
+}
+
+#client-register-client-image-capture {
+    position: absolute;
+    bottom: -11%;
+    right: 0;
+}
+
+/* #client-register-profile {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+} */
+
+#radio-inputs, .radio-box {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#radio-inputs {
+    gap: 1.5rem;
+}
+
+.registration-input-box.radio > label {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    margin-left: 7px;
+}
+
+.radio-box > input {
+    transform: scale(2.5);
+    margin: 1rem;
+    border: 2px solid black;
+}
+
+input[name="presentAddressDetails"],
+input[name="mainAddressDetails"] {
+    width: 413px;
+}
+
+.section-child__center-box__section.last {
+    justify-content: flex-end;
+}
+
+#client-register-submit-button {
+    font-size: 1rem;
+    margin-right: 7rem;
+    width: 170px;
+    background-color: white;
+    border: 2px solid black;
+}
+
+@media screen and (orientation: portrait) {
+
+    .section-child__center-box__section-group {
+        flex-direction: column-reverse;
+    }
+
+    #client-register-client-image-box {
+        margin: 0 auto;
+        position: static;
+        transform: translateY(0%);
+    }
+    
+    #client-register-client-video {
+        width: 50vw;
+        height: 50vw;
+    }
+    
+    #client-register-client-image-template {
+        width: 50vw;
+        height: 50vw;
+        object-fit: contain;
+        position: relative;
+        z-index: 2;
+        pointer-events: none;
+        border: 2px solid black;
+    }
+    
+    #client-register-profile {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    #client-register-submit-button {
+        margin-right: 0rem;
+    }
+}
