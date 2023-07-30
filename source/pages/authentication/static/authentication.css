@@ -39,13 +39,6 @@
     width: 50%;
 }
 
-.authentication-form__input-box__input {
-    padding: 0.7rem;
-    border-radius: 5px;
-    border: 2px solid var(--text);
-    height: 47px;
-}
-
 #country-code {
     width: 11%;
     font-size: 0.9rem;
