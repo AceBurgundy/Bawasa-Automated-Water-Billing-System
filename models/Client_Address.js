@@ -13,17 +13,12 @@ const Client_Address = db.define(
             autoIncrement: true,
         },
 
-        clientId: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-        },
-
         street: {
             type: DataTypes.STRING(50),
             validate: {
                 is: {
-                    args: /^[A-Za-z\s]+$/,
-                    msg: "Street can only contain letters and spaces"
+                    args: /^[A-Za-z\s0-9.]+$/,
+                    msg: "Street can only contain letters numbers and spaces"
                 }
             }
         },
@@ -32,8 +27,8 @@ const Client_Address = db.define(
             type: DataTypes.STRING(50),
             validate: {
                 is: {
-                    args: /^[A-Za-z\s]+$/,
-                    msg: "Subdivision can only contain letters and spaces"
+                    args: /^[A-Za-z\s0-9.]+$/,
+                    msg: "Subdivision can only contain letters numbers and spaces"
                 }
             }
         },
@@ -43,8 +38,8 @@ const Client_Address = db.define(
             allowNull: false,
             validate: {
                 is: {
-                    args: /^[A-Za-z\s]+$/,
-                    msg: "Barangay can only contain letters and spaces"
+                    args: /^[A-Za-z\s0-9.]+$/,
+                    msg: "Barangay can only contain letters numbers and spaces"
                 },
                 notNull: {
                     msg: "Barangay is required"
@@ -60,8 +55,8 @@ const Client_Address = db.define(
             allowNull: false,
             validate: {
                 is: {
-                    args: /^[A-Za-z\s]+$/,
-                    msg: "City can only contain letters and spaces"
+                    args: /^[A-Za-z\s0-9.]+$/,
+                    msg: "City can only contain letters numbers and spaces"
                 },
                 notNull: {
                     msg: "City is required"
@@ -77,8 +72,8 @@ const Client_Address = db.define(
             allowNull: false,
             validate: {
                 is: {
-                    args: /^[A-Za-z\s]+$/,
-                    msg: "Province can only contain letters and spaces"
+                    args: /^[A-Za-z\s0-9.]+$/,
+                    msg: "Province can only contain letters numbers and spaces"
                 },
                 notNull: {
                     msg: "Province is required"
@@ -109,10 +104,6 @@ const Client_Address = db.define(
             type: DataTypes.STRING(255),
             allowNull: false,
             validate: {
-                is: {
-                    args: /^[A-Za-z0-9\s]+$/,
-                    msg: "Details can only contain letters, numbers, and spaces"
-                },
                 notNull: {
                     msg: "Details is required"
                 },
@@ -124,10 +115,15 @@ const Client_Address = db.define(
     }
 )
 
-Client_Address.belongsTo(Client, { foreignKey: "clientId" });
+Client_Address.hasOne(Client, { 
+    foreignKey: "mainAddressId", 
+    as: "mainAddress"
+})
 
-Client.hasOne(Client_Address, { foreignKey: "id", as: "mainAddress" });
-Client.hasOne(Client_Address, { foreignKey: "id", as: "presentAddress" });
+Client_Address.hasOne(Client, { 
+    foreignKey: "presentAddressId", 
+    as: "presentAddress"
+})
 
 Client_Address.sync()
     .then(() => {
