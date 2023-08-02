@@ -78,7 +78,7 @@ svg {
 #flashes {
     position: fixed;
     left: 0%;
-    bottom: 0%;
+    bottom: 3.5%;
     max-width: max-content;
     z-index: 9990;
     margin: 1em;
@@ -116,11 +116,18 @@ svg {
 input[type="text"],
 input[type="date"],
 input[type="number"],
-input[type="email"] {
+input[type="email"],
+input[type="password"],
+select,
+.input-style {
     padding: 0.7rem;
     border-radius: 5px;
     border: 2px solid var(--text);
     height: 47px;
+}
+
+.input-style > input {
+    height: 1rem;
 }
 
 .hidden {
@@ -144,4 +151,10 @@ input[type="email"] {
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
     background: var(--accent);
+}
+
+.country-code {
+    width: 11%;
+    font-size: 0.9rem;
+    border-right: 2px solid var(--text);
 }

@@ -39,12 +39,6 @@
     width: 50%;
 }
 
-#country-code {
-    width: 11%;
-    font-size: 0.9rem;
-    border-right: 2px solid var(--text);
-}
-
 #register-form-phone-number {
     width: 90%;
     border: none;

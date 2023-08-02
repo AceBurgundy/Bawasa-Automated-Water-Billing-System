@@ -1,9 +1,9 @@
 const { app, BrowserWindow, screen } = require("electron")
+require("./pages/client_builder/views.js")
 require("./pages/authentication/view.js")
 const { resolve, join } = require("path")
 const session = require("../session.js")
 require("./pages/clients/views.js")
-require("./pages/client_builder/views.js")
 
 const { db } = require("../sequelize_init")
 

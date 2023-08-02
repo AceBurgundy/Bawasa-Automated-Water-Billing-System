@@ -65,6 +65,7 @@ export function loadRegister() {
                 <div class="authentication-form__inputs-child">
 
                     <select 
+                        class="input-style"
                         name="relationshipStatus" 
                         id="register-form-relationship-status"
                         required>
@@ -78,8 +79,8 @@ export function loadRegister() {
                         })}
                     </select>
 
-                    <div class="authentication-form__input-box__input number">
-                        <div id="country-code">
+                    <div class="authentication-form__input-box__input number input-style">
+                        <div class="country-code">
                             +63
                         </div>
                         <input 
@@ -142,6 +143,12 @@ export function loadRegister() {
     `
 
     document.getElementById("container").innerHTML += template
+
+    setTimeout(() => {
+        document
+            .getElementById("register")
+            .classList.add("active")
+    }, 500)
 
     window.onclick = async (event) => {
 
