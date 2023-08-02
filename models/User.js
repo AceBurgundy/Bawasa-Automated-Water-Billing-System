@@ -23,7 +23,8 @@ const User = db.define(
                 notEmpty: {
                     msg: "First cannot be left blank"
                 },
-                isAlpha: {
+                is: {
+                    args: /^[A-Za-z\s]+$/,
                     msg: "Must not contain a number or a symbol"
                 }
             }
@@ -39,8 +40,9 @@ const User = db.define(
                 notEmpty: {
                     msg: "Middle name cannot be left blank"
                 },
-                isAlpha: {
-                    msg: "Must not contain a number or a symbol or blank"
+                is: {
+                    args: /^[A-Za-z\s]+$/,
+                    msg: "Must not contain a number or a symbol"
                 }
             }
         },
@@ -55,7 +57,8 @@ const User = db.define(
                 notEmpty: {
                     msg: "Last name cannot be left blank"
                 },
-                isAlpha: {
+                is: {
+                    args: /^[A-Za-z\s]+$/,
                     msg: "Must not contain a number or a symbol"
                 }
             }
@@ -74,7 +77,8 @@ const User = db.define(
         extension: {
             type: DataTypes.STRING(10),
             validate: {
-                isAlpha: {
+                is: {
+                    args: /^[A-Za-z\s]+$/,
                     msg: "Must not contain a number or a symbol"
                 }
             }
