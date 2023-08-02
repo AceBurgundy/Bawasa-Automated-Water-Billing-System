@@ -42,11 +42,33 @@
     justify-content: space-between;
 }
 
+.section-child__center-client-builder-box__section__input-box-title {
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    gap: 2rem;
+    justify-content: space-between;
+}
+
+.section-child__center-client-builder-box__section__input-box-title > div {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.section-child__center-client-builder-box__section__input-box-title > div > p {
+    font-size: 0.9rem;
+}
+
+.section-child__center-client-builder-box__section__input-box-title > div > input {
+    cursor: pointer;
+}
+
 .section-child__center-client-builder-box__section__input-box.no-title {
     justify-content: flex-end;
 }
 
-.section-child__center-client-builder-box__section__input-box > p {
+.section-child__center-client-builder-box__section__input-box > p,
+.section-child__center-client-builder-box__section__input-box-title {
     font-size: 1.2rem;
     margin-bottom: 3rem;
 }
@@ -81,7 +103,7 @@
     height: 3rem;
     border-radius: 5px;
     display: grid;
-    grid-template-columns: 20% 80%;
+    grid-template-columns: 23% 77%;
     align-items: center;
 }
 
@@ -94,6 +116,8 @@
 #client-register-phone-number {
     height: 1rem;
     border: none;
+    letter-spacing: 2px;
+    width: 90%;
 }
 
 #client-register-client-image-box {
