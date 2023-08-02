@@ -1,35 +1,13 @@
+import { makeToastNotification, transition } from "../../../helper.js"
 import { renderBillingSection } from "../../billing/static/billing.js"
-import { transition } from "../../../helper.js"
+import { renderClientSection } from "../../clients/static/clients.js"
+import Webcam from "../../../assets/scripts/Webcam.js"
 import "../../../../model_helpers.js"
-import Webcam from '../../../assets/scripts/Webcam.js';
 
 export async function renderClientBuilder() {
-    
-    navigator.mediaDevices.getUserMedia({
-            video: {
-                width: { exact: 360 },
-                height: { exact: 360 },
-            },
-        })
-        .then(stream => console.log('Camera access successful!'))   
-        .catch(err => console.error('Camera access error:', err));
+	const template = `
 
-    const radioInputs = Object.values(window.userRelationshipTypes).map((value) => {
-        
-        const radio = document.createElement("input")
-        radio.type = "radio"
-        radio.value = value
-        radio.name="relationshipStatus"
-        radio.checked = value === "Single"
-
-        return radio
-
-    })
-    
-    const template = `
-
-        <section id="section-type-container" 
-        lass="page client-builder">
+        <section id="section-type-container" class="page client-builder">
 
             <nav>
                 <div id="nav-items">
@@ -51,23 +29,23 @@ export async function renderClientBuilder() {
                         <img src="assets/images/Logo.png" alt="">
                     </div>
 
-                    <form class="section-child__center" id="client-registration-form">
+                    <form class="section-child__center-client-builder-client-builder" id="client-registration-form">
 
                         <p id="new-client-form-title">Client Registration Form</p>
 
-                        <div class="section-child__center-box">
+                        <div class="section-child__center-client-builder-box">
 
-                            <div class="section-child__center-box__section-group">
+                            <div class="section-child__center-client-builder-box__section-group">
 
-                                <div class="section-child__center-box__section-group__left">
+                                <div class="section-child__center-client-builder-box__section-group__left">
 
-                                    <div class="section-child__center-box__section">
+                                    <div class="section-child__center-client-builder-box__section">
 
-                                        <div class="section-child__center-box__section__input-box">
+                                        <div class="section-child__center-client-builder-box__section__input-box">
 
                                             <p>Full Name</p>
 
-                                            <div class="section-child__center__child__child">
+                                            <div class="section-child__center-client-builder__child__child">
 
                                                     <div class="registration-input-box">
                                                         <label>First Name</label>
@@ -104,26 +82,28 @@ export async function renderClientBuilder() {
                                         
                                     </div>
                                     
-                                    <div class="section-child__center-box__section">                            
+                                    <div class="section-child__center-client-builder-box__section">                            
 
-                                        <div class="section-child__center-box__section__input-box no-title">
+                                        <div class="section-child__center-client-builder-box__section__input-box no-title">
 
-                                            <div class="section-child__center__child__child">
+                                            <div class="section-child__center-client-builder__child__child">
 
-                                                <div class="registration-input-box radio">
+                                                <div class="registration-input-box">
 
                                                     <label>Relationship status</label>
 
-                                                    <div id="radio-inputs">
-                                                        ${radioInputs.map(input => {
-                                                            return (`
-                                                                <div class="radio-box">
-                                                                    ${input.outerHTML}
-                                                                    <label>${input.value}</label>
-                                                                </div>
-                                                            `)
-                                                        }).join("")}
-                                                    </div>
+                                                    <select 
+                                                        class="input-style"
+                                                        name="relationshipStatus" 
+                                                        required>
+                                                        <option disabled selected>Relationship Status</option>
+                                                        ${Object.values(window.userRelationshipTypes).map(value => {
+															return value === "Single" ? 
+                                                                `<option value="${value}" selected>${value}</option>` 
+                                                                : 
+                                                                `<option value="${value}">${value}</option>`
+														})}
+                                                    </select>
 
                                                 </div>
 
@@ -133,13 +113,13 @@ export async function renderClientBuilder() {
                                     
                                     </div>
                                     
-                                    <div class="section-child__center-box__section">                            
+                                    <div class="section-child__center-client-builder-box__section">                            
                                         
-                                        <div class="section-child__center-box__section__input-box no-title">
+                                        <div class="section-child__center-client-builder-box__section__input-box no-title">
 
-                                            <div class="section-child__center__child__child">
+                                            <div class="section-child__center-client-builder__child__child">
 
-                                                <div class="registration-input-box radio">
+                                                <div class="registration-input-box">
                                                     <label>Age</label>
                                                     <input 
                                                         type="date"
@@ -147,7 +127,7 @@ export async function renderClientBuilder() {
 
                                                 </div>
 
-                                                <div class="registration-input-box radio">
+                                                <div class="registration-input-box">
                                                     <label>Age</label>
                                                     <input 
                                                         type="number"
@@ -158,7 +138,7 @@ export async function renderClientBuilder() {
 
                                                 </div>
 
-                                                <div class="registration-input-box radio">
+                                                <div class="registration-input-box">
                                                     <label>Email</label>
                                                     <input 
                                                         type="email"
@@ -169,7 +149,7 @@ export async function renderClientBuilder() {
 
                                                 </div>
 
-                                                <div class="registration-input-box radio">
+                                                <div class="registration-input-box">
                                                     <label>Occupation</label>
                                                     <input 
                                                         type="text"
@@ -180,30 +160,62 @@ export async function renderClientBuilder() {
 
                                                 </div>
 
+                                                <div class="registration-input-box">
+                                                    <label>Meter Number</label>
+                                                    <input 
+                                                        type="text"
+                                                        required name="meterNumber" required>
+
+                                                </div>
+
+                                                <div class="registration-input-box">
+                                                    <label>Phone Number</label>
+                                                    <div class="client-phone-container number">
+                                                        <div class="country-code client">
+                                                            +63
+                                                        </div>
+                                                        <input 
+                                                            type="number" 
+                                                            name="phoneNumber"
+                                                            required
+                                                            id="client-register-phone-number"
+                                                            placeholder="12-345-6789"
+                                                            value="9956291448"
+                                                            maxlength="10">
+
+                                                    </div>
+
+                                                </div>
+
                                             </div>
 
                                         </div>
-
+                                        
                                     </div>
+                                    
                                 </div>
 
                                 <div id="client-register-client-image-box">
                                     <video id="client-register-client-video" autoplay playsinline></video>
                                     <canvas id="client-register-client-image-template"></canvas>
-                                    <button id="client-register-client-image-capture" class="button-primary take-image">
-                                        Take Image
-                                    </button>
+                                
+                                    <div id="client-register-client-image-box-options">
+                                        <input type="file" accept="image/*" id="client-registration-image">
+                                        <button id="client-register-client-image-capture" class="button-primary take-image">
+                                            Take Image
+                                        </button>
+                                    </div>
                                 </div>
 
                             </div>
 
-                            <div class="section-child__center-box__section">                            
+                            <div class="section-child__center-client-builder-box__section">                            
                                 
-                                <div class="section-child__center-box__section__input-box">
+                                <div class="section-child__center-client-builder-box__section__input-box">
 
                                     <p>Present Address</p>
 
-                                    <div class="section-child__center__child__child">
+                                    <div class="section-child__center-client-builder__child__child">
 
                                             <div class="registration-input-box">
                                                 <label>Street</label>
@@ -280,13 +292,13 @@ export async function renderClientBuilder() {
                             
                             </div>
 
-                            <div class="section-child__center-box__section">                            
+                            <div class="section-child__center-client-builder-box__section">                            
                                     
-                                <div class="section-child__center-box__section__input-box">
+                                <div class="section-child__center-client-builder-box__section__input-box">
 
                                     <p>Main Address</p>
 
-                                    <div class="section-child__center__child__child">
+                                    <div class="section-child__center-client-builder__child__child">
 
                                             <div class="registration-input-box">
                                                 <label>Street</label>
@@ -363,9 +375,7 @@ export async function renderClientBuilder() {
                             
                             </div>
 
-                            <input type="file" id="client-registarion-image" class="hidden">
-
-                            <div class="section-child__center-box__section last">                            
+                            <div class="section-child__center-client-builder-box__section last">                            
                                 <button class="button-primary" id="client-register-submit-button">Create</button>
                             </div>
 
@@ -382,145 +392,297 @@ export async function renderClientBuilder() {
     </section>
 `
 
-    const inputData = {
-        firstName: "John",
-        lastName: "Doe",
-        middleName: "Christopher",
-        birthDate: "1990-01-01",
-        age: 33,
-        email: "john.doe@example.com",
-        occupation: "Software Engineer",
-        presentAddressStreet: "123 Main St",
-        presentAddressSubdivision: "Subdivision Name",
-        presentAddressBarangay: "Barangay Name",
-        presentAddressCity: "City Name",
-        presentAddressProvince: "Province Name",
-        presentAddressPostalCode: "1234",
-        presentAddressDetails: "Some details about present address",
-        mainAddressStreet: "456 Secondary St",
-        mainAddressSubdivision: "Other Subdivision",
-        mainAddressBarangay: "Other Barangay",
-        mainAddressCity: "Other City",
-        mainAddressProvince: "Other Province",
-        mainAddressPostalCode: "5678",
-        mainAddressDetails: "Some details about main address",
-    };
+	let formDataBuffer = {
+		formData: null,
+		image: null,
+	}
 
-    function loadDataToInputs(inputData) {
-        const inputs = document.querySelectorAll("input");
-        inputs.forEach((input) => {
-            const name = input.getAttribute("name");
-            if (inputData.hasOwnProperty(name)) {
-                input.value = inputData[name];
-            }
-        });
+	document.getElementById("container").innerHTML += template
+
+	setTimeout(() => {document.getElementById("section-type-container").classList.add("active")}, 500)
+
+	const canvas = document.getElementById("client-register-client-image-template")
+	const camera = document.getElementById("client-register-client-video")
+
+	const webcam = new Webcam(camera, "user", canvas)
+
+	const numberOfWebCams = await webcam
+		.info()
+		.then(data => {
+			let list = data.filter(value => value["kind"] === "videoinput" && value["label"] !== "screen-capture-recorder")
+			return list.length
+		})
+		.catch(error => {
+			console.log("Failed to get info")
+		})
+
+    if (numberOfWebCams > 0) {
+        document.getElementById("client-registration-image").style.display = "block"
+        document.getElementById("client-register-client-image-capture").style.display = "none"
+    } else {
+        document.getElementById("client-registration-image").style.display = "none"
+        document.getElementById("client-register-client-image-capture").style.display = "block"
     }
-    
-    document.getElementById("container").innerHTML += template
-    loadDataToInputs(inputData);
 
-    setTimeout(() => {
-        document.getElementById("section-type-container").classList.add("active");
-    }, 500);
+	window.onclick = async event => {
 
-    const canvas = document.getElementById("client-register-client-image-template")
-    const camera = document.getElementById("client-register-client-video")
+		const elementId = event.target.getAttribute("id")
 
-    const webcam = new Webcam(
-        camera, 
-        "user", 
-        canvas
-    )
-      
-    window.onclick = event => {
-        
-        const elementId = event.target.getAttribute("id")
+		if (elementId === "client-register-submit-button") {
 
-        //handles form submission
-        if (elementId === "client-register-submit-button") {
-
-            event.preventDefault()
+			event.preventDefault()
 
             const formData = new FormData(document.getElementById("client-registration-form"))
 
-            //currently logs all data in the form
-            for (const [key, value] of formData) {
-                console.log(`${key}: ${value}`);
+            let errors = 0
+
+			const longestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => (b.length > a.length ? b : a)).length
+			const shortestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => (b.length < a.length ? b : a)).length
+
+			const validationMethods = {
+				firstName: [
+					[window.isEmpty, "First name"],
+					[window.isOverThan, 2, 255, "First name"]
+				],
+
+				middleName: [
+					[window.isEmpty, "Middle name"],
+					[window.isOverThan, 2, 255, "Middle name"]
+				],
+
+				lastName: [
+					[window.isEmpty, "Last name"],
+					[window.isOverThan, 2, 255, "Last name"]
+				],
+
+				relationshipStatus: [
+					[window.isEmpty, "Relationship Status"],
+					[window.isOverThan, shortestRelationshipOption, longestRelationshipOption, "Relationship Status"],
+					[window.notIn, [...Object.values(window.userRelationshipTypes)], "Client Relationship Status"]
+				],
+
+				birthDate: [
+                    [window.isEmpty, "Birthdate"], 
+                    [window.isBirthDate]
+                ],
+
+				age: [
+					[window.isEmpty, "Age"],
+					[window.isOverThan, 15, 70, "Age"]
+				],
+
+				email: [
+					[window.isEmpty, "Email"],
+					[window.isEmail, "Email"],
+					[window.isOverThan, 10, 255, "Email"]
+				],
+
+				occupation: [
+					[window.isEmpty, "Occupation"],
+					[window.isOverThan, 10, 255, "Occupation"]
+				],
+
+				phoneNumber: [
+					[window.isEmpty, "Phone Number"],
+					[window.isValidPhoneNumber, "Phone Number"]
+				],
+
+				presentAddressStreet: [
+					[window.isEmpty, "Present Address Street"],
+					[window.isOverThan, 5, 9999, "Present Address Street"]
+				],
+
+				presentAddressSubdivision: [
+					[window.isEmpty, "Present Address Subdivision"],
+					[window.isOverThan, 5, 255, "Present Address Subdivision"]
+				],
+
+				presentAddressBarangay: [
+					[window.isEmpty, "Present Address Barangay"],
+					[window.isOverThan, 5, 255, "Present Address Barangay"]
+				],
+
+				presentAddressCity: [
+					[window.isEmpty, "Present Address City"],
+					[window.isOverThan, 5, 255, "Present Address City"]
+				],
+
+				presentAddressProvince: [
+					[window.isEmpty, "Present Address Province"],
+					[window.isOverThan, 5, 255, "Present Address Province"]
+				],
+
+				presentAddressPostalCode: [
+					[window.isEmpty, "Present Address Postal Code"],
+					[window.isOverThan, 5, 9999, "Present Address Postal Code"]
+				],
+
+				presentAddressDetails: [
+					[window.isEmpty, "Present Address Details"],
+					[window.isOverThan, 5, 255, "Present Address Details"]
+				],
+
+				mainAddressStreet: [
+					[window.isEmpty, "Main Address Street"],
+					[window.isOverThan, 5, 9999, "Main Address Street"]
+				],
+
+				mainAddressSubdivision: [
+					[window.isEmpty, "Main Address Subdivision"],
+					[window.isOverThan, 5, 255, "Main Address Subdivision"]
+				],
+
+				mainAddressBarangay: [
+					[window.isEmpty, "Main Address Barangay"],
+					[window.isOverThan, 5, 255, "Main Address Barangay"]
+				],
+
+				mainAddressCity: [
+					[window.isEmpty, "Main Address City"],
+					[window.isOverThan, 5, 255, "Main Address City"]
+				],
+
+				mainAddressProvince: [
+					[window.isEmpty, "Main Address Province"],
+					[window.isOverThan, 5, 255, "Main Address Province"]
+				],
+
+				mainAddressPostalCode: [
+					[window.isEmpty, "Main Address Postal Code"],
+					[window.isOverThan, 5, 9999, "Main Address Postal Code"]
+				],
+
+				mainAddressDetails: [
+					[window.isEmpty, "Main Address Details"],
+					[window.isOverThan, 5, 255, "Main Address Details"]
+				],
+			}
+
+			formData.forEach((dirtyValue, key) => {
+				if (typeof dirtyValue !== "object") {
+					const value = dirtyValue.trim()
+
+					if (validationMethods.hasOwnProperty(key)) {
+						validationMethods[key].forEach(([validationMethod, ...args]) => {
+							const [validationErrors, validationMessage] = validationMethod(value, ...args)
+							errors += validationErrors
+
+							validationMessage.length > 0 && validationMessage.forEach(message => makeToastNotification(message))
+						})
+					}
+				}
+			})
+
+            if (formDataBuffer.image === null) {
+                makeToastNotification("Profile Picture is required when registering a new client")
+                errors++
             }
 
-        }
+			if (errors === 0) {
+				formDataBuffer.formData = Object.fromEntries(formData.entries())
 
-        // prevents multiple radio buttons to be clicked
-        if (event.target.type === "radio" && event.target.name === "relationshipStatus") {
+				const response = await window.ipcRenderer.invoke("add-client", formDataBuffer)
 
-            radioInputs.forEach((radio) => {
+				if (response.status === "success") {
+					response.message.forEach(message => {
+						makeToastNotification(message)
+					})
+					transition(renderClientSection)
+				} else {
+					response.message.forEach(message => {
+						makeToastNotification(message)
+					})
+				}
+			}
+		}
 
-                if (radio !== event.target) {
-                    radio.checked = false;
-                }
+        //admin clicks either that take image button or capture button
+		if (elementId === "client-register-client-image-capture") {
 
-                radio.checked = true
-                
-            });
-            
-        }
-
-        if (elementId === "client-register-client-image-capture") {
-
-            event.preventDefault()
+			event.preventDefault()
 
             if (event.target.classList.contains("take-image")) {
-                event.target.classList.remove("take-image")
-                event.target.classList.add("capture")
-                event.target.innerHTML = "Capture"
-                camera.style.zIndex = "2"
-                canvas.style.zIndex = "1"
-                webcam.start()
-                    .then(() => {
-                    console.log("webcam started");
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    });       
-                return
-                }
+				event.target.classList.replace("take-image", "capture")
+				event.target.innerHTML = "Capture"
+				camera.style.zIndex = "2"
+				canvas.style.zIndex = "1"
+				webcam
+					.start()
+					.then(() => makeToastNotification("Click capture to capture the image"))
+					.catch(error => {
 
-            if (event.target.classList.contains("capture")) {
-                event.target.classList.remove("capture")
-                event.target.classList.add("take-image")
-                event.target.innerHTML = "Take Image"
-                webcam.snap(data => {
-                    const blob = base64ToBlob(data);
-                    const file = new File([blob], 'example.png', { type: 'image/png' });
-                    setFileInputValue(document.getElementById("client-registarion-image"), file);
-                    console.log(document.getElementById("client-registarion-image").value);
-                    canvas.value = data
-                })
-                webcam.stop()
-                camera.style.zIndex = "1"
-                canvas.style.zIndex = "2"
-                return
-            }
-        }
-    }
+						if (error === "Camera access denied") {
 
+							makeToastNotification(error)
+							document.getElementById("client-registration-image").style.display = "block"
+							event.target.nextElementSibling.style.display = "none"
+
+						}
+					})
+                    
+				return
+			}
+
+			if (event.target.classList.contains("capture")) {
+				event.target.classList.replace("capture", "take-image")
+				event.target.innerHTML = "Take Image"
+				webcam.snap(data => {
+					formDataBuffer.image = {
+						base64: data,
+						fromInput: false,
+					}
+					canvas.value = data
+				})
+				webcam.stop()
+				camera.style.zIndex = "1"
+				canvas.style.zIndex = "2"
+				return
+			}              
+		}
+	}
+
+	document.getElementById("client-registration-image").onchange = event => {
+
+		const fileInput = document.getElementById("client-registration-image")
+		const canvas = document.getElementById("client-register-client-image-template")
+		const ctx = canvas.getContext("2d")
+
+		if (fileInput.files && fileInput.files[0]) {
+            
+			const file = fileInput.files[0]
+
+			if (file.type.startsWith("image/")) {
+
+				const reader = new FileReader()
+
+				reader.onload = function (e) {
+
+					const image = new Image()
+
+					image.onload = function () {
+						canvas.width = image.width
+						canvas.height = image.height
+						ctx.drawImage(image, 0, 0)
+					}
+
+					image.src = e.target.result
+
+					formDataBuffer.image = {
+						base64: null,
+						fromInput: true,
+						path: file.path,
+						size: file.size,
+						type: file.type,
+                        format: file.name.split('.')[1]
+					}
+				}
+
+				reader.readAsDataURL(file)
+
+			} else {
+                event.preventDefault()
+				makeToastNotification("Please select an image file")
+			}
+		}
+	}
 }
-
-function base64ToBlob(base64Data) {
-    const byteString = atob(base64Data.split(",")[1]);
-    const mimeString = base64Data.split(",")[0].split(":")[1].split(";")[0];
-    const ab = new ArrayBuffer(byteString.length);
-    const ia = new Uint8Array(ab);
-    for (let i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-    }
-    return new Blob([ab], { type: mimeString });
-}
-
-// Function to set the file input value
-function setFileInputValue(fileInput, file) {
-    const fileList = new DataTransfer();
-    fileList.items.add(file);
-    fileInput.files = fileList.files;
-}
-
