@@ -213,7 +213,13 @@ export async function renderClientBuilder() {
                                 
                                 <div class="section-child__center-client-builder-box__section__input-box">
 
-                                    <p>Present Address</p>
+                                    <div class="section-child__center-client-builder-box__section__input-box-title">
+                                        <p>Present Address</p>
+                                        <div>
+                                            <input type="checkbox" id="mergePresentAndMainPrompt"> 
+                                            <p>Main Address the same as Present Address</p>
+                                        </div>
+                                    </div>
 
                                     <div class="section-child__center-client-builder__child__child">
 
@@ -639,8 +645,37 @@ export async function renderClientBuilder() {
 				return
 			}              
 		}
+        
 	}
 
+    let mainAddressSameAsPresentAddress = false
+    const form = document.getElementById("client-registration-form");
+
+    document.getElementById("mergePresentAndMainPrompt").onchange = event => {
+        const checkBox = event.target;
+        mainAddressSameAsPresentAddress = checkBox.checked;
+        if (!mainAddressSameAsPresentAddress) {
+            document.querySelectorAll("input[name^='main']").forEach(input => {
+                input.value = "";
+            });
+        } else {
+            document.querySelectorAll("input[name^='present']").forEach(input => {
+                document.querySelector(`input[name='${input.name.replace("present", "main")}']`).value = input.value
+            })
+        }
+    }
+
+    form.addEventListener("keyup", event => {
+
+        const input = event.target;
+
+        if (mainAddressSameAsPresentAddress) {
+            const targetName = input.getAttribute("name").replace("present", "main");
+            const targetInput = document.querySelector(`input[name='${targetName}']`);
+            targetInput.value = input.value;
+        }
+    });
+    
 	document.getElementById("client-registration-image").onchange = event => {
 
 		const fileInput = document.getElementById("client-registration-image")
