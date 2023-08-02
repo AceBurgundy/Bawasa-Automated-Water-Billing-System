@@ -2,45 +2,10 @@ const { validations } = require("../model_helpers")
 const { db } = require("../sequelize_init")
 const { DataTypes } = require("sequelize")
 
-const generateNextAccountNumber = async function () {
-
-    const lastClient = await Client.findOne({
-        order: [["createdAt", "DESC"]],
-    });
-
-    if (!lastClient) {
-        return "0000-AA";
-    }
-
-    let nextNumber = "0000";
-    let nextLetter = "AA";
-
-    const lastAccountNumber = lastClient.account_number;
-    const lastNumberPart = parseInt(lastAccountNumber.slice(0, 4), 10);
-    const lastLetterPart = lastAccountNumber.slice(5);
-
-    if (lastNumberPart === 9999) {
-        nextNumber = "0000";
-
-        const lastLetterCharCode = lastLetterPart.charCodeAt(1);
-
-        lastLetterCharCode === 90
-            ? (nextLetter = "AA")
-            : (nextLetter =
-                  "A" + String.fromCharCode(lastLetterCharCode + 1));
-    } else {
-        nextNumber = String("0000" + (lastNumberPart + 1)).slice(-4);
-        nextLetter = lastLetterPart;
-    }
-
-    return `${nextNumber}-${nextLetter}`;
-}
-
 const Client = db.define(
     "Client",
 
     {
-
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -49,7 +14,15 @@ const Client = db.define(
 
         accountNumber: {
             type: DataTypes.STRING(7),
-            defaultValue: generateNextAccountNumber,
+            allowNull: false,
+            validate: {
+                notNull: {
+                    msg: "Account Number must be provided"
+                },
+                notEmpty: {
+                    msg: "Account Number cannot be left blank"
+                }
+            }
         },
 
         firstName: {
@@ -62,9 +35,10 @@ const Client = db.define(
                 notEmpty: {
                     msg: "First name cannot be left blank",
                 },
-                isAlpha: {
-                    msg: "First name can only contain letters",
-                },
+                is: {
+                    args: /^[A-Za-z\s]+$/,
+                    msg: "First name can only contain letters and spaces",
+                }
             },
         },
 
@@ -78,7 +52,8 @@ const Client = db.define(
                 notEmpty: {
                     msg: "Middle name cannot be left blank",
                 },
-                isAlpha: {
+                is: {
+                    args: /^[A-Za-z\s]+$/,
                     msg: "Middle name can only contain letters",
                 },
             },
@@ -94,20 +69,44 @@ const Client = db.define(
                 notEmpty: {
                     msg: "Last name cannot be left blank",
                 },
-                isAlpha: {
+                is: {
+                    args: /^[A-Za-z\s]+$/,
                     msg: "Last name can only contain letters",
                 },
             },
         },
 
+        extension: {
+            type: DataTypes.STRING(10),
+        },
+
         fullName: {
             type: DataTypes.VIRTUAL,
             get() {
-                return `${this.firstName} ${this.middleName.charAt(0).toUpperCase()}. ${this.lastName}`;
+                return `${this.firstName} ${this.middleName
+                    .charAt(0)
+                    .toUpperCase()}. ${this.lastName}`;
             },
             set(value) {
                 throw new Error("Do not try to set the `fullName` value!");
-            }
+            },
+        },
+
+        relationshipStatus: {
+            type: DataTypes.STRING(35),
+            allowNull: false,
+            validate: {
+                notEmpty: {
+                    msg: "Relationship status cannot be left blank",
+                },
+                notNull: {
+                    msg: "Relationship status is required",
+                },
+                isIn: {
+                    args: validations.relationshipOptions,
+                    msg: "Invalid relationship status",
+                },
+            },
         },
 
         birthDate: {
@@ -136,27 +135,6 @@ const Client = db.define(
             },
         },
 
-        extension: {
-            type: DataTypes.STRING(10),
-        },
-
-        relationshipStatus: {
-            type: DataTypes.STRING(35),
-            allowNull: false,
-            validate: {
-                notEmpty: {
-                    msg: "Relationship status cannot be left blank",
-                },
-                notNull: {
-                    msg: "Relationship status is required",
-                },
-                isIn: {
-                    args: validations.relationshipOptions,
-                    msg: "Invalid relationship status",
-                },
-            },
-        },
-
         email: {
             type: DataTypes.STRING(255),
             allowNull: false,
@@ -174,16 +152,6 @@ const Client = db.define(
             },
         },
 
-        profilePicture: {
-            type: DataTypes.STRING(255),
-            defaultValue: "user.webp",
-        },
-
-        housePicture: {
-            type: DataTypes.STRING(255),
-            defaultValue: "blank_image.webp",
-        },
-
         occupation: {
             type: DataTypes.STRING(100),
             allowNull: false,
@@ -193,11 +161,18 @@ const Client = db.define(
                 },
                 notEmpty: {
                     msg: "Occupation cannot be left blank",
-                },
-                isAlpha: {
-                    msg: "Occupation can only contain letters",
-                },
+                }
             },
+        },
+        
+        profilePicture: {
+            type: DataTypes.STRING(255),
+            defaultValue: "user.webp",
+        },
+
+        housePicture: {
+            type: DataTypes.STRING(255),
+            defaultValue: "blank_image.webp",
         },
 
         meterNumber: {
@@ -233,7 +208,7 @@ const Client = db.define(
                     msg: "Present Address ID cannot be left blank"
                 }
             }
-        },
+        }
 
     }
 );
