@@ -1,8 +1,9 @@
-const { app, BrowserWindow } = require("electron")
+const { app, BrowserWindow, screen } = require("electron")
 require("./pages/authentication/view.js")
 const { resolve, join } = require("path")
 const session = require("../session.js")
 require("./pages/clients/views.js")
+require("./pages/client_builder/views.js")
 
 const { db } = require("../sequelize_init")
 
@@ -18,20 +19,18 @@ const Client = require("../models/Client")
 const User = require("../models/User")
 
 async function initializeDatabase() {
-  try {
-    await db.authenticate()
-    console.log("Connection has been established successfully.")
+	try {
+		await db.authenticate();
+		console.log("Connection has been established successfully.");
 
-    // Sync all the models to create the tables in the database
-    await db.sync({ force: true })
-    console.log("All models were synchronized successfully.")
-
-  } catch (error) {
-    console.error("Unable to connect to the database:", error)
-  }
+		await db.sync({ force: true });
+		console.log("All models were synchronized successfully.");
+	} catch (error) {
+		console.error("Unable to connect to the database:", error);
+	}
 }
 
-// initializeDatabase()
+initializeDatabase()
 
 if (require("electron-squirrel-startup")) {
     app.quit()
@@ -55,13 +54,18 @@ const createWindow = async () => {
 
     try {
 
+        const displays = screen.getAllDisplays()
+        const secondScreen = displays[1]
+
         const mainWindow = new BrowserWindow({
+            x: secondScreen.bounds.x,
+            y: secondScreen.bounds.y,
             minHeight: 720,
             minWidth: 1280,
             height: 720,
             width: 1280,
             fullscreen: true,
-            autoHideMenuBar: true,
+            // autoHideMenuBar: true,
             webPreferences: {
                 contextIsolation: true,
                 nodeIntegration: true,
