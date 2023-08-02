@@ -24,7 +24,7 @@ const ClientPhoneNumber = db.define(
         },
 
         phoneNumber: {
-            type: DataTypes.STRING(20),
+            type: DataTypes.STRING(10),
             allowNull: false,
             validate: {
                 notNull: {
