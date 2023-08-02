@@ -122,8 +122,13 @@ export default class Webcam {
                         });
                 })
                 .catch((error) => {
+                // Handle the error when user denies access to the camera
+                if (error.name === "NotAllowedError") {
+                    reject("Camera access denied");
+                } else {
                     reject(error);
-                });
+                }
+            });
         });
     }
 
