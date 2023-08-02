@@ -34,7 +34,7 @@ const isOverThan = (value, start, limit, name) => {
     }
 
     if (!start) {
-        console.error(`start not provided for isOverThan`)
+        console.error(`start not provided for isOverThan for ${name}`)
     }
 
     if (!limit) {
@@ -118,7 +118,7 @@ const isValidPhoneNumber = (value, name) => {
     let errors = 0
     let message = []
 
-    const phoneNumberRegex = /^\d{9}$/
+    const phoneNumberRegex = /^\d{10}$/
 
     if (!value) {
         console.error("value not provided for isValidPhoneNumber")
