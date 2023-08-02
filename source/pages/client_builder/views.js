@@ -59,7 +59,7 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 				lastName: formData.lastName,
 				email: formData.email,
 			},
-		});
+		})
 
 		if (clientByName) {
 			return errorData(["Client with the same name is already registered"])
@@ -69,7 +69,7 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 			where: {
 				email: formData.email
 			}
-		});
+		})
 
 		if (clientByEmail) {
 			return errorData(["Email is already registered"])
@@ -79,14 +79,14 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 			where: {
 				phoneNumber: formData.phoneNumber
 			}
-		});
+		})
 
 		if (clientByPhone) {
 			return errorData(["Client with the same phone number is already registered"])
 		}
 
 	} catch (error) {
-		console.error("Error while searching for the client:", error);
+		console.error("Error while searching for the client:", error)
 	}
 
 	const fields = {
@@ -280,7 +280,7 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 					details: formData.mainAddressDetails,
 				},
 				{ transaction: manager }
-			);
+			)
 
 			const presentAddress = await Client_Address.create(
 				{
@@ -293,7 +293,7 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 					details: formData.presentAddressDetails,
 				},
 				{ transaction: manager }
-			);
+			)
 
 			const client = await Client.create(
 				{
@@ -314,7 +314,7 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 					presentAddressId: presentAddress.id,
 				},
 				{ transaction: manager }
-			);
+			)
 
 			await ClientPhoneNumber.create(
 				{
@@ -322,26 +322,28 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 					phoneNumber: formData.phoneNumber,
 				},
 				{ transaction: manager }
-			);
+			)
 
-			mainAddress.clientId = client.id;
-			await mainAddress.save();
+			mainAddress.clientId = client.id
+			await mainAddress.save()
 
-			presentAddress.clientId = client.id;
-			await presentAddress.save();
-		});
+			presentAddress.clientId = client.id
+			await presentAddress.save()
+		})
 
 	} catch (error) {
-		console.log(`\n\n${error.name}\n\n`);
+
+		console.log(`\n\n${error.name}\n\n`)
 		if (error.name === "SequelizeValidationError" || error.name === "ValidationError") {
-			return returnCatchError(error);
+			return returnCatchError(error)
 		} else {
 			return errorData(["Error in registering client"])
 		}
+		
 	}
 
 	const randomString = crypto.randomBytes(32).toString('hex')
-	const hash = bcrypt.hashSync(randomString, 10).replace(/[/+\$\.]/g, '');
+	const hash = bcrypt.hashSync(randomString, 10).replace(/[/+\$\.]/g, '')
 	let imagePath = null
 
     if (profilePicture.fromInput) {
@@ -351,7 +353,7 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
         try {
             fs.writeFileSync(imagePath, fs.readFileSync(profilePicture.path))
         } catch (error) {
-			console.log(`\n\n${error}\n\n`);
+			console.log(`\n\n${error}\n\n`)
             return errorData(["Error saving client image input"])
         }
 
@@ -359,11 +361,11 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 
         imagePath = path.join(__dirname, "../../assets/images/clients/profile", `${hash.slice(0, 32)}.png`)
 		
-		const base64Image = profilePicture.base64.split(';base64,').pop();
+		const base64Image = profilePicture.base64.split('base64,').pop()
 		
 		fs.writeFile(imagePath, base64Image, { encoding: 'base64' }, error => {
 			if (error) {
-				console.log(`\n\n${error}\n\n`);
+				console.log(`\n\n${error}\n\n`)
 				return errorData(["Error saving client image capture"])
 			}
 		})
@@ -378,34 +380,34 @@ const generateNextAccountNumber = async function () {
 
     const lastClient = await Client.findOne({
         order: [["createdAt", "DESC"]],
-    });
+    })
 
     if (!lastClient) {
-        return "0000-AA";
+        return "0000-AA"
     }
 
-	console.log(lastClient.toJSON());
+	console.log(lastClient.toJSON())
 
-    let nextNumber = "0000";
-    let nextLetter = "AA";
+    let nextNumber = "0000"
+    let nextLetter = "AA"
 
-    const lastAccountNumber = lastClient.accountNumber;
-    const lastNumberPart = parseInt(lastAccountNumber.slice(0, 4), 10);
-    const lastLetterPart = lastAccountNumber.slice(5);
+    const lastAccountNumber = lastClient.accountNumber
+    const lastNumberPart = parseInt(lastAccountNumber.slice(0, 4), 10)
+    const lastLetterPart = lastAccountNumber.slice(5)
 
     if (lastNumberPart === 9999) {
-        nextNumber = "0000";
+        nextNumber = "0000"
 
-        const lastLetterCharCode = lastLetterPart.charCodeAt(1);
+        const lastLetterCharCode = lastLetterPart.charCodeAt(1)
 
         lastLetterCharCode === 90
             ? (nextLetter = "AA")
             : (nextLetter =
-                  "A" + String.fromCharCode(lastLetterCharCode + 1));
+                  "A" + String.fromCharCode(lastLetterCharCode + 1))
     } else {
-        nextNumber = String("0000" + (lastNumberPart + 1)).slice(-4);
-        nextLetter = lastLetterPart;
+        nextNumber = String("0000" + (lastNumberPart + 1)).slice(-4)
+        nextLetter = lastLetterPart
     }
 
-	return `${nextNumber}-${nextLetter}`;
+	return `${nextNumber}-${nextLetter}`
 }
