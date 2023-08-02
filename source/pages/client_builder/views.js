@@ -386,8 +386,6 @@ const generateNextAccountNumber = async function () {
         return "0000-AA"
     }
 
-	console.log(lastClient.toJSON())
-
     let nextNumber = "0000"
     let nextLetter = "AA"
 
