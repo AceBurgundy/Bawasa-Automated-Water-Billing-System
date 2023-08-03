@@ -127,121 +127,122 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 	const shortestRelationshipOption = Object.values(userRelationshipTypes).reduce((a, b) => (b.length < a.length ? b : a)).length
 
 	const validationMethods = {
+
 		firstName: [
-			[isEmpty, "First name"],
-			[isOverThan, 2, 255, "First name"],
+			[isEmpty],
+			[isOverThan, 2, 255]
 		],
 
 		middleName: [
-			[isEmpty, "Middle name"],
-			[isOverThan, 2, 255, "Middle name"],
+			[isEmpty],
+			[isOverThan, 2, 255]
 		],
 
 		lastName: [
-			[isEmpty, "Last name"],
-			[isOverThan, 2, 255, "Last name"],
+			[isEmpty],
+			[isOverThan, 2, 255]
 		],
 
 		relationshipStatus: [
-			[isEmpty, "Relationship Status"],
-			[isOverThan, shortestRelationshipOption, longestRelationshipOption, "Relationship Status"],
-			[notIn, [...Object.values(userRelationshipTypes)], "Relationship Status"],
+			[isEmpty],
+			[isOverThan, shortestRelationshipOption, longestRelationshipOption],
+			[notIn, [...Object.values(userRelationshipTypes)]]
 		],
 
 		birthDate: [
-			[isEmpty, "Birthdate"], 
+			[isEmpty], 
 			[isBirthDate]
 		],
 
 		age: [
-			[isEmpty, "Age"],
-			[isOverThan, 15, 70, "Age"],
+			[isEmpty],
+			[isOverThan, 15, 70]
 		],
 
 		email: [
-			[isEmpty, "Email"],
-			[isEmail, "Email"],
-			[isOverThan, 10, 255, "Email"],
+			[isEmpty],
+			[isEmail],
+			[isOverThan, 10, 255]
 		],
 
 		occupation: [
-			[isEmpty, "Occupation"],
-			[isOverThan, 10, 255, "Occupation"],
+			[isEmpty],
+			[isOverThan, 10, 255]
 		],
 
 		phoneNumber: [
-			[isEmpty, "Phone Number"],
-			[isValidPhoneNumber, "Phone Number"],
+			[isEmpty],
+			[isValidPhoneNumber]
 		],
 
 		presentAddressStreet: [
-			[isEmpty, "Present Address Street"],
-			[isOverThan, 5, 9999, "Present Address Street"],
+			[isEmpty],
+			[isOverThan, 5, 9999]
 		],
 
 		presentAddressSubdivision: [
-			[isEmpty, "Present Address Subdivision"],
-			[isOverThan, 5, 255, "Present Address Subdivision"],
+			[isEmpty],
+			[isOverThan, 5, 255]
 		],
 
 		presentAddressBarangay: [
-			[isEmpty, "Present Address Barangay"],
-			[isOverThan, 5, 255, "Present Address Barangay"],
+			[isEmpty],
+			[isOverThan, 5, 255]
 		],
 
 		presentAddressCity: [
-			[isEmpty, "Present Address City"],
-			[isOverThan, 5, 255, "Present Address City"],
+			[isEmpty],
+			[isOverThan, 5, 255]
 		],
 
 		presentAddressProvince: [
-			[isEmpty, "Present Address Province"],
-			[isOverThan, 5, 255, "Present Address Province"],
+			[isEmpty],
+			[isOverThan, 5, 255]
 		],
 
 		presentAddressPostalCode: [
-			[isEmpty, "Present Address Postal Code"],
-			[isOverThan, 5, 9999, "Present Address Postal Code"],
+			[isEmpty],
+			[isOverThan, 5, 9999]
 		],
 
 		presentAddressDetails: [
-			[isEmpty, "Present Address Details"],
-			[isOverThan, 5, 255, "Present Address Details"],
+			[isEmpty],
+			[isOverThan, 5, 255]
 		],
 
 		mainAddressStreet: [
-			[isEmpty, "Main Address Street"],
-			[isOverThan, 5, 9999, "Main Address Street"],
+			[isEmpty],
+			[isOverThan, 5, 9999]
 		],
 
 		mainAddressSubdivision: [
-			[isEmpty, "Main Address Subdivision"],
-			[isOverThan, 5, 255, "Main Address Subdivision"],
+			[isEmpty],
+			[isOverThan, 5, 255]
 		],
 
 		mainAddressBarangay: [
-			[isEmpty, "Main Address Barangay"],
-			[isOverThan, 5, 255, "Main Address Barangay"],
+			[isEmpty],
+			[isOverThan, 5, 255]
 		],
 
 		mainAddressCity: [
-			[isEmpty, "Main Address City"],
-			[isOverThan, 5, 255, "Main Address City"],
+			[isEmpty],
+			[isOverThan, 5, 255]
 		],
 
 		mainAddressProvince: [
-			[isEmpty, "Main Address Province"],
-			[isOverThan, 5, 255, "Main Address Province"],
+			[isEmpty],
+			[isOverThan, 5, 255]
 		],
 
 		mainAddressPostalCode: [
-			[isEmpty, "Main Address Postal Code"],
-			[isOverThan, 5, 9999, "Main Address Postal Code"],
+			[isEmpty],
+			[isOverThan, 5, 9999]
 		],
 
 		mainAddressDetails: [
-			[isEmpty, "Main Address Details"],
-			[isOverThan, 5, 255, "Main Address Details"],
+			[isEmpty],
+			[isOverThan, 5, 255]
 		],
 	}
 
@@ -373,6 +374,7 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
     }
 	
 	data.message = ["Client Succesfully registered"]
+	
     return data
 })
 
