@@ -48,28 +48,44 @@ export async function renderClientBuilder() {
                                             <div class="section-child__center-client-builder__child__child">
 
                                                     <div class="registration-input-box">
-                                                        <label>First Name</label>
+                                                        <div class="registration-input-box__title">
+                                                            <label>First Name</label>
+                                                            <ul class="registration-input-box__title__errors" data-error-key="firstName" >
+                                                            </ul>
+                                                        </div>
                                                         <input 
                                                             type="text"
                                                             name="firstName">
 
                                                     </div>
                                                     <div class="registration-input-box">
-                                                        <label>Middle Name</label>
+                                                        <div class="registration-input-box__title">
+                                                            <label>Middle Name</label>
+                                                            <ul class="registration-input-box__title__errors" data-error-key="middleName" >
+                                                            </ul>
+                                                        </div>
                                                         <input 
                                                             type="text"
                                                             name="middleName">
 
                                                     </div>
                                                     <div class="registration-input-box">
-                                                        <label>Last Name</label>
+                                                        <div class="registration-input-box__title">
+                                                            <label>Last Name</label>
+                                                            <ul class="registration-input-box__title__errors" data-error-key="lastName" >
+                                                            </ul>
+                                                        </div>
                                                         <input 
                                                             type="text"
                                                             name="lastName">
 
                                                     </div>
                                                     <div class="registration-input-box">
-                                                        <label>Extension</label>
+                                                        <div class="registration-input-box__title">
+                                                            <label>Extension</label>
+                                                            <ul class="registration-input-box__title__errors" data-error-key="extension" >
+                                                            </ul>
+                                                        </div>
                                                         <input 
                                                             type="text"
                                                             name="extension">
@@ -90,7 +106,11 @@ export async function renderClientBuilder() {
 
                                                 <div class="registration-input-box">
 
-                                                    <label>Relationship status</label>
+                                                        <div class="registration-input-box__title">
+                                                            <label>Relationship Status</label>
+                                                            <ul class="registration-input-box__title__errors" data-error-key="relationshipStatus" >
+                                                            </ul>
+                                                        </div>
 
                                                     <select 
                                                         class="input-style"
@@ -120,7 +140,11 @@ export async function renderClientBuilder() {
                                             <div class="section-child__center-client-builder__child__child">
 
                                                 <div class="registration-input-box">
-                                                    <label>Age</label>
+                                                    <div class="registration-input-box__title">
+                                                        <label>Birthdate</label>
+                                                        <ul class="registration-input-box__title__errors" data-error-key="birthDate" >
+                                                        </ul>
+                                                    </div>
                                                     <input 
                                                         type="date"
                                                         required name="birthDate">
@@ -128,8 +152,12 @@ export async function renderClientBuilder() {
                                                 </div>
 
                                                 <div class="registration-input-box">
-                                                    <label>Age</label>
-                                                    <input 
+                                                    <div class="registration-input-box__title">
+                                                        <label>Age</label>
+                                                        <ul class="registration-input-box__title__errors" data-error-key="age" >
+                                                        </ul>
+                                                    </div> 
+                                                   <input 
                                                         type="number"
                                                         required 
                                                         name="age" 
@@ -139,7 +167,11 @@ export async function renderClientBuilder() {
                                                 </div>
 
                                                 <div class="registration-input-box">
-                                                    <label>Email</label>
+                                                    <div class="registration-input-box__title">
+                                                        <label>Email</label>
+                                                        <ul class="registration-input-box__title__errors" data-error-key="email" >
+                                                        </ul>
+                                                    </div>
                                                     <input 
                                                         type="email"
                                                         name="email" 
@@ -150,7 +182,11 @@ export async function renderClientBuilder() {
                                                 </div>
 
                                                 <div class="registration-input-box">
-                                                    <label>Occupation</label>
+                                                    <div class="registration-input-box__title">
+                                                        <label>Occupation</label>
+                                                        <ul class="registration-input-box__title__errors" data-error-key="occupation" >
+                                                        </ul>
+                                                    </div>
                                                     <input 
                                                         type="text"
                                                         name="occupation" 
@@ -161,7 +197,11 @@ export async function renderClientBuilder() {
                                                 </div>
 
                                                 <div class="registration-input-box">
-                                                    <label>Meter Number</label>
+                                                    <div class="registration-input-box__title">
+                                                        <label>Meter Number</label>
+                                                        <ul class="registration-input-box__title__errors" data-error-key="meterNumber" >
+                                                        </ul>
+                                                    </div>
                                                     <input 
                                                         type="text"
                                                         required name="meterNumber" required>
@@ -169,7 +209,11 @@ export async function renderClientBuilder() {
                                                 </div>
 
                                                 <div class="registration-input-box">
-                                                    <label>Phone Number</label>
+                                                    <div class="registration-input-box__title">
+                                                        <label>Phone Number</label>
+                                                        <ul class="registration-input-box__title__errors" data-error-key="phoneNumber" >
+                                                        </ul>
+                                                    </div>
                                                     <div class="client-phone-container number">
                                                         <div class="country-code client">
                                                             +63
@@ -224,7 +268,11 @@ export async function renderClientBuilder() {
                                     <div class="section-child__center-client-builder__child__child">
 
                                             <div class="registration-input-box">
-                                                <label>Street</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>Street</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="presentAddressStreet" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="text"
                                                     name="presentAddressStreet" 
@@ -233,7 +281,11 @@ export async function renderClientBuilder() {
 
                                             </div>
                                             <div class="registration-input-box">
-                                                <label>Subdivision</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>Subdivision</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="presentAddressSubdivision" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="text"
                                                     name="presentAddressSubdivision" 
@@ -242,7 +294,11 @@ export async function renderClientBuilder() {
 
                                             </div>
                                             <div class="registration-input-box">
-                                                <label>Barangay</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>Barangay</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="presentAddressBarangay" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="text"
                                                     name="presentAddressBarangay" 
@@ -252,7 +308,11 @@ export async function renderClientBuilder() {
 
                                             </div>
                                             <div class="registration-input-box">
-                                                <label>City</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>City</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="presentAddressCity" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="text"
                                                     name="presentAddressCity" 
@@ -262,7 +322,11 @@ export async function renderClientBuilder() {
 
                                             </div>
                                             <div class="registration-input-box">
-                                                <label>Province</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>Province</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="presentAddressProvince" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="text"
                                                     name="presentAddressProvince" 
@@ -272,7 +336,11 @@ export async function renderClientBuilder() {
 
                                             </div>
                                             <div class="registration-input-box">
-                                                <label>Postal Code</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>Postal Code</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="presentAddressPostalCode" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="number"
                                                     name="presentAddressPostalCode" 
@@ -282,7 +350,11 @@ export async function renderClientBuilder() {
 
                                             </div>
                                             <div class="registration-input-box">
-                                                <label>Details</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>Details</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="presentAddressDetails" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="text"
                                                     name="presentAddressDetails" 
@@ -307,7 +379,11 @@ export async function renderClientBuilder() {
                                     <div class="section-child__center-client-builder__child__child">
 
                                             <div class="registration-input-box">
-                                                <label>Street</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>Street</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="mainAddressStreet" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="text"
                                                     name="mainAddressStreet" 
@@ -316,7 +392,11 @@ export async function renderClientBuilder() {
 
                                             </div>
                                             <div class="registration-input-box">
-                                                <label>Subdivision</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>Subdivision</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="mainAddressSubdivision" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="text"
                                                     name="mainAddressSubdivision" 
@@ -325,7 +405,11 @@ export async function renderClientBuilder() {
 
                                             </div>
                                             <div class="registration-input-box">
-                                                <label>Barangay</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>Barangay</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="mainAddressBarangay" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="text"
                                                     name="mainAddressBarangay" 
@@ -335,7 +419,11 @@ export async function renderClientBuilder() {
 
                                             </div>
                                             <div class="registration-input-box">
-                                                <label>City</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>City</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="mainAddressCity" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="text"
                                                     name="mainAddressCity" 
@@ -345,7 +433,11 @@ export async function renderClientBuilder() {
 
                                             </div>
                                             <div class="registration-input-box">
-                                                <label>Province</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>Province</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="mainAddressProvince" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="text"
                                                     name="mainAddressProvince" 
@@ -355,7 +447,11 @@ export async function renderClientBuilder() {
 
                                             </div>
                                             <div class="registration-input-box">
-                                                <label>Postal Code</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>Postal Code</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="mainAddressPostalCode" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="number"
                                                     name="mainAddressPostalCode" 
@@ -365,7 +461,11 @@ export async function renderClientBuilder() {
 
                                             </div>
                                             <div class="registration-input-box">
-                                                <label>Details</label>
+                                                <div class="registration-input-box__title">
+                                                    <label>Details</label>
+                                                    <ul class="registration-input-box__title__errors" data-error-key="mainAddressDetails" >
+                                                    </ul>
+                                                </div>
                                                 <input 
                                                     type="text"
                                                     name="mainAddressDetails" 
@@ -423,11 +523,11 @@ export async function renderClientBuilder() {
 		})
 
     if (numberOfWebCams > 0) {
-        document.getElementById("client-registration-image").style.display = "block"
-        document.getElementById("client-register-client-image-capture").style.display = "none"
-    } else {
         document.getElementById("client-registration-image").style.display = "none"
         document.getElementById("client-register-client-image-capture").style.display = "block"
+    } else {
+        document.getElementById("client-registration-image").style.display = "block"
+        document.getElementById("client-register-client-image-capture").style.display = "none"
     }
 
 	window.onclick = async event => {
@@ -447,120 +547,120 @@ export async function renderClientBuilder() {
 
 			const validationMethods = {
 				firstName: [
-					[window.isEmpty, "First name"],
-					[window.isOverThan, 2, 255, "First name"]
+					[window.isEmpty],
+					[window.isOverThan, 2, 255]
 				],
 
 				middleName: [
-					[window.isEmpty, "Middle name"],
-					[window.isOverThan, 2, 255, "Middle name"]
+					[window.isEmpty],
+					[window.isOverThan, 2, 255]
 				],
 
 				lastName: [
-					[window.isEmpty, "Last name"],
-					[window.isOverThan, 2, 255, "Last name"]
+					[window.isEmpty],
+					[window.isOverThan, 2, 255]
 				],
 
 				relationshipStatus: [
-					[window.isEmpty, "Relationship Status"],
-					[window.isOverThan, shortestRelationshipOption, longestRelationshipOption, "Relationship Status"],
-					[window.notIn, [...Object.values(window.userRelationshipTypes)], "Client Relationship Status"]
+					[window.isEmpty],
+					[window.isOverThan, shortestRelationshipOption, longestRelationshipOption],
+					[window.notIn, [...Object.values(window.userRelationshipTypes)]]
 				],
 
 				birthDate: [
-                    [window.isEmpty, "Birthdate"], 
+                    [window.isEmpty], 
                     [window.isBirthDate]
                 ],
 
 				age: [
-					[window.isEmpty, "Age"],
-					[window.isOverThan, 15, 70, "Age"]
+					[window.isEmpty],
+					[window.isOverThan, 15, 70]
 				],
 
 				email: [
-					[window.isEmpty, "Email"],
-					[window.isEmail, "Email"],
-					[window.isOverThan, 10, 255, "Email"]
+					[window.isEmpty],
+					[window.isEmail],
+					[window.isOverThan, 10, 255]
 				],
 
 				occupation: [
-					[window.isEmpty, "Occupation"],
-					[window.isOverThan, 10, 255, "Occupation"]
+					[window.isEmpty],
+					[window.isOverThan, 10, 255]
 				],
 
 				phoneNumber: [
-					[window.isEmpty, "Phone Number"],
-					[window.isValidPhoneNumber, "Phone Number"]
+					[window.isEmpty],
+					[window.isValidPhoneNumber]
 				],
 
 				presentAddressStreet: [
-					[window.isEmpty, "Present Address Street"],
-					[window.isOverThan, 5, 9999, "Present Address Street"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 9999]
 				],
 
 				presentAddressSubdivision: [
-					[window.isEmpty, "Present Address Subdivision"],
-					[window.isOverThan, 5, 255, "Present Address Subdivision"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 255]
 				],
 
 				presentAddressBarangay: [
-					[window.isEmpty, "Present Address Barangay"],
-					[window.isOverThan, 5, 255, "Present Address Barangay"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 255]
 				],
 
 				presentAddressCity: [
-					[window.isEmpty, "Present Address City"],
-					[window.isOverThan, 5, 255, "Present Address City"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 255]
 				],
 
 				presentAddressProvince: [
-					[window.isEmpty, "Present Address Province"],
-					[window.isOverThan, 5, 255, "Present Address Province"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 255]
 				],
 
 				presentAddressPostalCode: [
-					[window.isEmpty, "Present Address Postal Code"],
-					[window.isOverThan, 5, 9999, "Present Address Postal Code"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 9999]
 				],
 
 				presentAddressDetails: [
-					[window.isEmpty, "Present Address Details"],
-					[window.isOverThan, 5, 255, "Present Address Details"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 255]
 				],
 
 				mainAddressStreet: [
-					[window.isEmpty, "Main Address Street"],
-					[window.isOverThan, 5, 9999, "Main Address Street"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 9999]
 				],
 
 				mainAddressSubdivision: [
-					[window.isEmpty, "Main Address Subdivision"],
-					[window.isOverThan, 5, 255, "Main Address Subdivision"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 255]
 				],
 
 				mainAddressBarangay: [
-					[window.isEmpty, "Main Address Barangay"],
-					[window.isOverThan, 5, 255, "Main Address Barangay"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 255]
 				],
 
 				mainAddressCity: [
-					[window.isEmpty, "Main Address City"],
-					[window.isOverThan, 5, 255, "Main Address City"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 255]
 				],
 
 				mainAddressProvince: [
-					[window.isEmpty, "Main Address Province"],
-					[window.isOverThan, 5, 255, "Main Address Province"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 255]
 				],
 
 				mainAddressPostalCode: [
-					[window.isEmpty, "Main Address Postal Code"],
-					[window.isOverThan, 5, 9999, "Main Address Postal Code"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 9999]
 				],
 
 				mainAddressDetails: [
-					[window.isEmpty, "Main Address Details"],
-					[window.isOverThan, 5, 255, "Main Address Details"]
+					[window.isEmpty],
+					[window.isOverThan, 5, 255]
 				],
 			}
 
@@ -572,8 +672,11 @@ export async function renderClientBuilder() {
 						validationMethods[key].forEach(([validationMethod, ...args]) => {
 							const [validationErrors, validationMessage] = validationMethod(value, ...args)
 							errors += validationErrors
-
-							validationMessage.length > 0 && validationMessage.forEach(message => makeToastNotification(message))
+                            
+							if (validationMessage.length > 0) {
+                                document.querySelector(`ul[data-error-key="${key}"]`).innerHTML = 
+                                    `<li class="registration-input-box__title__errors-item">${validationMessage}</li>`
+                            }
 						})
 					}
 				}
@@ -648,16 +751,22 @@ export async function renderClientBuilder() {
         
 	}
 
+    /*
+        When true allows for several functionalities.
+        1. duplicate values in present address inputs to main address inputs.
+        2. automatically copies present address input values to main address inputs.
+        
+        Automatically clears main address input values when set to false.
+    */
     let mainAddressSameAsPresentAddress = false
     const form = document.getElementById("client-registration-form");
 
     document.getElementById("mergePresentAndMainPrompt").onchange = event => {
-        const checkBox = event.target;
-        mainAddressSameAsPresentAddress = checkBox.checked;
+
+        mainAddressSameAsPresentAddress = event.target.checked;
+
         if (!mainAddressSameAsPresentAddress) {
-            document.querySelectorAll("input[name^='main']").forEach(input => {
-                input.value = "";
-            });
+            document.querySelectorAll("input[name^='main']").forEach(input => { input.value = "" });
         } else {
             document.querySelectorAll("input[name^='present']").forEach(input => {
                 document.querySelector(`input[name='${input.name.replace("present", "main")}']`).value = input.value

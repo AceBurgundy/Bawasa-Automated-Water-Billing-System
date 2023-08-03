@@ -84,14 +84,31 @@
 .registration-input-box {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem
+    gap: 0.5rem;
+    width: 240px;
 }
 
 .registration-input-box > input,
-.registration-input-box > label,
 .radio-box > label,
 .radio-box > input {
     font-size: 0.9rem;
+}
+
+.registration-input-box__title {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.registration-input-box__title > label {
+    font-size: 0.9rem;
+}
+
+.registration-input-box__title__errors-item {
+    list-style: none;
+    font-size: 0.6rem;
+    color: red;
 }
 
 .registration-input-box > input {
