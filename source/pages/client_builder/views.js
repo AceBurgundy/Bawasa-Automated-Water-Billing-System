@@ -25,21 +25,27 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 
 	const data = {
 		status: "success",
-		message: []
+		toast: [],
+		field_errors: {},
+		elementName: null
 	}
 
-    const errorData = message => {
+    const errorData = (message, elementName) => {
         data.status = "error"
-        data.message = [...data.message, message]
-        return data
+
+		if (!elementName) {
+			data.toast = [...data.toast, message]
+		} else {
+			data.field_errors[elementName] = message
+		}
+
+		return data
     }
 
 	const returnCatchError = error => {
-
 		if (error.name === "SequelizeValidationError") {
 			return errorData(error.message.replace("Validation error: ", ''))
 		}
-
 	}
     
 	if (!profilePicture) {
@@ -72,7 +78,7 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 		})
 
 		if (clientByEmail) {
-			return errorData(["Email is already registered"])
+			return errorData(["Client with the same email is already registered"])
 		}
 
 		const clientByPhone = await ClientPhoneNumber.findOne({
@@ -156,7 +162,7 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 
 		age: [
 			[isEmpty],
-			[isOverThan, 15, 70]
+			[isOverThan, 16, 70]
 		],
 
 		email: [
@@ -167,7 +173,7 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 
 		occupation: [
 			[isEmpty],
-			[isOverThan, 10, 255]
+			[isOverThan, 5, 255]
 		],
 
 		phoneNumber: [
@@ -255,7 +261,10 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 				validationMethods[key].forEach(([validationMethod, ...args]) => {
 					const [validationErrors, validationMessage] = validationMethod(value, ...args)
 					errors += validationErrors
-					validationMessage.length > 0 && [...data.message, ...validationMessage]
+
+					if (validationMessage.length > 0) {
+						errorData(validationMessage, key)						
+					}
 				})
 			}
 		}
@@ -373,7 +382,7 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 
     }
 	
-	data.message = ["Client Succesfully registered"]
+	data.toast = ["Client Succesfully registered"]
 	
     return data
 })
