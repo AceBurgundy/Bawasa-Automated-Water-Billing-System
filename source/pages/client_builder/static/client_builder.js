@@ -1,10 +1,11 @@
-import { makeToastNotification, transition } from "../../../helper.js"
-import { renderBillingSection } from "../../billing/static/billing.js"
-import { renderClientSection } from "../../clients/static/clients.js"
-import Webcam from "../../../assets/scripts/Webcam.js"
-import "../../../../model_helpers.js"
+import { makeToastNotification, transition } from "../../../helper.js";
+import { renderBillingSection } from "../../billing/static/billing.js";
+import { renderClientSection } from "../../clients/static/clients.js";
+import Webcam from "../../../assets/scripts/Webcam.js";
+import "../../../../model_helpers.js";
 
 export async function renderClientBuilder() {
+
 	const template = `
 
         <section id="section-type-container" class="page client-builder">
@@ -118,10 +119,7 @@ export async function renderClientBuilder() {
                                                         required>
                                                         <option disabled selected>Relationship Status</option>
                                                         ${Object.values(window.userRelationshipTypes).map(value => {
-															return value === "Single" ? 
-                                                                `<option value="${value}" selected>${value}</option>` 
-                                                                : 
-                                                                `<option value="${value}">${value}</option>`
+															return value === "Single" ? `<option value="${value}" selected>${value}</option>` : `<option value="${value}">${value}</option>`;
 														})}
                                                     </select>
 
@@ -496,320 +494,123 @@ export async function renderClientBuilder() {
         </section>
 
     </section>
-`
+    `;
 
-	let formDataBuffer = {
+    const getElementById = id => document.getElementById(id);
+    const querySelector = selector => document.querySelector(selector);
+
+    const formDataBuffer = {
 		formData: null,
 		image: null,
-	}
+	};
 
-	document.getElementById("container").innerHTML += template
+	getElementById("container").innerHTML += template;
+	setFieldValues(fields);
 
-	setTimeout(() => {document.getElementById("section-type-container").classList.add("active")}, 500)
+	setTimeout(() => {getElementById("section-type-container").classList.add("active")}, 500);
 
-	const canvas = document.getElementById("client-register-client-image-template")
-	const camera = document.getElementById("client-register-client-video")
+	const canvas = getElementById("client-register-client-image-template");
+	const camera = getElementById("client-register-client-video");
+	const webcam = new Webcam(camera, "user", canvas);
 
-	const webcam = new Webcam(camera, "user", canvas)
+    //if webcam is allowed, renders the capture toggle, else renders an file image input
+	webcam.info().then(data => {
+		const numberOfWebCams = data.filter(value => value["kind"] === "videoinput" && value["label"] !== "screen-capture-recorder").length;
+		showHideImageCapture(numberOfWebCams);
+	});
 
-	const numberOfWebCams = await webcam
-		.info()
-		.then(data => {
-			let list = data.filter(value => value["kind"] === "videoinput" && value["label"] !== "screen-capture-recorder")
-			return list.length
-		})
-		.catch(error => {
-			console.log("Failed to get info")
-		})
+	// Handle form submission
+	getElementById("client-register-submit-button").addEventListener("click", event => {
+		event.preventDefault();
+		handleFormSubmit(formDataBuffer);
+	});
 
-    if (numberOfWebCams > 0) {
-        document.getElementById("client-registration-image").style.display = "none"
-        document.getElementById("client-register-client-image-capture").style.display = "block"
-    } else {
-        document.getElementById("client-registration-image").style.display = "block"
-        document.getElementById("client-register-client-image-capture").style.display = "none"
-    }
+	// Handle image capture
+	getElementById("client-register-client-image-capture").addEventListener("click", event => {
+		event.preventDefault();
 
-	window.onclick = async event => {
+		const { target, classList } = event;
 
-		const elementId = event.target.getAttribute("id")
+		const toggleCaptureClass = () => {
+			const newClass = classList.contains("take-image") ? "capture" : "take-image";
+			classList.replace("take-image", newClass);
+			target.innerHTML = newClass === "capture" ? "Capture" : "Take Image";
+			camera.style.zIndex = newClass === "capture" ? "2" : "1";
+			canvas.style.zIndex = newClass === "capture" ? "1" : "2";
+		};
 
-		if (elementId === "client-register-submit-button") {
-
-			event.preventDefault()
-
-            const formData = new FormData(document.getElementById("client-registration-form"))
-
-            let errors = 0
-
-			const longestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => (b.length > a.length ? b : a)).length
-			const shortestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => (b.length < a.length ? b : a)).length
-
-			const validationMethods = {
-				firstName: [
-					[window.isEmpty],
-					[window.isOverThan, 2, 255]
-				],
-
-				middleName: [
-					[window.isEmpty],
-					[window.isOverThan, 2, 255]
-				],
-
-				lastName: [
-					[window.isEmpty],
-					[window.isOverThan, 2, 255]
-				],
-
-				relationshipStatus: [
-					[window.isEmpty],
-					[window.isOverThan, shortestRelationshipOption, longestRelationshipOption],
-					[window.notIn, [...Object.values(window.userRelationshipTypes)]]
-				],
-
-				birthDate: [
-                    [window.isEmpty], 
-                    [window.isBirthDate]
-                ],
-
-				age: [
-					[window.isEmpty],
-					[window.isOverThan, 15, 70]
-				],
-
-				email: [
-					[window.isEmpty],
-					[window.isEmail],
-					[window.isOverThan, 10, 255]
-				],
-
-				occupation: [
-					[window.isEmpty],
-					[window.isOverThan, 10, 255]
-				],
-
-				phoneNumber: [
-					[window.isEmpty],
-					[window.isValidPhoneNumber]
-				],
-
-				presentAddressStreet: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 9999]
-				],
-
-				presentAddressSubdivision: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 255]
-				],
-
-				presentAddressBarangay: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 255]
-				],
-
-				presentAddressCity: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 255]
-				],
-
-				presentAddressProvince: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 255]
-				],
-
-				presentAddressPostalCode: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 9999]
-				],
-
-				presentAddressDetails: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 255]
-				],
-
-				mainAddressStreet: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 9999]
-				],
-
-				mainAddressSubdivision: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 255]
-				],
-
-				mainAddressBarangay: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 255]
-				],
-
-				mainAddressCity: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 255]
-				],
-
-				mainAddressProvince: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 255]
-				],
-
-				mainAddressPostalCode: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 9999]
-				],
-
-				mainAddressDetails: [
-					[window.isEmpty],
-					[window.isOverThan, 5, 255]
-				],
-			}
-
-			formData.forEach((dirtyValue, key) => {
-				if (typeof dirtyValue !== "object") {
-					const value = dirtyValue.trim()
-
-					if (validationMethods.hasOwnProperty(key)) {
-						validationMethods[key].forEach(([validationMethod, ...args]) => {
-							const [validationErrors, validationMessage] = validationMethod(value, ...args)
-							errors += validationErrors
-                            
-							if (validationMessage.length > 0) {
-                                document.querySelector(`ul[data-error-key="${key}"]`).innerHTML = 
-                                    `<li class="registration-input-box__title__errors-item">${validationMessage}</li>`
-                            }
-						})
+		if (classList.contains("take-image")) {
+			webcam.start()
+				.then(() => makeToastNotification("Click capture to capture the image"))
+				.catch(error => {
+					if (error === "Camera access denied") {
+						makeToastNotification(error);
+						getElementById("client-registration-image").style.display = "block";
+						target.nextElementSibling.style.display = "none";
 					}
-				}
-			})
-
-            if (formDataBuffer.image === null) {
-                makeToastNotification("Profile Picture is required when registering a new client")
-                errors++
-            }
-
-			if (errors === 0) {
-				formDataBuffer.formData = Object.fromEntries(formData.entries())
-
-				const response = await window.ipcRenderer.invoke("add-client", formDataBuffer)
-
-				if (response.status === "success") {
-					response.message.forEach(message => {
-						makeToastNotification(message)
-					})
-					transition(renderClientSection)
-				} else {
-					response.message.forEach(message => {
-						makeToastNotification(message)
-					})
-				}
-			}
-		}
-
-        //admin clicks either that take image button or capture button
-		if (elementId === "client-register-client-image-capture") {
-
-			event.preventDefault()
-
-            if (event.target.classList.contains("take-image")) {
-				event.target.classList.replace("take-image", "capture")
-				event.target.innerHTML = "Capture"
-				camera.style.zIndex = "2"
-				canvas.style.zIndex = "1"
-				webcam
-					.start()
-					.then(() => makeToastNotification("Click capture to capture the image"))
-					.catch(error => {
-
-						if (error === "Camera access denied") {
-
-							makeToastNotification(error)
-							document.getElementById("client-registration-image").style.display = "block"
-							event.target.nextElementSibling.style.display = "none"
-
-						}
-					})
-                    
-				return
-			}
-
-			if (event.target.classList.contains("capture")) {
-				event.target.classList.replace("capture", "take-image")
-				event.target.innerHTML = "Take Image"
-				webcam.snap(data => {
-					formDataBuffer.image = {
-						base64: data,
-						fromInput: false,
-					}
-					canvas.value = data
-				})
-				webcam.stop()
-				camera.style.zIndex = "1"
-				canvas.style.zIndex = "2"
-				return
-			}              
-		}
+				});
+			toggleCaptureClass();
+        }
         
-	}
+        if (classList.contains("capture")) {
+			webcam.snap(data => {
+				formDataBuffer.image = { base64: data, fromInput: false };
+				canvas.value = data;
+			});
+			webcam.stop();
+			toggleCaptureClass();
+		}
+	})
 
+	// Handle merging addresses
+	let duplicateAddress = false;
+
+    //clears all input if duplicate address was unchecked else refills their values
+    getElementById("mergePresentAndMainPrompt").addEventListener("change", event => {
+		const duplicateAddress = event.target.checked;
+		const addressType = duplicateAddress ? "present" : "main";
+		const inputFields = document.querySelectorAll(`input[name^='${addressType}']`);
+
+		inputFields.forEach(input => {
+			const targetName = input.name.replace(addressType, "main");
+			const targetInput = document.querySelector(`input[name='${targetName}']`);
+			targetInput.value = duplicateAddress ? input.value : "";
+		});
+	});
+      
     /*
-        When true allows for several functionalities.
-        1. duplicate values in present address inputs to main address inputs.
-        2. automatically copies present address input values to main address inputs.
-        
-        Automatically clears main address input values when set to false.
+        if duplicate address is checked,
+        any values placed inside present address fields also duplicates to main address fields 
     */
-    let mainAddressSameAsPresentAddress = false
-    const form = document.getElementById("client-registration-form");
-
-    document.getElementById("mergePresentAndMainPrompt").onchange = event => {
-
-        mainAddressSameAsPresentAddress = event.target.checked;
-
-        if (!mainAddressSameAsPresentAddress) {
-            document.querySelectorAll("input[name^='main']").forEach(input => { input.value = "" });
-        } else {
-            document.querySelectorAll("input[name^='present']").forEach(input => {
-                document.querySelector(`input[name='${input.name.replace("present", "main")}']`).value = input.value
-            })
-        }
-    }
-
-    form.addEventListener("keyup", event => {
-
-        const input = event.target;
-
-        if (mainAddressSameAsPresentAddress) {
-            const targetName = input.getAttribute("name").replace("present", "main");
-            const targetInput = document.querySelector(`input[name='${targetName}']`);
-            targetInput.value = input.value;
-        }
-    });
+    getElementById("client-registration-form").addEventListener("keyup", ({ target }) => {
+		if (duplicateAddress) {
+			const targetName = target.getAttribute("name").replace("present", "main");
+			querySelector(`input[name='${targetName}']`).value = target.value;
+		}
+	})
     
-	document.getElementById("client-registration-image").onchange = event => {
+	getElementById("client-registration-image").addEventListener("change", event => {
 
-		const fileInput = document.getElementById("client-registration-image")
-		const canvas = document.getElementById("client-register-client-image-template")
-		const ctx = canvas.getContext("2d")
+        const fileInput = document.getElementById("client-registration-image");
+
+		const ctx = canvas.getContext("2d");
 
 		if (fileInput.files && fileInput.files[0]) {
-            
-			const file = fileInput.files[0]
+			const file = fileInput.files[0];
 
 			if (file.type.startsWith("image/")) {
-
-				const reader = new FileReader()
+				const reader = new FileReader();
 
 				reader.onload = function (e) {
-
-					const image = new Image()
+					const image = new Image();
 
 					image.onload = function () {
-						canvas.width = image.width
-						canvas.height = image.height
-						ctx.drawImage(image, 0, 0)
-					}
+						canvas.width = image.width;
+						canvas.height = image.height;
+						ctx.drawImage(image, 0, 0);
+					};
 
-					image.src = e.target.result
+					image.src = e.target.result;
 
 					formDataBuffer.image = {
 						base64: null,
@@ -817,15 +618,148 @@ export async function renderClientBuilder() {
 						path: file.path,
 						size: file.size,
 						type: file.type,
-                        format: file.name.split('.')[1]
-					}
+						format: file.name.split(".")[1],
+					};
+				};
+
+				reader.readAsDataURL(file);
+			} else {
+				event.preventDefault();
+				return "Please select an image file"
+			}
+		}
+	});
+
+	function showHideImageCapture(numWebcams) {
+		const registrationImage = getElementById("client-registration-image");
+		const imageCapture = getElementById("client-register-client-image-capture");
+
+		if (numWebcams > 0) {
+			registrationImage.style.display = "none";
+			imageCapture.style.display = "block";
+		} else {
+			registrationImage.style.display = "block";
+			imageCapture.style.display = "none";
+		}
+	}
+
+	function addFieldError(field, error) {
+		const errorField = querySelector(`ul[data-error-key="${field}"]`);
+
+		if (errorField) {
+			errorField.innerHTML = `<li class="registration-input-box__title__errors-item">${error}</li>`;
+		}
+	}
+
+	function clearFieldErrors() {
+		const fieldErrors = document.querySelectorAll(".registration-input-box__title__errors-item");
+
+		if (fieldErrors) {
+			fieldErrors.forEach(field => (field.innerHTML = ""));
+		}
+	}
+
+	function validateFormData(formDataBuffer) {
+		let errors = 0;
+
+		const longestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => (b.length > a.length ? b : a)).length;
+		const shortestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => (b.length < a.length ? b : a)).length;
+
+		const validationMethods = {
+			firstName: [[window.isEmpty], [window.isOverThan, 2, 255]],
+
+			middleName: [[window.isEmpty], [window.isOverThan, 2, 255]],
+
+			lastName: [[window.isEmpty], [window.isOverThan, 2, 255]],
+
+			relationshipStatus: [[window.isEmpty], [window.isOverThan, shortestRelationshipOption, longestRelationshipOption], [window.notIn, [...Object.values(window.userRelationshipTypes)]]],
+
+			birthDate: [[window.isEmpty], [window.isBirthDate]],
+
+			age: [[window.isEmpty], [window.isOverThan, 15, 70]],
+
+			email: [[window.isEmpty], [window.isEmail], [window.isOverThan, 10, 255]],
+
+			occupation: [[window.isEmpty], [window.isOverThan, 5, 255]],
+
+			phoneNumber: [[window.isEmpty], [window.isValidPhoneNumber]],
+
+			presentAddressStreet: [[window.isEmpty], [window.isOverThan, 5, 9999]],
+
+			presentAddressSubdivision: [[window.isEmpty], [window.isOverThan, 5, 255]],
+
+			presentAddressBarangay: [[window.isEmpty], [window.isOverThan, 5, 255]],
+
+			presentAddressCity: [[window.isEmpty], [window.isOverThan, 5, 255]],
+
+			presentAddressProvince: [[window.isEmpty], [window.isOverThan, 5, 255]],
+
+			presentAddressPostalCode: [[window.isEmpty], [window.isOverThan, 5, 9999]],
+
+			presentAddressDetails: [[window.isEmpty], [window.isOverThan, 5, 255]],
+
+			mainAddressStreet: [[window.isEmpty], [window.isOverThan, 5, 9999]],
+
+			mainAddressSubdivision: [[window.isEmpty], [window.isOverThan, 5, 255]],
+
+			mainAddressBarangay: [[window.isEmpty], [window.isOverThan, 5, 255]],
+
+			mainAddressCity: [[window.isEmpty], [window.isOverThan, 5, 255]],
+
+			mainAddressProvince: [[window.isEmpty], [window.isOverThan, 5, 255]],
+
+			mainAddressPostalCode: [[window.isEmpty], [window.isOverThan, 5, 9999]],
+
+			mainAddressDetails: [[window.isEmpty], [window.isOverThan, 5, 255]],
+		};
+
+		formData.forEach((dirtyValue, key) => {
+			if (typeof dirtyValue !== "object") {
+				const value = dirtyValue.trim();
+
+				if (validationMethods.hasOwnProperty(key)) {
+					validationMethods[key].forEach(([validationMethod, ...args]) => {
+						const [validationErrors, validationMessage] = validationMethod(value, ...args);
+						errors += validationErrors;
+
+						validationMessage.length > 0 && addFieldError(key, validationMessage);
+					});
+				}
+			}
+		});
+
+		if (formDataBuffer.image === null) {
+			makeToastNotification("Profile Picture is required when registering a new client");
+			errors++;
+		}
+
+		return errors;
+	}
+
+	async function handleFormSubmit(formDataBuffer) {
+		const errors = validateFormData(formDataBuffer);
+
+		if (errors === 0) {
+			clearFieldErrors();
+			formDataBuffer.formData = Object.fromEntries(formData.entries());
+
+			const response = await window.ipcRenderer.invoke("add-client", formDataBuffer);
+
+			if (response.status === "success") {
+				response.toast.forEach(toast => {
+					makeToastNotification(toast);
+				});
+				transition(renderClientSection);
+			} else {
+				if (response.field_errors) {
+					Object.keys(response.field_errors).forEach(key => {
+						querySelector(`ul[data-error-key="${key}"]`).innerHTML = `<li class="registration-input-box__title__errors-item">${response.field_errors[key]}</li>`;
+					});
 				}
 
-				reader.readAsDataURL(file)
-
-			} else {
-                event.preventDefault()
-				makeToastNotification("Please select an image file")
+				response.toast.forEach(toast => {
+					makeToastNotification(toast);
+				});
 			}
 		}
 	}
