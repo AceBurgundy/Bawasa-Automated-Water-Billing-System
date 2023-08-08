@@ -115,16 +115,6 @@ const Client_Address = db.define(
     }
 )
 
-Client_Address.hasOne(Client, { 
-    foreignKey: "mainAddressId", 
-    as: "mainAddress"
-})
-
-Client_Address.hasOne(Client, { 
-    foreignKey: "presentAddressId", 
-    as: "presentAddress"
-})
-
 Client_Address.sync()
     .then(() => {
         console.log("Client Address model successfully created or synchronized");
