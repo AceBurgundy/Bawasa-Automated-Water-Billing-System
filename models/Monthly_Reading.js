@@ -14,34 +14,6 @@ const Monthly_Reading = db.define(
             autoIncrement: true,
         },
 
-        clientId: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            references: {
-                model: Client,
-                key: "id",
-            },
-            validate: {
-                notNull: {
-                    msg: "Client id is required",
-                }
-            }
-        },
-
-        meterReaderId: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            references: {
-                model: User,
-                key: "id",
-            },
-            validate: {
-                notNull: {
-                    msg: "Meter reader id is required",
-                }
-            }
-        },
-
         reading: {
             type: DataTypes.DECIMAL,
             allowNull: false,
@@ -56,9 +28,6 @@ const Monthly_Reading = db.define(
         }
     }
 )
-
-User.belongsToMany(Client, { through: Monthly_Reading, foreignKey: 'clientId' })
-Client.belongsToMany(User, { through: Monthly_Reading, foreignKey: 'clientId' })
 
 Monthly_Reading.sync()
     .then(() => {
