@@ -8,6 +8,7 @@
     --secondary: #272d01;
     --accent: #f62804;
     --transparent: #f0f8ff00;
+    --borderPrimary: 1px solid rgb(31, 31, 31);
 }
 
 :root {
@@ -18,6 +19,9 @@
     --secondary: #272d01;
     --accent: #f62804;
     --transparent: #f0f8ff00;
+    --gray: #e7e7e7;
+    --borderPrimary: 2px solid var(--gray);
+    --darkerBorderPrimary: 2px solid #ececec;
 }
 
 * {
@@ -118,11 +122,12 @@ input[type="date"],
 input[type="number"],
 input[type="email"],
 input[type="password"],
+.number,
 select,
 .input-style {
     padding: 0.7rem;
     border-radius: 5px;
-    border: 2px solid var(--text);
+    border: 2px solid var(--gray);
     height: 47px;
 }
 
