@@ -1,6 +1,7 @@
 const { validations } = require("../model_helpers.js")
 const { db } = require("../sequelize_init")
-const { DataTypes } = require('sequelize')
+const { DataTypes } = require('sequelize');
+const Monthly_Reading = require("./Monthly_Reading.js");
 
 const User = db.define(
     "User",
@@ -195,6 +196,17 @@ const User = db.define(
         }
     }
 )
+
+//indicating that a user, specifically a Meter Reader can have multiple monthly readings
+User.hasMany(Monthly_Reading, {
+    foreignKey: "meterReaderId",
+    as: "meterReader"
+})
+
+Monthly_Reading.belongsTo(User, {
+    foreignKey: "meterReaderId",
+    as: "meterReader"
+})
 
 User.sync()
     .then(() => {
