@@ -1,45 +1,33 @@
 const Client_Connection_Status = require("../../../models/Client_Connection_Status");
 const ClientPhoneNumber = require("../../../models/Client_Phone_Number");
 const Client_Address = require("../../../models/Client_Address");
+const { db } = require("../../../sequelize_init");
 const Client = require("../../../models/Client");
 const { ipcMain } = require("electron");
 
 ipcMain.handle("clients", async (event, args) => {
 
     try {
-
         const clients = await Client.findAll({
-
-            attributes: [
-                "firstName",
-                "middleName",
-                "lastName",
-                "createdAt",
-                "meterNumber",
-                [db.literal("fullName"), "fullName"]
-            ],
-
-            include: [
-                {
-                    model: Client_Address,
-                    attributes: ["details"]
+			include: [
+				{ 
+                    model: ClientPhoneNumber, 
+                    as: "Client_Phone_Numbers",
+                    attributes: ['phoneNumber']
                 },
-                {
-                    model: ClientPhoneNumber,
-                    attributes: ["phoneNumber"],
-                    order: [["createdAt", "DESC"]],
-                    limit: 1
-                },
-                {
-                    model: Client_Connection_Status,
-                    attributes: ["connectionStatus"]
+                { model: Client_Address, as: "mainAddress" },
+				{ model: Client_Address, as: "presentAddress" },
+                { 
+                    model: Client_Connection_Status, 
+                    as: "Client_Connection_Statuses",
+                    attributes: ['connectionStatus']
                 }
-            ]
-
-        })
+			],
+		});
 
         if (clients.length > 0) {
-            return { status: "success", data: clients }
+
+            return { status: "success", data: JSON.stringify(clients) }
         } else {
             return { status: "error", message: "No clients yet" }
         }
