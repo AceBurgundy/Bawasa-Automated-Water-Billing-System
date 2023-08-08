@@ -1,4 +1,4 @@
-#client-builder, .section-child__center-client-builder-client-builder {
+#client, .section-child__center-client-client {
     height: 95vh;
     overflow-y: scroll;
     display: flex;
@@ -11,13 +11,13 @@
     margin: 0.5rem 0 3rem 0;
 }
 
-.section-child__center-client-builder-box__section-group {
+.section-child__center-client-box__section-group {
     display: flex;
     gap: 2rem;
 }
 
-.section-child__center-client-builder-box,
-.section-child__center-client-builder-box__section-group__left {
+.section-child__center-client-box,
+.section-child__center-client-box__section-group__left {
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -25,24 +25,24 @@
     /* border: 2px solid orange; */
 }
 
-.section-child__center-client-builder-box__section-group__left {
+.section-child__center-client-box__section-group__left {
     width: fit-content;
 }
 
-.section-child__center-client-builder-box__section {
+.section-child__center-client-box__section {
     display: flex;
     width: 100%;
     gap: 2rem;
 }
 
-.section-child__center-client-builder-box__section__input-box {
+.section-child__center-client-box__section__input-box {
     /* border: 2px solid red; */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
-.section-child__center-client-builder-box__section__input-box-title {
+.section-child__center-client-box__section__input-box-title {
     display: flex;
     align-items: center;
     width: fit-content;
@@ -50,25 +50,25 @@
     justify-content: space-between;
 }
 
-.section-child__center-client-builder-box__section__input-box-title > div {
+.section-child__center-client-box__section__input-box-title > div {
     display: flex;
     gap: 0.5rem;
 }
 
-.section-child__center-client-builder-box__section__input-box-title > div > p {
+.section-child__center-client-box__section__input-box-title > div > p {
     font-size: 0.9rem;
 }
 
-.section-child__center-client-builder-box__section__input-box-title > div > input {
+.section-child__center-client-box__section__input-box-title > div > input {
     cursor: pointer;
 }
 
-.section-child__center-client-builder-box__section__input-box.no-title {
+.section-child__center-client-box__section__input-box.no-title {
     justify-content: flex-end;
 }
 
-.section-child__center-client-builder-box__section__input-box > p,
-.section-child__center-client-builder-box__section__input-box-title {
+.section-child__center-client-box__section__input-box > p,
+.section-child__center-client-box__section__input-box-title {
     font-size: 1.2rem;
     margin-bottom: 3rem;
 }
@@ -81,37 +81,37 @@
     gap: 1rem;
 }
 
-.registration-input-box {
+.client-form-input-box {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
     width: 240px;
 }
 
-.registration-input-box > input,
+.client-form-input-box > input,
 .radio-box > label,
 .radio-box > input {
     font-size: 0.9rem;
 }
 
-.registration-input-box__title {
+.client-form-input-box__title {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.registration-input-box__title > label {
+.client-form-input-box__title > label {
     font-size: 0.9rem;
 }
 
-.registration-input-box__title__errors-item {
+.client-form-input-box__title__errors-item {
     list-style: none;
     font-size: 0.6rem;
     color: red;
 }
 
-.registration-input-box > input {
+.client-form-input-box > input {
     padding: 0.5rem;
 }
 
@@ -137,7 +137,7 @@
     width: 90%;
 }
 
-#client-register-client-image-box {
+#client-form-image-box {
     width: fit-content;
     height: fit-content;
     margin: 0 auto;
@@ -146,7 +146,7 @@
     transform: translateY(-50%);
 }
 
-#client-register-client-image-template {
+#client-form-image-template {
     width: 20vw;
     height: 20vw;
     object-fit: contain;
@@ -155,11 +155,11 @@
     border: 2px solid black;
 }
 
-#client-register-client-image-template {
+#client-form-image-template {
     z-index: 2;
 }
 
-#client-register-client-video {
+#client-form-video {
     width: 20vw;
     height: 20vw;
     position: absolute;
@@ -168,21 +168,21 @@
     z-index: 1;
 }
 
-#client-register-client-image-box-options {
+#client-form-image-box-options {
     margin-top: 1rem;
     width: 100%;
 }
 
-#client-registration-image {
+#client-form-image {
     display: none;
 }
 
-#client-registration-image::-webkit-file-upload-button {
+#client-form-image::-webkit-file-upload-button {
     visibility: hidden;
     width: 0.1px;
 }
 
-#client-registration-image::before {
+#client-form-image::before {
     content: 'Select Image';
     display: inline-block;
     background: var(--primary);
@@ -193,7 +193,7 @@
     cursor: pointer;
 }
 
-#client-registration-image:hover::before {
+#client-form-image:hover::before {
     background: var(--lighterPrimary);
 }
 
@@ -216,7 +216,7 @@
     gap: 1.5rem;
 }
 
-.registration-input-box.radio > label {
+.client-form-input-box.radio > label {
     font-size: 1rem;
     margin-bottom: 0.5rem;
     margin-left: 7px;
@@ -233,7 +233,7 @@ input[name="mainAddressDetails"] {
     width: 413px;
 }
 
-.section-child__center-client-builder-box__section.last {
+.section-child__center-client-box__section.last {
     justify-content: flex-end;
 }
 
@@ -247,22 +247,22 @@ input[name="mainAddressDetails"] {
 
 @media screen and (orientation: portrait) {
 
-    .section-child__center-client-builder-box__section-group {
+    .section-child__center-client-box__section-group {
         flex-direction: column-reverse;
     }
 
-    #client-register-client-image-box {
+    #client-form-image-box {
         margin: 0 auto;
         position: static;
         transform: translateY(0%);
     }
     
-    #client-register-client-video {
+    #client-form-video {
         width: 50vw;
         height: 50vw;
     }
     
-    #client-register-client-image-template {
+    #client-form-image-template {
         width: 50vw;
         height: 50vw;
         object-fit: contain;
