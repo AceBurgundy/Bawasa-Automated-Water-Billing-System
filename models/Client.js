@@ -1,7 +1,7 @@
+const Client_Address = require("./Client_Address")
 const { validations } = require("../model_helpers")
 const { db } = require("../sequelize_init")
-const { DataTypes } = require("sequelize");
-const Client_Address = require("./Client_Address");
+const { DataTypes } = require("sequelize")
 
 const Client = db.define(
     "Client",
