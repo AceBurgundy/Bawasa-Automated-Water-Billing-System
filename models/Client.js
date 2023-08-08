@@ -1,6 +1,7 @@
 const { validations } = require("../model_helpers")
 const { db } = require("../sequelize_init")
-const { DataTypes } = require("sequelize")
+const { DataTypes } = require("sequelize");
+const Client_Address = require("./Client_Address");
 
 const Client = db.define(
     "Client",
@@ -184,34 +185,31 @@ const Client = db.define(
                 },
                 notEmpty: {
                     msg: "Meter number cannot be left blank",
-                },
-            },
-        },
-
-        mainAddressId: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            unique: true,
-            validate: {
-                notNull: {
-                    msg: "Main Address ID cannot be left blank"
-                }
-            }
-        },
-
-        presentAddressId: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            unique: true,
-            validate: {
-                notNull: {
-                    msg: "Present Address ID cannot be left blank"
                 }
             }
         }
-
     }
 );
+
+Client.hasOne(Client_Address, { 
+    foreignKey: "mainAddressId", 
+    as: "mainAddress"
+})
+
+Client.hasOne(Client_Address, { 
+    foreignKey: "presentAddressId", 
+    as: "presentAddress"
+})
+
+Client_Address.belongsTo(Client, {
+	foreignKey: "mainAddressId",
+	as: "clientMainAddress",
+});
+
+Client_Address.belongsTo(Client, {
+	foreignKey: "presentAddressId",
+	as: "clientPresentAddress",
+});
 
 Client.sync()
     .then(() => {
