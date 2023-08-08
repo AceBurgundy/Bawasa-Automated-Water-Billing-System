@@ -3,7 +3,33 @@ import loadLogin from "../../authentication/static/login.js";
 import { renderClientSection } from "../../clients/static/clients.js";
 
 export async function renderBillingSection() {
-            
+
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    
+        const user = await window.ipcRenderer.invoke("current_user")
+        let bills = null
+        let responseMessage = null
+
+        async function fetchBillingData() {
+
+            try {
+    
+                const response = await window.ipcRenderer.invoke("bills")
+    
+                if (response.status === "success") {
+                    bills = JSON.parse(response.data)
+                    console.log(bills)
+                } else {
+                    responseMessage = response.message
+                }
+                
+            } catch (error) {
+                console.error("Error fetching client data:", error)
+            }
+        }
+          
+        await fetchBillingData()
+
         const template = `
 
         <section id="section-type-container" class="page">
@@ -21,7 +47,7 @@ export async function renderBillingSection() {
                     <div class="section-child__top">
                         <div>
                             <img src="assets/images/Logo.png" alt="">
-                            <p class="section-child__top-title">Good morning, Sam</p>
+                            <p class="section-child__top-title">${user ? `Welcome, ${user.firstName}` : `Welcome User`}</p></p>
                         </div>
                         <img src="assets/images/Logo.png" alt="">
                     </div>
@@ -44,7 +70,38 @@ export async function renderBillingSection() {
                             </div>
                         </div>
                     </div>
-                    <div class="section-child__bottom"></div>
+                    <div class="section-child__bottom">
+                    ${
+                        responseMessage !== null ? `<p style="margin: 1rem;">${responseMessage}</p>` : "hasData"
+                        
+                        // bills !== null &&
+                        //     bills.map(client => `
+                        //         <div class="client-info">
+                        //             <div class="client-info__item">
+                        //                 <p>${client.fullName}</p>
+                        //             </div>
+                        //             <div class="client-info__item">
+                        //                 <p>${client.mainAddress.details}</p>
+                        //             </div>
+                        //             <div class="client-info__item">
+                        //                 <p>+63${client.Client_Phone_Numbers[0]?.phoneNumber}</p>
+                        //             </div>
+                        //             <div class="client-info__item">
+                        //                 <p>${new Date(client.createdAt).toLocaleDateString("en-US", dateOptions)}</p>
+                        //             </div>
+                        //             <div class="client-info__item">
+                        //                 <p>${client.meterNumber}</p>
+                        //             </div>
+                        //             <div class="client-info__item">
+                        //                 <p>${client.Client_Connection_Statuses.length === 0 ? "Not Set" : client.Client_Connection_Statuses[0].connectionStatus}</p>
+                        //             </div>
+                        //             <div class="client-info__item">
+                        //                 <p>Options</p>
+                        //             </div>
+                        //         </div>`
+                        //     ).join("")
+                      }
+                    </div>
                 </div>
             </section>
 
@@ -52,16 +109,12 @@ export async function renderBillingSection() {
     `
     
     document.getElementById("container").innerHTML += template
-
-    const response = await window.ipcRenderer.invoke("current_user");
-    console.log(`current user is ${response}`);
     
     window.onclick = event => {
 
         const elementId = event.target.getAttribute("id") 
 
         if (elementId === "clients") {
-            console.log("yes");
             transition(renderClientSection)
         }
 
