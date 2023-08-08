@@ -1,6 +1,7 @@
 const { db } = require("../sequelize_init")
 const { DataTypes } = require("sequelize")
 const Client = require("./Client")
+const Monthly_Reading = require("./Monthly_Reading")
 
 const Client_Bill = db.define(
     "Client_Bill",
@@ -26,34 +27,8 @@ const Client_Bill = db.define(
             }
         },
 
-        previousReading: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            validate: {
-                notNull: {
-                    msg: "Previous reading is required"
-                },
-                isInt: {
-                    msg: "Previous reading must be an integer"
-                }
-            }
-        },
-
-        currentReading: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            validate: {
-                notNull: {
-                    msg: "Current reading is required"
-                },
-                isInt: {
-                    msg: "Current reading must be an integer"
-                }
-            }
-        },
-
         consumption: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.DECIMAL,
             allowNull: false,
             validate: {
                 notNull: {
@@ -138,6 +113,26 @@ const Client_Bill = db.define(
 
 Client_Bill.belongsTo(Client, { foreignKey: "clientId" })
 Client.hasMany(Client_Bill, { foreignKey: "clientId" })
+
+Client_Bill.hasOne(Monthly_Reading, { 
+    foreignKey: "currentReadingId", 
+    as: "currentReading"
+})
+
+Client_Bill.hasOne(Monthly_Reading, { 
+    foreignKey: "previousReadingId", 
+    as: "previousReading"
+})
+
+Monthly_Reading.belongsTo(Client_Bill, {
+	foreignKey: "currentReadingId",
+	as: "currentReading",
+});
+
+Monthly_Reading.belongsTo(Client_Bill, {
+	foreignKey: "previousReadingId",
+	as: "previousReading",
+});
 
 Client_Bill.sync()
     .then(() => {
