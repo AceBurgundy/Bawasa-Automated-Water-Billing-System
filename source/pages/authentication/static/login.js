@@ -3,7 +3,7 @@ import { renderClientSection } from "../../clients/static/clients.js";
 import { loadRegister } from "./register.js"
 import "../../input_validations.js"
 
-export default function loadLogin() {
+export default async function loadLogin() {
 
     const template = `
 
