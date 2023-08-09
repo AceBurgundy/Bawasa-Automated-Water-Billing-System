@@ -73,20 +73,34 @@ export async function renderClientBuilder(edit, clientObject) {
 	if (forEdit && clientData) {
         const image = new Image();
         const ctx = canvas.getContext('2d');
-        image.src = await window.ipcRenderer.invoke("get-client-image-path", clientData.profilePicture)
+		const imagePath = await window.ipcRenderer.invoke("get-client-image-path", clientData.profilePicture)
+        image.src = imagePath
         
         image.onload = function () {
             canvas.width = image.width;
             canvas.height = image.height;
             ctx.drawImage(image, 0, 0);
         };
+
+		formDataBuffer.image = {
+			base64: null,
+			fromInput: true,
+			path: imagePath,
+			size: null,
+			type: null,
+			format: clientData.profilePicture.split(".")[1],
+		};
     } 
 
 	// Handle form submission
 	getElementById("client-register-submit-button").addEventListener("click", event => {
 		event.preventDefault();
         formDataBuffer.formData = new FormData(getElementById("client-form"))
-		handleFormSubmit(formDataBuffer);
+		if (forEdit && clientData !== null) {
+			handleFormSubmit(formDataBuffer, forEdit, clientData.id);
+		} else {
+			handleFormSubmit(formDataBuffer);
+		}
 	});
 
 	// Handle image capture
@@ -304,7 +318,7 @@ export async function renderClientBuilder(edit, clientObject) {
 		return errors;
 	}
 
-	async function handleFormSubmit(formDataBuffer) {
+	async function handleFormSubmit(formDataBuffer, forEdit = false, clientId = null) {
 
 		const errors = validateFormData(formDataBuffer);
 
