@@ -312,7 +312,19 @@ export async function renderClientBuilder(edit, clientObject) {
 
 			formDataBuffer.formData = Object.fromEntries(formDataBuffer.formData.entries())
 
-			const response = await window.ipcRenderer.invoke("add-client", formDataBuffer)
+			let response = null
+			
+			if (forEdit && clientId !== null) {
+				const data = {
+					formDataBuffer: formDataBuffer,
+					clientId: clientId
+				}
+
+				console.log(data);
+				response = await window.ipcRenderer.invoke("edit-client", data)
+			} else {
+				response = await window.ipcRenderer.invoke("add-client", formDataBuffer)
+			}
 
 			if (response.status === "success") {
 				response.toast.forEach(toast => {
