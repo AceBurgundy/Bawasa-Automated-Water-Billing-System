@@ -224,6 +224,10 @@ export async function renderClientSection() {
 
             if (tableOptions) {
                 Object.keys(tableOptions).forEach(id => {
+                    if (id === clientId && tableOptions[id].contains("active")) {
+                        tableOptions[id].remove("active")
+                        return
+                    }
                     if (id !== clientId) {
                         tableOptions[id].remove("active")
                     } else {
