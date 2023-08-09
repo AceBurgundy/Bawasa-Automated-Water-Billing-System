@@ -25,32 +25,37 @@ export async function renderClientBuilder(edit, clientObject) {
 
 	getElementById("container").innerHTML += getTemplate(forEdit, clientData);
 
-	const initialData = [{
-		firstName: "Sam Adrian",
-		middleName: "Panganoron",
-		lastName: "Sabalo",
-		extension: "",
-		birthDate: "2001-08-20",
-		age: "18",
-		email: "Samadriansabalo99@gmail.com",
-		occupation: "Software Engineer",
-		meterNumber: "wesdgw1231",
-		phoneNumber: "9956281448",
-		presentAddressStreet: "Yumang",
-		presentAddressSubdivision: "Pineda",
-		presentAddressBarangay: "City Heights",
-		presentAddressCity: "General Santos",
-		presentAddressProvince: "South Cotabato",
-		presentAddressPostalCode: "9500",
-		presentAddressDetails: "Black Gate",
-		mainAddressStreet: "Yumang",
-		mainAddressSubdivision: "Pineda",
-		mainAddressBarangay: "City Heights",
-		mainAddressCity: "General Santos",
-		mainAddressProvince: "South Cotabato",
-		mainAddressPostalCode: "9500",
-		mainAddressDetails: "Black Gate",
-	}]
+	// const initialData = {
+	// 	firstName: "Sam Adrian",
+	// 	middleName: "Panganoron",
+	// 	lastName: "Sabalo",
+	// 	extension: "",
+	// 	birthDate: "2001-08-20",
+	// 	age: "18",
+	// 	email: "Samadriansabalo99@gmail.com",
+	// 	occupation: "Software Engineer",
+	// 	meterNumber: "wesdgw1231",
+	// 	phoneNumber: "9956281448",
+	// 	presentAddressStreet: "Yumang",
+	// 	presentAddressSubdivision: "Pineda",
+	// 	presentAddressBarangay: "City Heights",
+	// 	presentAddressCity: "General Santos",
+	// 	presentAddressProvince: "South Cotabato",
+	// 	presentAddressPostalCode: "9500",
+	// 	presentAddressDetails: "Black Gate",
+	// 	mainAddressStreet: "Yumang",
+	// 	mainAddressSubdivision: "Pineda",
+	// 	mainAddressBarangay: "City Heights",
+	// 	mainAddressCity: "General Santos",
+	// 	mainAddressProvince: "South Cotabato",
+	// 	mainAddressPostalCode: "9500",
+	// 	mainAddressDetails: "Black Gate",
+	// }
+
+	// Object.keys(initialData).forEach(key => {
+	// 	console.log(key);
+	// 	document.querySelector(`input[name='${key}']`).value = initialData[key]
+	// })
 
 	setTimeout(() => {getElementById("section-type-container").classList.add("active")}, 500);
 
