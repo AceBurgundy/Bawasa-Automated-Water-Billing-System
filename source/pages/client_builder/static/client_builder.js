@@ -334,12 +334,11 @@ export async function renderClientBuilder(edit, clientObject) {
 					clientId: clientId
 				}
 
-				console.log(data);
 				response = await window.ipcRenderer.invoke("edit-client", data)
 			} else {
 				response = await window.ipcRenderer.invoke("add-client", formDataBuffer)
 			}
-
+			console.log(response);
 			if (response.status === "success") {
 				response.toast.forEach(toast => {
 					makeToastNotification(toast);

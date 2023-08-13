@@ -2,6 +2,7 @@ const Client_Connection_Status = require("../../../models/Client_Connection_Stat
 const ClientPhoneNumber = require("../../../models/Client_Phone_Number")
 const { userRelationshipTypes } = require("../../../model_helpers")
 const Client_Address = require("../../../models/Client_Address")
+const tryCatchWrapper = require("../view_helpers")
 const { db } = require("../../../sequelize_init")
 const Client = require("../../../models/Client")
 const Response = require("../../IPCResponse")
@@ -652,20 +653,6 @@ function savePicture(profilePicture) {
     response.imageName = imageName
     response.status = "success"
     return response
-}
-
-/**
- * Wraps a callback function in a try-catch block for error handling.
- * @function
- * @param {Function} callback - The callback function to wrap.
- */
-async function tryCatchWrapper(callback) {
-	try {
-		return await callback()
-	} catch (error) {
-		console.log(`\n\n${error.name}\n`)
-		console.log(`${error.message}`)
-	}
 }
 
 /**

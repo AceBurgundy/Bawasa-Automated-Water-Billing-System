@@ -180,6 +180,8 @@ export async function renderClientSection() {
     
     document.getElementById("container").innerHTML += template
 
+    setTimeout(() => {document.getElementById("section-type-container").classList.add("active")}, 500);
+
     const tableOptions = {}
 
     document.querySelectorAll(".table-info__options").forEach(option => {

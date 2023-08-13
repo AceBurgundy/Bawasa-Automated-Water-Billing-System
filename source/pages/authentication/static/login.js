@@ -2,6 +2,7 @@ import { makeToastNotification, transition } from "../../../helper.js";
 import { renderClientSection } from "../../clients/static/clients.js";
 import { loadRegister } from "./register.js"
 import "../../input_validations.js"
+import { renderBillingSection } from "../../billing/static/billing.js";
 
 export default async function loadLogin() {
 
@@ -109,7 +110,7 @@ export default async function loadLogin() {
                 const response = await window.ipcRenderer.invoke("login", Object.fromEntries(formData.entries()));
 
                 if (response.status === "success") {
-                    transition(renderClientSection);
+                    transition(renderBillingSection);
                 } else {
                     response.message.forEach(message => { makeToastNotification(message) })
                 }
