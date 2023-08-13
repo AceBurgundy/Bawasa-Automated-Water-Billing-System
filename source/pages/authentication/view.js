@@ -135,7 +135,6 @@ ipcMain.handle("register", async (event, formData) => {
         phoneNumber: "Phone Number",
         email: "Email",
         password: "Password",
-        userType: "User Type"
     }
 
     const keysArray = Object.keys(formData)
@@ -152,8 +151,6 @@ ipcMain.handle("register", async (event, formData) => {
 
     const longestRelationshipOption = Object.values(userRelationshipTypes).reduce((a, b) => b.length > a.length ? b : a).length
     const shortestRelationshipOption = Object.values(userRelationshipTypes).reduce((a, b) => b.length < a.length ? b : a).length
-    const longestUserOption = Object.values(userTypes).reduce((a, b) => b.length > a.length ? b : a).length
-    const shortestUserOption = Object.values(userTypes).reduce((a, b) => b.length < a.length ? b : a).length
 
     const validationMethods = {
 
@@ -204,11 +201,6 @@ ipcMain.handle("register", async (event, formData) => {
             [isOverThan, 10, 255, "Password"]
         ],
 
-        userType: [
-            [isEmpty, "User Type"],
-            [isOverThan, shortestUserOption, longestUserOption, "User Type"],
-            [notIn, [...Object.values(userTypes)], "User Type"]
-        ]
     }
 
     for (const [key, dirtyValue] of Object.entries(formData)) {
@@ -254,7 +246,6 @@ ipcMain.handle("register", async (event, formData) => {
             relationshipStatus: formData.relationshipStatus,
             birthDate: formData.birthDate, 
             age: formData.age,
-            userType: formData.userType,
             accessKey: formData.accessKey
         })
 

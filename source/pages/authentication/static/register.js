@@ -111,20 +111,6 @@ export function loadRegister() {
                         value="Adrian2001."
                         maxlength="255">
 
-                    <select 
-                        name="userType" 
-                        id="register-form-user-type"
-                        required>
-                        <option disabled selected>User Type</option>
-                        ${Object.values(window.userTypes).map((value) => {
-                            return (
-                                value === "Admin" ?
-                                `<option value="${value}" selected>${value}</option>` :
-                                `<option value="${value}">${value}</option>`
-                            )
-                        })}
-                    </select>
-
                 </div>
             </div>
                 
@@ -167,8 +153,6 @@ export function loadRegister() {
 
             const longestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => b.length > a.length ? b : a).length
             const shortestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => b.length < a.length ? b : a).length
-            const longestUserOption = Object.values(window.userTypes).reduce((a, b) => b.length > a.length ? b : a).length
-            const shortestUserOption = Object.values(window.userTypes).reduce((a, b) => b.length < a.length ? b : a).length
 
             let errors = 0
 
@@ -221,11 +205,6 @@ export function loadRegister() {
                     [window.isOverThan, 10, 255, "Password"]
                 ],
 
-                userType: [
-                    [window.isEmpty, "User Type"],
-                    [window.isOverThan, shortestUserOption, longestUserOption, "User Type"],
-                    [window.notIn, [...Object.values(window.userTypes)], "User Type"]
-                ]
             }
 
             formData.forEach((dirtyValue, key) => {

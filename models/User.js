@@ -1,7 +1,6 @@
 const { validations } = require("../model_helpers.js")
 const { db } = require("../sequelize_init")
 const { DataTypes } = require('sequelize');
-const Monthly_Reading = require("./Monthly_Reading.js");
 
 const User = db.define(
     "User",
@@ -168,23 +167,6 @@ const User = db.define(
             defaultValue: false
         },
 
-        userType: {
-            type: DataTypes.STRING(25),
-            allowNull: false,
-            validate: {
-                notNull: {
-                    msg: "User type is required"
-                },
-                notEmpty: {
-                    msg: "User type cannot be left blank"
-                },
-                isIn: {
-                    args: validations.userOptions,
-                    msg: "Invalid user type"
-                }
-            }
-        },
-
         accessKey: {
             type: DataTypes.STRING(64),
             allowNull: false,
@@ -196,17 +178,6 @@ const User = db.define(
         }
     }
 )
-
-//indicating that a user, specifically a Meter Reader can have multiple monthly readings
-User.hasMany(Monthly_Reading, {
-    foreignKey: "meterReaderId",
-    as: "meterReader"
-})
-
-Monthly_Reading.belongsTo(User, {
-    foreignKey: "meterReaderId",
-    as: "meterReader"
-})
 
 User.sync()
     .then(() => {
