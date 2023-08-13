@@ -219,7 +219,9 @@ export async function renderBillingSection() {
         }
 
         if (elementId === "new-bill-form-close") {
+            event.preventDefault()
 		    element("new-bill-box").close()
+            element("new-bill-box").remove()
 		}
 
         if (elementId === "new-bill-form-submit") {
@@ -253,9 +255,13 @@ export async function renderBillingSection() {
 
                 const { response } = newBillResponse
 
+                console.log(response);
+
                 if (response.status === "success") {
                     makeToastNotification(response.toast[0])
                     element("new-bill-box").close()
+                    element("new-bill-box").remove();
+
                     transition(renderBillingSection)
                 } else {
                     makeToastNotification(response.toast[0])
