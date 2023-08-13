@@ -1,7 +1,6 @@
 const { db } = require("../sequelize_init")
 const { DataTypes } = require("sequelize")
 const Client = require("./Client")
-const Monthly_Reading = require("./Monthly_Reading")
 
 const Client_Bill = db.define(
     "Client_Bill",
@@ -27,13 +26,31 @@ const Client_Bill = db.define(
             }
         },
 
-        consumption: {
-            type: DataTypes.DECIMAL,
+        firstReading: {
+            type: DataTypes.DECIMAL(10,2),
             allowNull: false,
             validate: {
                 notNull: {
-                    msg: "Consumption is required"
+                    msg: "First reading is required",
                 },
+                isDecimal: {
+                    msg: "Must be a decimal number ex: (100.00)"
+                }
+            }
+        },
+
+        secondReading: {
+            type: DataTypes.DECIMAL(10,2),
+            validate: {
+                isDecimal: {
+                    msg: "Must be a decimal number ex: (100.00)"
+                }
+            }
+        },
+        
+        consumption: {
+            type: DataTypes.DECIMAL(10,2),
+            validate: {
                 isInt: {
                     msg: "Consumption must be an integer"
                 }
@@ -41,12 +58,8 @@ const Client_Bill = db.define(
         },
 
         billAmount: {
-            type: DataTypes.DECIMAL,
-            allowNull: false,
+            type: DataTypes.DECIMAL(10,2),
             validate: {
-                notNull: {
-                    msg: "Bill amount is required"
-                },
                 isDecimal: {
                     msg: "Bill amount must be a decimal number ex: (100.00)"
                 }
@@ -65,7 +78,7 @@ const Client_Bill = db.define(
         },
 
         paymentAmount: {
-            type: DataTypes.DECIMAL,
+            type: DataTypes.DECIMAL(10,2),
             validate: {
                 isDecimal: {
                     msg: "Payment amount must be a decimal number ex: (100.00)"
@@ -74,7 +87,7 @@ const Client_Bill = db.define(
         },
 
         remainingBalance: {
-            type: DataTypes.DECIMAL,
+            type: DataTypes.DECIMAL(10,2),
             validate: {
                 isDecimal: {
                     msg: "Remaining balance must be a decimal number ex: (100.00)"
@@ -83,7 +96,7 @@ const Client_Bill = db.define(
         },
 
         paymentExcess: {
-            type: DataTypes.DECIMAL,
+            type: DataTypes.DECIMAL(10,2),
             validate: {
                 isDecimal: {
                     msg: "Payment excess must be a decimal number ex: (100.00)"
@@ -108,31 +121,12 @@ const Client_Bill = db.define(
                 }
             }
         }
+        
     }
 )
 
 Client_Bill.belongsTo(Client, { foreignKey: "clientId" })
 Client.hasMany(Client_Bill, { foreignKey: "clientId" })
-
-Client_Bill.hasOne(Monthly_Reading, { 
-    foreignKey: "currentReadingId", 
-    as: "currentReading"
-})
-
-Client_Bill.hasOne(Monthly_Reading, { 
-    foreignKey: "previousReadingId", 
-    as: "previousReading"
-})
-
-Monthly_Reading.belongsTo(Client_Bill, {
-	foreignKey: "currentReadingId",
-	as: "currentReading",
-});
-
-Monthly_Reading.belongsTo(Client_Bill, {
-	foreignKey: "previousReadingId",
-	as: "previousReading",
-});
 
 Client_Bill.sync()
     .then(() => {
