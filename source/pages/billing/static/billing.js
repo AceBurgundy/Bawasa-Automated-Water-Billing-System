@@ -1,10 +1,12 @@
-import { transition, clearDOMHead } from "../../../helper.js"
-import loadLogin from "../../authentication/static/login.js";
-import { renderClientSection } from "../../clients/static/clients.js";
+import { transition, clearDOMHead, makeToastNotification } from "../../../helper.js"
+import loadLogin from "../../authentication/static/login.js"
+import { renderClientSection } from "../../clients/static/clients.js"
+import { addNewBill } from "../templates/new_bill.js"
 
 export async function renderBillingSection() {
 
-        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+        const element = (id) => document.getElementById(id)
+        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' }
     
         const user = await window.ipcRenderer.invoke("current_user")
         let bills = null
@@ -75,16 +77,13 @@ export async function renderBillingSection() {
                                     <p>Name</p>
                                 </div>
                                 <div class="table-data-headers__item">
-                                    <p>Billing Date</p>
-                                </div>
-                                <div class="table-data-headers__item">
                                     <p>Meter Number</p>
                                 </div>
                                 <div class="table-data-headers__item">
-                                    <p>Previous Reading</p>
+                                    <p>First Reading</p>
                                 </div>
                                 <div class="table-data-headers__item">
-                                    <p>Current Reading</p>
+                                    <p>Second Reading</p>
                                 </div>
                                 <div class="table-data-headers__item">
                                     <p>Consumption</p>
@@ -93,19 +92,32 @@ export async function renderBillingSection() {
                                     <p>Bill Ammount</p>
                                 </div>
                                 <div class="table-data-headers__item">
+                                    <p>Billing Due</p>
+                                </div>
+                                <div class="table-data-headers__item">
                                     <p>Menu</p>
                                 </div>
                             </div>
                             ${
-                                responseMessage !== null ? `<p style="margin: 1rem;">${responseMessage}</p>` :
+                                responseMessage !== null ? `<p style="margin: 1rem">${responseMessage}</p>` :
                                 
                                 bills !== null &&
-                                    bills.map(billing => `
+                                    bills.map((billing, index) => {
+
+                                        const { firstReading, secondReading, consumption, billAmount, disconnectionDate } = 
+                                        billing.Client_Bills.length > 0 ? billing.Client_Bills[0] : {};
+                                                                    
+                                        const date = disconnectionDate ? 
+                                        new Date(disconnectionDate).toLocaleDateString("en-US", dateOptions) :
+                                        ''
+
+                                        return `
+
                                         <div class="table-info billing">
                                             <div class="table-info__options" data-client-id="${billing.id}">
                                                 <p>Menu</p>
                                                 <div class="table-info__options-item-box billing" data-client-id="${billing.id}">
-                                                    <div class="table-info__options-item edit">
+                                                    <div class="table-info__options-item add" data-client-index="${index}">
                                                         <svg class="edit-table-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5,18H9.24a1,1,0,0,0,.71-.29l6.92-6.93h0L19.71,8a1,1,0,0,0,0-1.42L15.47,2.29a1,1,0,0,0-1.42,0L11.23,5.12h0L4.29,12.05a1,1,0,0,0-.29.71V17A1,1,0,0,0,5,18ZM14.76,4.41l2.83,2.83L16.17,8.66,13.34,5.83ZM6,13.17l5.93-5.93,2.83,2.83L8.83,16H6ZM21,20H3a1,1,0,0,0,0,2H21a1,1,0,0,0,0-2Z"/></svg>
                                                         <p>New</p>
                                                     </div>
@@ -126,22 +138,22 @@ export async function renderBillingSection() {
                                                 <p>${billing.fullName}</p>
                                             </div>
                                             <div class="table-info__item">
-                                                <p></p>
-                                            </div>
-                                            <div class="table-info__item">
                                                 <p>${billing.meterNumber}</p>
                                             </div>
                                             <div class="table-info__item">
-                                                <p></p>
+                                                <p>${firstReading ? firstReading : ''}</p>
                                             </div>
                                             <div class="table-info__item">
-                                                <p></p>
+                                                <p>${secondReading ? secondReading : ''}</p>
                                             </div>
                                             <div class="table-info__item">
-                                                <p></p>
+                                                <p>${consumption ? consumption : ''}</p>
                                             </div>
                                             <div class="table-info__item">
-                                                <p></p>
+                                                <p>${billAmount ? billAmount : ''}</p>
+                                            </div>
+                                            <div class="table-info__item">
+                                                <p>${date}</p>
                                             </div>
                                             <div class="table-info__item table-menu" data-client-id="${billing.id}">
                                                 <div class="icon-box">
@@ -151,7 +163,7 @@ export async function renderBillingSection() {
                                                 </div>
                                             </div>
                                         </div>`
-                                    ).join("")
+                                    }).join("")
                             }
                         </div>
                     </div>
@@ -161,7 +173,7 @@ export async function renderBillingSection() {
         </section>
     `
     
-    document.getElementById("container").innerHTML += template
+    element("container").innerHTML += template
     
     const tableOptions = {}
 
@@ -169,9 +181,7 @@ export async function renderBillingSection() {
         tableOptions[option.getAttribute("data-client-id")] = option.classList
     })
 
-    console.log(tableOptions);
-
-    window.onclick = event => {
+    window.onclick = async event => {
 
         const elementId = event.target.getAttribute("id") 
         const classList = event.target.classList
@@ -203,6 +213,56 @@ export async function renderBillingSection() {
             }
         }
 
+        if (classList.contains("add")) {
+            document.body.innerHTML += addNewBill(bills[event.target.getAttribute("data-client-index")])
+            element("new-bill-box").showModal()
+        }
+
+        if (elementId === "new-bill-form-close") {
+		    element("new-bill-box").close()
+		}
+
+        if (elementId === "new-bill-form-submit") {
+
+            event.preventDefault()
+
+            const clientId = element("new-bill-form-submit").getAttribute("data-client-id")
+            const billId = element("new-bill-form-submit").getAttribute("data-bill-id")
+			const monthlyReadingInput = element("new-bill-form-input-box-input")
+			const errorElement = element("new-bill-form-input-box-header-error")
+
+			const monthlyReading = monthlyReadingInput.value
+
+			if (isNaN(monthlyReading)) {
+				errorElement.innerHTML = "Must be a number"
+				return
+			}
+
+			if (!monthlyReading) {
+				errorElement.innerHTML = "Monthly reading cannot be empty"
+				return
+			}
+
+			if (clientId, monthlyReading) {
+            
+                const newBillResponse = await window.ipcRenderer.invoke("new-bill", {
+                    clientId: clientId,
+                    monthlyReading: monthlyReading,
+                    billId: billId !== '' ? billId : null
+                })
+
+                const { response } = newBillResponse
+
+                if (response.status === "success") {
+                    makeToastNotification(response.toast[0])
+                    element("new-bill-box").close()
+                    transition(renderBillingSection)
+                } else {
+                    makeToastNotification(response.toast[0])
+                }
+            
+            }
+        }
     }
 
 }
