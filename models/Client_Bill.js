@@ -113,6 +113,15 @@ const Client_Bill = db.define(
             }
         },
 
+        dueDate: {
+            type: DataTypes.DATE,
+            validate: {
+                isDate: {
+                    msg: "Due date must be a valid date"
+                }
+            }
+        },
+
         disconnectionDate: {
             type: DataTypes.DATE,
             validate: {
