@@ -119,9 +119,9 @@ const template = `
                                                     required>
                                                     <option disabled selected>Relationship Status</option>
                                                     ${Object.values(window.userRelationshipTypes).map(value =>
-                                                        (forEdit || value === "Single") ?
-                                                            `<option value="${value}"${value === clientData?.relationshipStatus ? " selected" : ""}>${value}</option>` :
-                                                        ""
+                                                        `<option value="${value}" ${value === clientData?.relationshipStatus ? " selected" : ""}>
+                                                            ${value}
+                                                        </option>`
                                                     )}                                                    
                                                 </select>
 
