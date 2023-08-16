@@ -259,7 +259,11 @@ function updateBillWithSecondReading(bill, monthlyReading, previousBillExcess) {
     bill.billAmount = previousBillExcess !== null ? (bill.consumption * 5) - previousBillExcess : bill.consumption * 5
     const currentDate = new Date()
     const twoWeeksFromNow = new Date(currentDate.getTime() + (14 * 24 * 60 * 60 * 1000))
-    bill.disconnectionDate = twoWeeksFromNow
+    bill.dueDate = twoWeeksFromNow
+
+	const fiveDaysFromDisconnectionDate = new Date(currentDate.getTime() + (19 * 24 * 60 * 60 * 1000));
+    bill.disconnectionDate = fiveDaysFromDisconnectionDate;
+
     bill.save()
 }
 
