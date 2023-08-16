@@ -19,7 +19,7 @@ const { ipcMain } = require("electron")
  */
 ipcMain.handle("bills", async (event, args) => {
 
-	tryCatchWrapper(async () => {
+	return tryCatchWrapper(async () => {
 
 		const bills = await tryCatchWrapper(async () => {
             return await Client.findAll({
@@ -38,7 +38,7 @@ ipcMain.handle("bills", async (event, args) => {
 			 * manually sorting each clients bill from latest bill to the first
 			 * as order: [['id', 'DESC']] is not working
 			 */
-            bills.forEach(bill => bill.Client_Bills.sort((a, b) => b.id - a.id))
+			await bills.forEach(bill => bill.Client_Bills.sort((a, b) => b.id - a.id))
             return { status: "success", data: JSON.stringify(bills) }
         } else {
             return { status: "error", message: "No bills yet" }
@@ -108,13 +108,11 @@ ipcMain.handle("new-bill", async (event, args) => {
 
 			//Assumes that there is no water consumption thus, no bill
             if (parseFloat(monthlyReading) === bill.firstReading) {
-                updateBillWithNoPayment(bill)
-                return response.success().addToast("No payments as water consumption is 0").getResponse()
-            }
+                return updateBillWithNoPayment(bill, response)
+			}
 
 			// Update bill with add it's second reading
-            updateBillWithSecondReading(bill, parseFloat(monthlyReading).toFixed(2), previousBillExcess)
-            return response.success().addToast(previousBillExcess !== null ? `Client bill updated with ${previousBillExcess} deduction from previous payment` : "Client bill updated").getResponse()
+            return updateBillWithSecondReading(bill, parseFloat(monthlyReading).toFixed(2), previousBillExcess, response)
         }
     }
 })
@@ -147,31 +145,19 @@ ipcMain.handle("pay-bill", async (event, args) => {
         return response.failed().addToast("Cannot find bill").getResponse()
     }
 
-    const billData = bill.toJSON()
-    const totalPartialPayments = calculateTotalPartialPayments(billData)
+    const billJSON = bill.toJSON()
+    const totalPartialPayments = calculateTotalPartialPayments(billJSON)
 
-    if (billData.paymentStatus === "paid") {
+    if (billJSON.paymentStatus === "paid") {
         return response.failed().addToast("Bill had already been paid").getResponse()
     }
 
-    if (billData.paymentStatus === "underpaid") {
-        handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, response)
+    if (billJSON.paymentStatus === "underpaid") {
+        return handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, response)
     }
 	
-	if (billData.paymentStatus === "unpaid") {
-
-		if (billData.billAmount === paymentAmount) {
-			handleFullyPaidBill(bill, response)
-		} 
-		
-		if (paymentAmount < billData.billAmount) {
-			handleUnderpaidBillFirstPayment(bill, paymentAmount, response)
-		}
-		
-		if (paymentAmount > billData.billAmount) {
-			handleOverpaidBill(bill, paymentAmount, response)
-		}
-
+	if (billJSON.paymentStatus === "unpaid") {
+		return await handleUnpaidBill(bill, billJSON, paymentAmount, response)
 	}
 
 })
@@ -238,12 +224,18 @@ async function createNewBill(clientId, firstReading) {
  *
  * @param {Object} bill - The bill object to update.
  */
-function updateBillWithNoPayment(bill) {
-    bill.secondReading = bill.firstReading
-    bill.consumption = 0
-    bill.billAmount = 0
-    bill.paymentStatus = "paid"
-    bill.save()
+function updateBillWithNoPayment(bill, response) {
+    try {
+		bill.secondReading = bill.firstReading
+		bill.consumption = 0
+		bill.billAmount = 0
+		bill.paymentStatus = "paid"
+		bill.save()
+		return response.success().addToast("No payments as water consumption is 0").getResponse()
+	} catch (error) {
+		console.log(`Error at ${updateBillWithNoPayment.name}`);
+		return response.success().addToast("Failed on updating clients bill").getResponse()
+	}
 }
 
 /**
@@ -253,18 +245,27 @@ function updateBillWithNoPayment(bill) {
  * @param {string} monthlyReading - The monthly reading value.
  * @param {number|null} previousBillExcess - The payment excess from the previous bill.
  */
-function updateBillWithSecondReading(bill, monthlyReading, previousBillExcess) {
-    bill.secondReading = parseFloat(monthlyReading).toFixed(2)
-    bill.consumption = parseFloat(monthlyReading).toFixed(2) - bill.firstReading
-    bill.billAmount = previousBillExcess !== null ? (bill.consumption * 5) - previousBillExcess : bill.consumption * 5
-    const currentDate = new Date()
-    const twoWeeksFromNow = new Date(currentDate.getTime() + (14 * 24 * 60 * 60 * 1000))
-    bill.dueDate = twoWeeksFromNow
+function updateBillWithSecondReading(bill, monthlyReading, previousBillExcess, response) {
 
-	const fiveDaysFromDisconnectionDate = new Date(currentDate.getTime() + (19 * 24 * 60 * 60 * 1000));
-    bill.disconnectionDate = fiveDaysFromDisconnectionDate;
+	try {
+		bill.secondReading = parseFloat(monthlyReading).toFixed(2)
+		bill.consumption = parseFloat(monthlyReading).toFixed(2) - bill.firstReading
+		bill.billAmount = previousBillExcess !== null ? (bill.consumption * 5) - previousBillExcess : bill.consumption * 5
+		const currentDate = new Date()
+		const twoWeeksFromNow = new Date(currentDate.getTime() + (14 * 24 * 60 * 60 * 1000))
+		bill.dueDate = twoWeeksFromNow
+	
+		const fiveDaysFromDisconnectionDate = new Date(currentDate.getTime() + (19 * 24 * 60 * 60 * 1000));
+		bill.disconnectionDate = fiveDaysFromDisconnectionDate;
+	
+		bill.save()
+		return response.success().addToast(previousBillExcess !== null ? `Client bill updated with ${previousBillExcess} deduction from previous payment` : "Client bill updated").getResponse()
 
-    bill.save()
+	} catch(error) {
+		console.log(`Error at ${updateBillWithSecondReading.name}`);
+		return response.failed().addToast("Failed on updating clients 2nd reading").getResponse()
+	}
+
 }
 
 /**
@@ -286,11 +287,11 @@ async function getClientBillWithPartialPayments(billId) {
 /**
  * Calculates the total amount of partial payments for a bill.
  *
- * @param {Object} billData - The client bill data.
+ * @param {Object} billJSON - The client bill data.
  * @returns {number} - The total amount of partial payments.
  */
-function calculateTotalPartialPayments(billData) {
-    return billData.Partial_Payments.reduce((total, partialPayment) => total + partialPayment.amountPaid, 0)
+function calculateTotalPartialPayments(billJSON) {
+    return billJSON.Partial_Payments.reduce((total, partialPayment) => total + partialPayment.amountPaid, 0)
 }
 
 /**
@@ -305,75 +306,84 @@ function handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, response
     const newPaymentAmount = totalPartialPayments + paymentAmount;
 
     if (newPaymentAmount === bill.billAmount) {
-        createLastPartialPayment(bill, paymentAmount);
+        const lastPartialPayment = createLastPartialPayment(bill, paymentAmount);
+
+		if (!lastPartialPayment) {
+			return response.failed().addToast("Failed on creating creating bills last partial payment").getResponse()
+		}
+
         bill.paymentStatus = "paid";
         bill.remainingBalance = 0;
         responseMessage = "Remaining balance paid";
     } 
 	
 	if (newPaymentAmount < bill.billAmount) {
-        createNewPartialPayment(bill, paymentAmount);
+        const newPartialPayment = createNewPartialPayment(bill, paymentAmount);
+		
+		if (!newPartialPayment) {
+			return response.failed().addToast("Failed on creating creating the bills' last partial payment").getResponse()
+		}
+
         bill.remainingBalance = bill.billAmount - newPaymentAmount;
         responseMessage = "Remaining balance has been updated";
     }
 	
 	if (newPaymentAmount > bill.billAmount) {
-        createLastPartialPayment(bill, paymentAmount);
-        bill.paymentStatus = "overpaid";
+        const lastPartialPayment = createLastPartialPayment(bill, paymentAmount);
+
+		if (!lastPartialPayment) {
+			return response.failed().addToast("Failed on creating creating the bills' last partial payment").getResponse()
+		}
+		
+		bill.paymentStatus = "overpaid";
         bill.paymentExcess = newPaymentAmount - bill.billAmount;
         responseMessage = "Excess amount saved";
     }
 
     bill.paymentAmount = newPaymentAmount;
     bill.save();
-    response.success().addToast(responseMessage).getResponse();
+    return response.success().addToast(responseMessage).getResponse();
 }
 
 /**
  * Handles fully paid bill scenario.
  *
  * @param {Object} bill - The client bill object.
- * @param {Object} response - The response object to update.
- */
-function handleFullyPaidBill(bill, response) {
-    bill.paymentAmount = bill.billAmount
-    bill.paymentStatus = "paid"
-    bill.remainingBalance = 0
-    bill.save()
-    response.success().addToast("Bill successfully paid").getResponse()
-}
-
-/**
- * Handles underpaid bill scenario with the first payment.
- *
- * @param {Object} bill - The client bill object.
+ * @param {Object} billJSON - The client bill objects toJSON version.
  * @param {number} paymentAmount - The payment amount for the first payment.
  * @param {Object} response - The response object to update.
- */
-async function handleUnderpaidBillFirstPayment(bill, paymentAmount, response) {
-    const firstPartialPayment = await createNewPartialPayment(bill, paymentAmount)
-    if (firstPartialPayment) {
-        bill.paymentStatus = "underpaid"
-        bill.remainingBalance = bill.billAmount - paymentAmount
-        bill.paymentAmount = paymentAmount
-        bill.save()
-    }
-    response.success().addToast("New remaining balance has been set").getResponse()
-}
+*/
+async function handleUnpaidBill(bill, billJSON, paymentAmount, response) {
 
-/**
- * Handles overpaid bill scenario.
- *
- * @param {Object} bill - The client bill object.
- * @param {number} paymentAmount - The payment amount for the current payment.
- * @param {Object} response - The response object to update.
- */
-function handleOverpaidBill(bill, paymentAmount, response) {
-    bill.paymentStatus = "overpaid"
-    bill.paymentAmount = bill.billAmount
-    bill.paymentExcess = paymentAmount - bill.billAmount
-    bill.save()
-    response.success().addToast("Bill paid and excess saved").getResponse()
+	if (billJSON.billAmount === paymentAmount) {
+		bill.paymentAmount = bill.billAmount
+		bill.paymentStatus = "paid"
+		bill.remainingBalance = 0
+		responseMessage = "Bill successfully paid"
+	}
+	
+	if (paymentAmount < billJSON.billAmount) {
+		const firstPartialPayment = await createNewPartialPayment(bill, paymentAmount);
+			
+		if (!firstPartialPayment) {
+			return response.failed().addToast("Failed creating new partial payment").getResponse();
+		}
+		
+		bill.paymentStatus = "underpaid";
+		bill.remainingBalance = bill.billAmount - paymentAmount;
+		bill.paymentAmount = paymentAmount;
+		responseMessage = "New remaining balance has been set"
+	}
+
+	if (paymentAmount > billJSON.billAmount) {
+		bill.paymentStatus = "overpaid"
+		bill.paymentAmount = bill.billAmount
+		bill.paymentExcess = paymentAmount - bill.billAmount
+		responseMessage = "Bill paid and excess saved"
+	}
+
+	bill.save()
+	return response.success().addToast(responseMessage).getResponse()
 }
 
 /**
