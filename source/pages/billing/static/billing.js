@@ -1,4 +1,4 @@
-import { transition, makeToastNotification } from "../../../helper.js"
+import { transition, makeToastNotification } from "../../../assets/scripts/helper.js"
 import loadLogin from "../../authentication/static/login.js"
 import { renderClientSection } from "../../clients/static/clients.js"
 import billingTable from "../templates/billing.js"
@@ -34,6 +34,68 @@ export async function renderBillingSection() {
 		tableOptions[option.getAttribute("data-client-id")] = option.classList
 	})
 
+    let meterNumbers = []
+    let accountNumbers = []
+    let names = []
+
+    if (bills) {
+
+        bills.map(bill => {
+            meterNumbers.push(bill.meterNumber)
+            accountNumbers.push(bill.accountNumber)
+            names.push(bill.fullName)
+        })    
+
+        const searchFilterOptions = ["Full Name", "Meter Number", "Account Number"]
+        const searchFilter = element("search-box-filter")
+        const searchElement = element("search-box-input")
+        
+        searchElement.oninput = () => {
+            const tableRows = document.querySelectorAll(".table-info")
+
+            if (!tableRows) {
+                makeToastNotification("No clients yet")
+                return
+            }
+
+            if (searchElement.value.trim() === '') {
+                tableRows.forEach(row => row.style.display = "grid")
+                return
+            }
+            
+            if (!searchFilterOptions.includes(searchFilter.value)) {
+                makeToastNotification("Choose a filter first")
+                return
+            }
+
+            const find = (data, value) => data.toLowerCase().includes(value.toLowerCase())
+            const rerenderTable = (filteredClients, attribute) => {
+                const tableRows = document.querySelectorAll(".table-info")
+                tableRows.forEach(row => {
+                    if (!filteredClients.includes(row.getAttribute(attribute))) {
+                        row.style.display = "none"
+                    } else {
+                        row.style.display = "grid"
+                    }
+                })
+            }
+
+            if (searchFilter.value === "Full Name") {
+                rerenderTable(names.filter(data => find(data, searchElement.value)), "data-full-name")
+            }
+
+            if (searchFilter.value === "Meter Number") {
+                rerenderTable(meterNumbers.filter(data => find(data, searchElement.value)), "data-meter-number")
+            }
+            
+            if (searchFilter.value === "Account Number") {
+                rerenderTable(accountNumbers.filter(data => find(data, searchElement.value)), "data-account-number")
+            }
+
+        }
+    
+    }
+    
     // Event delegation
     window.onclick = async event => {
         const elementId = event.target.getAttribute("id")
