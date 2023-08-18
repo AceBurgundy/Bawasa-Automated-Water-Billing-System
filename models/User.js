@@ -1,4 +1,4 @@
-const { validations } = require("../model_helpers.js")
+const { validations } = require("../constants.js")
 const { db } = require("../sequelize_init")
 const { DataTypes } = require('sequelize');
 

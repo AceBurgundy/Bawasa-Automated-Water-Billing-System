@@ -1,4 +1,4 @@
-const validations = require("../model_helpers")
+const validations = require("../constants")
 const { db } = require("../sequelize_init")
 const { DataTypes } = require('sequelize')
 const Client = require("./Client")
