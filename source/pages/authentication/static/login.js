@@ -1,4 +1,4 @@
-import { makeToastNotification, transition } from "../../../helper.js";
+import { makeToastNotification, transition } from "../../../assets/scripts/helper.js";
 import { renderClientSection } from "../../clients/static/clients.js";
 import { loadRegister } from "./register.js"
 import "../../input_validations.js"

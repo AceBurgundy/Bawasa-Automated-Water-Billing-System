@@ -1,5 +1,5 @@
-import { makeToastNotification, transition } from "../../../helper.js"
-import "../../../../model_helpers.js"
+import { makeToastNotification, transition } from "../../../assets/scripts/helper.js"
+import "../../../../constants.js"
 import "../../input_validations.js"
 import loadLogin from "./login.js"
 

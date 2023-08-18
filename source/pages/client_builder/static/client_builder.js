@@ -1,9 +1,9 @@
-import { makeToastNotification, transition } from "../../../helper.js";
+import { makeToastNotification, transition } from "../../../assets/scripts/helper.js";
 import { renderBillingSection } from "../../billing/static/billing.js";
 import { renderClientSection } from "../../clients/static/clients.js";
 import { getTemplate } from "../templates/client_builder.js"
 import Webcam from "../../../assets/scripts/Webcam.js";
-import "../../../../model_helpers.js";
+import "../../../../constants.js";
 
 export async function renderClientBuilder(edit, clientObject) {
 

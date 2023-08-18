@@ -1,6 +1,6 @@
 const Client_Connection_Status = require("../../../models/Client_Connection_Status")
 const ClientPhoneNumber = require("../../../models/Client_Phone_Number")
-const { userRelationshipTypes } = require("../../../model_helpers")
+const { userRelationshipTypes } = require("../../../constants")
 const Client_Address = require("../../../models/Client_Address")
 const tryCatchWrapper = require("../view_helpers")
 const { db } = require("../../../sequelize_init")

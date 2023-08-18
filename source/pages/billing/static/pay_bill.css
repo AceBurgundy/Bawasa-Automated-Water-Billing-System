@@ -1,4 +1,4 @@
-#new-bill-box {
+#pay-bill-box {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -7,57 +7,57 @@
     border-radius: 10px;
     border: none;
     width: 450px;
+    z-index: 9990;
 }
 
-#new-bill-box::backdrop {
+#pay-bill-box::backdrop {
     background-color: rgba(34, 34, 34, 0.575);
-    z-index: 990;
 }
 
-#new-bill-form {
+#pay-bill-form {
     display: flex;
     flex-direction: column;
     gap: 2rem;
 }
 
-#new-bill-form-title {
+#pay-bill-form-title {
     font-size: 1.2rem;
 }
 
-#new-bill-form-buttons {
+#pay-bill-form-buttons {
     display: flex;
     gap: 1rem;
     justify-content: flex-end;
     align-items: center;
 }
 
-#new-bill-form__input-box {
+#pay-bill-form__input-box {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-#new-bill-form__input-box__warning {
+#pay-bill-form__input-box__warning {
     font-size: 0.8rem;
     color: red;
 }
 
-#new-bill-form-input-box-header {
+#pay-bill-form-input-box-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
 }
 
-#new-bill-form-input-box-header > * {
+#pay-bill-form-input-box-header > * {
     font-size: 0.8rem;
 }
 
-#new-bill-form-input-box-header-error {
+#pay-bill-form-input-box-header-error {
     color: red;
 }
 
-#new-bill-form__input-box > input {
+#pay-bill-form__input-box > input {
     padding: 0.5rem;
     width: 100%;
     border: var(--borderPrimary);

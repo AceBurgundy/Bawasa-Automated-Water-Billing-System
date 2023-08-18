@@ -1,4 +1,4 @@
-const { userRelationshipTypes, userTypes } = require("../../../model_helpers")
+const { userRelationshipTypes, userTypes } = require("../../../constants")
 const UserPhoneNumber = require("../../../models/User_Phone_Number")
 const User = require("../../../models/User")
 const session = require("../../../session")
