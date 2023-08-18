@@ -105,7 +105,6 @@ svg {
     list-style: none;
     opacity: 0;
     position: relative;
-    z-index: 9999;
     color: black;
     background-color: var(--primary);
     transition: 500ms;
@@ -162,4 +161,139 @@ select,
     width: 11%;
     font-size: 0.9rem;
     border-right: 2px solid var(--text);
+}
+
+body {
+    display: flex;
+    height: 100vh;
+}
+
+#section-type-container {
+    display: grid;
+    grid-template-columns: min-content 1fr;
+    height: 100%;
+    width: 100%;
+}
+
+nav {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: fit-content;
+    border-right: var(--borderPrimary);
+}
+
+#nav-items {
+    display: flex;
+    flex-direction: column;
+    margin-top: 1rem;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    cursor: pointer;
+    transition: 500ms;
+}
+
+.nav-item > * {
+    pointer-events: none;
+}
+
+.nav-item > div {
+    width:  3.5rem;
+    height: 3.5rem;
+    border-radius: 20px;
+    display: grid;
+    place-items: center;
+    background-color: #eee;
+    transition: 250ms ease;
+}
+
+.nav-item:hover > div {
+    background-color: var(--primary);
+}
+
+.nav-item > div > svg {
+    width: 1.2rem;
+}
+
+.nav-item > p {
+    font-size: 0.8rem;
+    margin-top: 5px;
+}
+
+@media screen and (max-width: 1280px) {
+    .nav-item {
+        padding: 0.5rem 1rem;
+    }
+    .nav-item > div {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 13px;
+    }
+    .nav-item > p {
+        font-size: 0.65rem;
+        margin-top: 5px;
+    }
+}
+
+:root.dark .nav-item:hover {
+    color: black;
+}
+
+:root .nav-item:hover {
+    color: var(--accent);
+}
+
+.section-child {
+    position: relative;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.section-child__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+    width: 100%;
+}
+
+.section-child__top > div {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+}
+
+.section-child__top-title {
+    font-size: 1.3rem;
+}
+
+img {
+    width: 2rem;
+}
+
+.section-child__center {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.section-child__center-left__section-title {
+    font-size: 2.3rem;
+}
+
+.section-child__center-left__section-description {
+    font-size: 1rem;
+}
+
+.section-child__center-right__options {
+    position: relative;
+    overflow: visible;
 }
