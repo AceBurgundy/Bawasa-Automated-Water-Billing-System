@@ -1,4 +1,4 @@
-import "../../../../model_helpers.js";
+import "../../../../constants.js";
 
 export function getTemplate(forEdit, clientData) { 
     
@@ -8,9 +8,30 @@ const template = `
 
         <nav>
             <div id="nav-items">
-                <div id="clients" class="nav-item">Clients</div>
-                <div id="billing" class="nav-item">Billing</div>
-                <div id="logout" class="nav-item">Logout</div>
+                <div id="clients" class="nav-item">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="users-icon"><rect width="256" height="256" fill="none"></rect><circle cx="88" cy="108" r="52" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="16"></circle><path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" d="M155.41251 57.937A52.00595 52.00595 0 1 1 169.52209 160M15.99613 197.39669a88.01736 88.01736 0 0 1 144.00452-.00549M169.52209 160a87.89491 87.89491 0 0 1 72.00032 37.3912"></path></svg>
+                    </div>
+                    <p>Clients</p>
+                </div>
+                <div id="billing" class="nav-item">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" data-name="Layer 1" viewBox="0 0 32 32" id="bill-icon"><path d="M22 5H10a1 1 0 000 2H22a1 1 0 000-2zM22 9H10a1 1 0 000 2H22a1 1 0 000-2z"></path><path d="M6,31a1,1,0,0,0,.66-.25l3.26-1.6,2.52,1.68a1,1,0,0,0,1.1,0L16,29.23l2.45,1.6a1,1,0,0,0,1.1,0l2.52-1.68,3.26,1.6A1,1,0,0,0,27,30V9a1,1,0,0,0-2,0V28.36L22.44,27.1a1,1,0,0,0-1,.07L19,28.8l-2.44-1.6a1,1,0,0,0-1.09,0L13,28.8l-2.45-1.63a1,1,0,0,0-1-.07L7,28.36V3H25V5a1,1,0,0,0,2,0V2a1,1,0,0,0-1-1H6A1,1,0,0,0,5,2V30A1,1,0,0,0,6,31Z"></path></svg>
+                    </div>
+                    <p>Billing</p>
+                </div>
+                <div id="logout" class="nav-item">
+                    <div>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="power-icon"><rect width="256" height="256" fill="none"></rect><line x1="127.992" x2="127.992" y1="48.003" y2="124.003" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></line><path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" d="M176.00189,54.23268a88,88,0,1,1-96.00346-.00021"></path></svg>
+                    </div>
+                    <p>Logout</p>
+                </div>
+            </div>
+            <div id="profile" class="nav-item">
+                <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="user-icon"><rect width="256" height="256" fill="none"></rect><circle cx="128" cy="96" r="64" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="16"></circle><path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" d="M30.989,215.99064a112.03731,112.03731,0,0,1,194.02311.002"></path></svg>
+                </div>
+                <p>Profile</p>
             </div>
         </nav>
 
