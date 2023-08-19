@@ -49,6 +49,37 @@ ipcMain.handle("bills", async (event, args) => {
 })
 
 /**
+ * Retrieves a the bill of a client.
+ *
+ * @param {Electron.Event} event - The IPC event object.
+ * @param {any} args - Arguments for the handler.
+ * @returns {Promise<Object>} - A promise that resolves to the handler response.
+ */
+ipcMain.handle("get-bill", async (event, args) => {
+
+    const response = new Response()
+
+    const { billId } = args
+
+    if (!billId) {
+        return response.failed().addToast("Bill id not found").getResponse()
+    }
+
+	return tryCatchWrapper(async () => {
+
+		const clientBill = await getClientBillById()
+
+        if (clientBill) {
+            return { status: "success", data: JSON.stringify(clientBill) }
+        } else {
+            return { status: "error", message: "Cannot find clients bill" }
+        }
+
+	})
+
+})
+
+/**
  * Handles the creation or update of a new bill for a client.
  *
  * @param {Electron.Event} event - The IPC event object.
