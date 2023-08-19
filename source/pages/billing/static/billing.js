@@ -250,3 +250,39 @@ async function processForm(type, event) {
 
     return
 }
+
+/**
+ * Update the column of the affected table row
+ * 
+ * @param {string} billId - the id used to get the clients bill
+ */
+async function renderUpdatedBill(billId) {
+
+	const response = await window.ipcRenderer.invoke("get-bill", { billId: billId });
+
+	if (response.status === "success") {
+		const updatedClientBill = JSON.parse(response.data);
+
+		const oldTableRowRecord = document.querySelector(`[data-meter-number='${updatedClientBill.meterNumber}']`);
+		const preTableRecord = oldTableRowRecord !== null && oldTableRowRecord.previousElementSibling;
+		const postTableRecord = oldTableRowRecord !== null && oldTableRowRecord.nextElementSibling;
+
+		oldTableRowRecord.remove();
+
+		if (preTableRecord && postTableRecord || preTableRecord && postTableRecord === null) {
+			return preTableRecord.insertAdjacentElement("afterend", 
+            billingTableRow(
+                updatedClientBill, 
+                parseInt(preTableRecord.getAttribute("data-client-index")) + 1)
+            );
+		}
+
+		if (preTableRecord === null && postTableRecord) {
+			return postTableRecord.insertAdjacentElement("beforebegin", 
+            billingTableRow(
+                updatedClientBill, 
+                parseInt(postTableRecord.getAttribute("data-client-index")) + 1)
+            );
+		}
+	}
+}
