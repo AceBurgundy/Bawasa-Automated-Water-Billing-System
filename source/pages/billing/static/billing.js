@@ -243,6 +243,10 @@ async function processForm(type, event) {
 		if (response.status === "success") {
 			makeToastNotification(response.toast[0])
             closeDialog(event)
+
+            // updates record in the table
+            await renderUpdatedBill(billId)
+		
 		} else {
 			makeToastNotification(response.toast[0])
 		}
