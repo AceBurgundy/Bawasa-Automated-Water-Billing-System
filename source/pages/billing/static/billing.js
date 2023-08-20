@@ -2,6 +2,7 @@ import { transition, makeToastNotification } from "../../../assets/scripts/helpe
 import loadLogin from "../../authentication/static/login.js"
 import { renderClientSection } from "../../clients/static/clients.js"
 import billingTable from "../templates/billing.js"
+import { billingTableRow } from "../templates/billingTableRow.js"
 import { newBillForm } from "../templates/newBillForm.js"
 import { payBillForm } from "../templates/payBillForm.js"
 
@@ -215,7 +216,7 @@ async function processForm(type, event) {
 	const paymentAmountInput = element(`${type}-bill-form-input-box-input`)
 	const errorElement = element(`${type}-bill-form-input-box-header-error`)
 
-	const paymentAmount = paymentAmountInput.value
+    const paymentAmount = paymentAmountInput.value
 
 	if (isNaN(paymentAmount)) {
 		errorElement.innerHTML = "Must be a number"
@@ -245,9 +246,9 @@ async function processForm(type, event) {
             closeDialog(event)
 
             // updates record in the table
-            await renderUpdatedBill(billId)
+            await renderUpdatedBill(billId, clientId)
 		
-		} else {
+        } else {
 			makeToastNotification(response.toast[0])
 		}
 	}
@@ -259,34 +260,56 @@ async function processForm(type, event) {
  * Update the column of the affected table row
  * 
  * @param {string} billId - the id used to get the clients bill
- */
-async function renderUpdatedBill(billId) {
+ * @param {string} clientId - the id used to get the client
+*/
+async function renderUpdatedBill(billId, clientId) {
 
-	const response = await window.ipcRenderer.invoke("get-bill", { billId: billId });
+	const response = await window.ipcRenderer.invoke("get-bill", { billId: billId, clientId: clientId });
 
-	if (response.status === "success") {
-		const updatedClientBill = JSON.parse(response.data);
+    if (response.status !== "success") {
+        response.toast[0] && makeToastNotification(response.toast[0])
+        return
+    }
 
-		const oldTableRowRecord = document.querySelector(`[data-meter-number='${updatedClientBill.meterNumber}']`);
-		const preTableRecord = oldTableRowRecord !== null && oldTableRowRecord.previousElementSibling;
-		const postTableRecord = oldTableRowRecord !== null && oldTableRowRecord.nextElementSibling;
+    const newBill = JSON.parse(response.data);
+	const oldRow = document.querySelector(`[data-meter-number='${newBill.meterNumber}']`);
+	const beforeOldRow = oldRow !== null && oldRow.previousElementSibling;
+	const afterOldRow = oldRow !== null && oldRow.nextElementSibling;
 
-		oldTableRowRecord.remove();
+	oldRow.remove();
 
-		if (preTableRecord && postTableRecord || preTableRecord && postTableRecord === null) {
-			return preTableRecord.insertAdjacentElement("afterend", 
+	if (beforeOldRow && afterOldRow || beforeOldRow && afterOldRow === null) {
+        return updateRow(
             billingTableRow(
-                updatedClientBill, 
-                parseInt(preTableRecord.getAttribute("data-client-index")) + 1)
-            );
-		}
-
-		if (preTableRecord === null && postTableRecord) {
-			return postTableRecord.insertAdjacentElement("beforebegin", 
-            billingTableRow(
-                updatedClientBill, 
-                parseInt(postTableRecord.getAttribute("data-client-index")) + 1)
-            );
-		}
+                newBill, 
+                parseInt(beforeOldRow.getAttribute("data-client-index")) + 1),
+            afterOldRow, "afterend")
 	}
+
+	if (beforeOldRow === null && afterOldRow) {
+        return updateRow(
+            billingTableRow(
+                newBill, 
+                parseInt(afterOldRow.getAttribute("data-client-index")) + 1), 
+            afterOldRow, "beforebegin")
+	}
+	
+}
+
+/**
+ * 
+ * @param {string} templateLiteral - The template literal to be used as replacement
+ * @param {element} anchor - The element used as a guide on where to place the template literal
+ */
+function updateRow(templateLiteral, anchor, position) {
+
+    const tempContainer = document.createElement("div");
+    tempContainer.innerHTML = templateLiteral.trim();
+    const row = tempContainer.firstChild;
+
+    if (row instanceof Element) {
+        anchor.insertAdjacentElement(position, row);
+    } else {
+        console.error("The 'row' variable is not an Element:", row);
+    }
 }
