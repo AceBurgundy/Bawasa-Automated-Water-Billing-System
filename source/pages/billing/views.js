@@ -59,15 +59,29 @@ ipcMain.handle("get-bill", async (event, args) => {
 
     const response = new Response()
 
-    const { billId } = args
+    const { billId, clientId } = args
 
     if (!billId) {
         return response.failed().addToast("Bill id not found").getResponse()
     }
 
-	return tryCatchWrapper(async () => {
+    if (!clientId) {
+        return response.failed().addToast("Client id not found").getResponse()
+    }
 
-		const clientBill = await getClientBillById()
+    return tryCatchWrapper(async () => {
+
+		const clientBill = await tryCatchWrapper(async () => {
+            return await Client.findByPk(clientId, {
+                include: [
+                    {
+                        model: Client_Bill,
+                        where: { id: billId },
+                        include: [Partial_Payment],
+                    }
+                ]
+            })
+        })
 
         if (clientBill) {
             return { status: "success", data: JSON.stringify(clientBill) }
