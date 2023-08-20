@@ -33,7 +33,7 @@ export async function payBillForm(formData) {
             </div>
             <div id="pay-bill-form-buttons">
                 <button class="button-primary" id="pay-bill-form-close">Cancel</button>
-                <button class="button-primary" id="pay-bill-form-submit" data-bill-id="${latestBill?.id || ""}">Pay</button>
+                <button class="button-primary" id="pay-bill-form-submit" data-client-id="${formData?.id}" data-bill-id="${latestBill?.id || ""}">Pay</button>
             </div>
         </form>
     `
