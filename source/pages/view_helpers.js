@@ -7,7 +7,8 @@ async function tryCatchWrapper(callback) {
 	try {
 		return await callback()
 	} catch (error) {
-		console.log(`\n\n${error.name}\n`)
+		console.log(error)
+		console.log(`\n${error.name}\n`)
 		console.log(`${error.message}`)
 	}
 }
