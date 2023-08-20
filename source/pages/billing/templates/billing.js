@@ -133,7 +133,7 @@ export default function billingTable(bills, user, responseMessage) {
                         <div id="table-data-row">
                             ${
                                 responseMessage !== null ? `<p style="margin: 1rem">${responseMessage}</p>` :
-                                    bills.map((billing, index) => billingTableRow(billing, index))
+                                    bills.map((billing, index) => billingTableRow(billing, index)).join("")
                             }
                         </div>
                 </div>
