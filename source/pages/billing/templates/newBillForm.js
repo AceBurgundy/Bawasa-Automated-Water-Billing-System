@@ -5,12 +5,12 @@
  * @param {Object} formData - The form data containing client details and bills.
  * @returns {string} - The HTML template for the new bill entry form.
  */
-export function newBillForm(formData) {
+export function newBillForm(formData, forNewBill) {
 
     const latestBill = formData.Client_Bills[0];
-    
-    const readingWarning = (latestBill === undefined) ?
-        "No bill will be created as this will be the client's new billing record" :
+
+    const readingWarning = (latestBill === undefined || forNewBill) ?
+        "This will be the client's new billing record" :
         `Mr/Mrs ${formData?.lastName}'s previous reading is ${latestBill.firstReading}`;
 
     const template = `
@@ -31,7 +31,7 @@ export function newBillForm(formData) {
             </div>
             <div id="new-bill-form-buttons">
                 <button class="button-primary" id="new-bill-form-close">Cancel</button>
-                <button class="button-primary" id="new-bill-form-submit" data-client-id="${formData?.id}" data-bill-id="${latestBill?.id || ''}">Add</button>
+                <button class="button-primary" id="new-bill-form-submit" data-client-id="${formData?.id}" data-bill-id="${forNewBill ? '' : latestBill !== null && latestBill !== undefined ? latestBill.id : ''}">Add</button>
             </div>
         </form>
     `;
