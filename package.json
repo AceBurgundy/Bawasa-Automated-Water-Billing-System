@@ -20,7 +20,9 @@
   "license": "MIT",
   "dependencies": {
     "bcrypt": "^5.1.0",
+
     "crypto": "^1.0.1",
+    "date-fns": "^2.30.0",
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^8.1.0",
     "sequelize": "^6.32.1",
