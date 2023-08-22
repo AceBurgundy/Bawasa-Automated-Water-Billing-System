@@ -113,6 +113,15 @@ const Client_Bill = db.define(
             }
         },
 
+        penalty: {
+            type: DataTypes.DECIMAL(10,2),
+            validate: {
+                isDecimal: {
+                    msg: "Penalty amount must be a decimal number ex: (100.00)"
+                }
+            }
+        }
+
         dueDate: {
             type: DataTypes.DATE,
             validate: {
