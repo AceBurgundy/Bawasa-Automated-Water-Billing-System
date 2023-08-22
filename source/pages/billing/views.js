@@ -1,4 +1,7 @@
+
+const Client_Connection_Status = require("../../../models/Client_Connection_Status")
 const Partial_Payment = require("../../../models/Partial_Payment")
+const { connectionStatusTypes } = require("../../../constants")
 const Client_Bill = require("../../../models/Client_Bill")
 const tryCatchWrapper = require("../view_helpers")
 const { db } = require("../../../sequelize_init")
@@ -7,7 +10,7 @@ const Response = require("../../IPCResponse")
 const { ipcMain } = require("electron")
 
 // Client_Bill.destroy({
-// 	where: {id: 40}
+// 	where: {}
 // })
 
 /**
@@ -93,6 +96,25 @@ ipcMain.handle("get-bill", async (event, args) => {
 
 })
 
+ipcMain.handle("get-client-recent-billId", async (event, args) => {
+
+    const response = new Response()
+    const { clientId } = args
+
+    if (!clientId) {
+        return response.failed().addToast("Client id not found").getResponse()
+    }
+
+    const client = await getClientWithBills(clientId)
+
+    if (!client) {
+        return response.failed().addToast("Cannot find client").getResponse()
+    }
+
+    return response.success().addObject("billId", client.Client_Bills[0]?.id).getResponse()
+
+})
+
 /**
  * Handles the creation or update of a new bill for a client.
  *
@@ -119,6 +141,20 @@ ipcMain.handle("new-bill", async (event, args) => {
         return response.failed().addToast("Cannot find client").getResponse()
     }
 
+    /**
+     * return if the client doesn't have any connection status records yet or the latest connection status the client (if they have any) is not "connected" 
+     * which indicates that the client may currently be "due for disconnection" or is "disconnected"
+     */
+    if (!client.Client_Connection_Statuses) {
+        return response.failed().addToast(`Set the clients status to "Connected" first`).getResponse()
+    }
+
+    if (client.Client_Connection_Statuses.length > 0) {
+        if (client.Client_Connection_Statuses[0].connectionStatus !== connectionStatusTypes.Connected) {
+            return response.failed().addToast(`Set the clients status to "Connected" first`).getResponse()
+        }
+    }
+
     const clientBill = await getClientBillById(billId)
 
     const previousBillExcess = await getPreviousBillExcess(billId)
@@ -127,7 +163,7 @@ ipcMain.handle("new-bill", async (event, args) => {
 
     if (clientBill) {
         const latestBill = clientBill.toJSON()
-        latestBillAlreadyPaid = latestBill.paymentStatus === "paid" && latestBill.secondReading !== null
+        latestBillAlreadyPaid = latestBill.paymentStatus === "paid" || latestBill.paymentStatus === "overpaid" && latestBill.secondReading !== null
     }
 
     if (clientBill && !latestBillAlreadyPaid && clientBill.secondReading !== null) {
@@ -138,8 +174,8 @@ ipcMain.handle("new-bill", async (event, args) => {
         const newBill = await createNewBill(client.id, parseFloat(monthlyReading).toFixed(2))
 
 		return newBill
-			? response.success().addToast("New client bill created").getResponse()
-			: response.failed().addToast("New client bill creation failed").getResponse();
+			? response.success().addToast("New client bill created").addObject("billId", newBill.id).getResponse()
+			: response.failed().addToast("New client bill creation failed").getResponse()
 	
     } else {
 
@@ -156,7 +192,7 @@ ipcMain.handle("new-bill", async (event, args) => {
                 return updateBillWithNoPayment(bill, response)
 			}
 
-			// Update bill with add it's second reading
+			// Update bill with it's second reading
             return updateBillWithSecondReading(bill, parseFloat(monthlyReading).toFixed(2), previousBillExcess, response)
         }
     }
@@ -219,7 +255,16 @@ async function getClientWithBills(clientId) {
     return await tryCatchWrapper(async () => {
         return await Client.findByPk(clientId, {
             include: [
-                { model: Client_Bill, as: "Client_Bills" }
+                { 
+                    model: Client_Bill, 
+                    as: "Client_Bills",
+                    order: [ [ 'createdAt', 'DESC' ]]
+                },
+                { 
+                    model: Client_Connection_Status, 
+                    as: "Client_Connection_Statuses",
+                    order: [ [ 'createdAt', 'DESC' ]]
+                }
             ]
         })
     })
@@ -278,7 +323,7 @@ function updateBillWithNoPayment(bill, response) {
 		bill.save()
 		return response.success().addToast("No payments as water consumption is 0").getResponse()
 	} catch (error) {
-		console.log(`Error at ${updateBillWithNoPayment.name}`);
+		console.log(`Error at ${updateBillWithNoPayment.name}`)
 		return response.success().addToast("Failed on updating clients bill").getResponse()
 	}
 }
@@ -300,14 +345,14 @@ function updateBillWithSecondReading(bill, monthlyReading, previousBillExcess, r
 		const twoWeeksFromNow = new Date(currentDate.getTime() + (14 * 24 * 60 * 60 * 1000))
 		bill.dueDate = twoWeeksFromNow
 	
-		const fiveDaysFromDisconnectionDate = new Date(currentDate.getTime() + (19 * 24 * 60 * 60 * 1000));
-		bill.disconnectionDate = fiveDaysFromDisconnectionDate;
+		const fiveDaysFromDisconnectionDate = new Date(currentDate.getTime() + (19 * 24 * 60 * 60 * 1000))
+		bill.disconnectionDate = fiveDaysFromDisconnectionDate
 	
 		bill.save()
 		return response.success().addToast(previousBillExcess !== null ? `Client bill updated with ${previousBillExcess} deduction from previous payment` : "Client bill updated").getResponse()
 
 	} catch(error) {
-		console.log(`Error at ${updateBillWithSecondReading.name}`);
+		console.log(`Error at ${updateBillWithSecondReading.name}`)
 		return response.failed().addToast("Failed on updating clients 2nd reading").getResponse()
 	}
 
@@ -348,46 +393,47 @@ function calculateTotalPartialPayments(billJSON) {
  * @param {Object} response - The response object to update.
  */
 function handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, response) {
-    const newPaymentAmount = totalPartialPayments + paymentAmount;
+    const newPaymentAmount = totalPartialPayments + paymentAmount
 
     if (newPaymentAmount === bill.billAmount) {
-        const lastPartialPayment = createLastPartialPayment(bill, paymentAmount);
+        const lastPartialPayment = createLastPartialPayment(bill, paymentAmount)
 
 		if (!lastPartialPayment) {
 			return response.failed().addToast("Failed on creating creating bills last partial payment").getResponse()
 		}
 
-        bill.paymentStatus = "paid";
-        bill.remainingBalance = 0;
-        responseMessage = "Remaining balance paid";
+        bill.paymentStatus = "paid"
+        bill.remainingBalance = 0
+        responseMessage = "Remaining balance paid"
     } 
 	
 	if (newPaymentAmount < bill.billAmount) {
-        const newPartialPayment = createNewPartialPayment(bill, paymentAmount);
+        const newPartialPayment = createNewPartialPayment(bill, paymentAmount)
 		
 		if (!newPartialPayment) {
 			return response.failed().addToast("Failed on creating creating the bills' last partial payment").getResponse()
 		}
 
-        bill.remainingBalance = bill.billAmount - newPaymentAmount;
-        responseMessage = "Remaining balance has been updated";
+        bill.remainingBalance = bill.billAmount - newPaymentAmount
+        responseMessage = "Remaining balance has been updated"
     }
 	
 	if (newPaymentAmount > bill.billAmount) {
-        const lastPartialPayment = createLastPartialPayment(bill, paymentAmount);
+        const lastPartialPayment = createLastPartialPayment(bill, paymentAmount)
 
 		if (!lastPartialPayment) {
 			return response.failed().addToast("Failed on creating creating the bills' last partial payment").getResponse()
 		}
 		
-		bill.paymentStatus = "overpaid";
-        bill.paymentExcess = newPaymentAmount - bill.billAmount;
-        responseMessage = "Excess amount saved";
+		bill.paymentStatus = "overpaid"
+        bill.paymentExcess = newPaymentAmount - bill.billAmount
+        bill.remainingBalance = 0
+        responseMessage = "Excess amount saved"
     }
 
-    bill.paymentAmount = newPaymentAmount;
-    bill.save();
-    return response.success().addToast(responseMessage).getResponse();
+    bill.paymentAmount = newPaymentAmount
+    bill.save()
+    return response.success().addToast(responseMessage).getResponse()
 }
 
 /**
@@ -408,15 +454,15 @@ async function handleUnpaidBill(bill, billJSON, paymentAmount, response) {
 	}
 	
 	if (paymentAmount < billJSON.billAmount) {
-		const firstPartialPayment = await createNewPartialPayment(bill, paymentAmount);
+		const firstPartialPayment = await createNewPartialPayment(bill, paymentAmount)
 			
 		if (!firstPartialPayment) {
-			return response.failed().addToast("Failed creating new partial payment").getResponse();
+			return response.failed().addToast("Failed creating new partial payment").getResponse()
 		}
 		
-		bill.paymentStatus = "underpaid";
-		bill.remainingBalance = bill.billAmount - paymentAmount;
-		bill.paymentAmount = paymentAmount;
+		bill.paymentStatus = "underpaid"
+		bill.remainingBalance = bill.billAmount - paymentAmount
+		bill.paymentAmount = paymentAmount
 		responseMessage = "New remaining balance has been set"
 	}
 
