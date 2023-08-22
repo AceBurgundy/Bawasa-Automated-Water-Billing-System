@@ -96,25 +96,6 @@ ipcMain.handle("get-bill", async (event, args) => {
 
 })
 
-ipcMain.handle("get-client-recent-billId", async (event, args) => {
-
-    const response = new Response()
-    const { clientId } = args
-
-    if (!clientId) {
-        return response.failed().addToast("Client id not found").getResponse()
-    }
-
-    const client = await getClientWithBills(clientId)
-
-    if (!client) {
-        return response.failed().addToast("Cannot find client").getResponse()
-    }
-
-    return response.success().addObject("billId", client.Client_Bills[0]?.id).getResponse()
-
-})
-
 /**
  * Handles the creation or update of a new bill for a client.
  *
