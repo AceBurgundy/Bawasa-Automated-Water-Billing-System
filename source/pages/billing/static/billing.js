@@ -1,29 +1,22 @@
 import { transition, makeToastNotification } from "../../../assets/scripts/helper.js"
 import loadLogin from "../../authentication/static/login.js"
 import { renderClientSection } from "../../clients/static/clients.js"
-import billingTable from "../templates/billing.js"
-import { billingTableRow } from "../templates/billingTableRow.js"
+import { updateBillingTableRow } from "./updateBillingTableRow.js"
 import { newBillForm } from "../templates/newBillForm.js"
 import { payBillForm } from "../templates/payBillForm.js"
+import billingTable from "../templates/billing.js"
 
 const element = id => document.getElementById(id)
 const dialogElement = document.querySelector("dialog")
 
+let bills = null
+let responseMessage = null
+
 export async function renderBillingSection() {
 
 	const user = await window.ipcRenderer.invoke("current_user")
-	let bills = null
-	let responseMessage = null
 
-    try {
-        const { status, data, message } = await window.ipcRenderer.invoke("bills");
-        const isSuccess = status === "success";
-
-        bills = isSuccess ? JSON.parse(data) : [];
-        console.log({ status, message, bills });
-    } catch (error) {
-        console.error("Error fetching billing data:", error)
-    }
+    await getBills()
 
     const template = billingTable(bills, user, responseMessage)
 
@@ -52,6 +45,7 @@ export async function renderBillingSection() {
         const searchElement = element("search-box-input")
         
         searchElement.oninput = () => {
+
             const tableRows = document.querySelectorAll(".table-info")
 
             if (!tableRows) {
@@ -115,15 +109,23 @@ export async function renderBillingSection() {
         }
 
         if (classList.contains("add")) {
-            openNewBillDialog(bills[event.target.getAttribute("data-client-index")])
+            const clientHasPaid = event.target.parentElement.getAttribute("data-client-has-paid")
+            openNewBillDialog(bills[event.target.getAttribute("data-client-index")], clientHasPaid)
             tableOptions[event.target.parentElement.getAttribute("data-client-id")].remove("active")
         }
 
         if (classList.contains("pay")) {
-            !classList.contains("had-paid") ? 
-                openPayBillDialog(bills[event.target.getAttribute("data-client-index")])
-            :
+
+            const parent = event.target.parentElement
+            const paymentStatus = parent.getAttribute("data-payment-status")
+
+            if (parent.getAttribute("data-client-has-bills") === "false") 
+                return makeToastNotification("Client has no bills yet")
+
+            paymentStatus === "paid" || paymentStatus === "overpaid" ?
                 makeToastNotification("Client had already paid")
+            :
+                openPayBillDialog(bills[event.target.getAttribute("data-client-index")])
 
             tableOptions[event.target.parentElement.getAttribute("data-client-id")].remove("active")
         }
@@ -176,8 +178,8 @@ function handleTableMenuClick(tableOptions, event) {
  * Opens a dialog with the new bill form.
  * @param {number} clientIndex - The index of the client.
  */
-function openNewBillDialog(billObject) {
-    dialogElement.innerHTML = newBillForm(billObject)
+function openNewBillDialog(billObject, forNewBill) {
+    dialogElement.innerHTML = newBillForm(billObject, JSON.parse(forNewBill))
     dialogElement.id = "new-bill-box"
     dialogElement.showModal()
 }
@@ -231,6 +233,7 @@ async function processForm(type, event) {
 	if (clientId, paymentAmount) {
 		
         const data = type === "pay" ? {
+                clientId: clientId,
 				amount: paymentAmount,
 				billId: billId !== "" ? billId : null,
 			} : {
@@ -240,14 +243,19 @@ async function processForm(type, event) {
 			}
 
 		const response = await window.ipcRenderer.invoke(`${type}-bill`, data)
-
+        
 		if (response.status === "success") {
 			makeToastNotification(response.toast[0])
             closeDialog(event)
 
             // updates record in the table
-            await renderUpdatedBill(billId, clientId)
-		
+            billId ?
+                await renderUpdatedBill(billId, clientId)
+            :
+                await renderUpdatedBill(response.billId, clientId)
+
+            await getBills()
+
         } else {
 			makeToastNotification(response.toast[0])
 		}
@@ -264,52 +272,50 @@ async function processForm(type, event) {
 */
 async function renderUpdatedBill(billId, clientId) {
 
-	const response = await window.ipcRenderer.invoke("get-bill", { billId: billId, clientId: clientId });
+	const response = await window.ipcRenderer.invoke("get-bill", { billId: billId, clientId: clientId })
 
-    if (response.status !== "success") {
+    if (response.status === "failed") {
         response.toast[0] && makeToastNotification(response.toast[0])
         return
     }
 
-    const newBill = JSON.parse(response.data);
-	const oldRow = document.querySelector(`[data-meter-number='${newBill.meterNumber}']`);
-	const beforeOldRow = oldRow !== null && oldRow.previousElementSibling;
-	const afterOldRow = oldRow !== null && oldRow.nextElementSibling;
-
-	oldRow.remove();
+    const newBill = JSON.parse(response.data)
+	const rowToBeUpdated = document.querySelector(`[data-meter-number='${newBill.meterNumber}']`)
+	const beforeOldRow = rowToBeUpdated !== null && rowToBeUpdated.previousElementSibling
+	const afterOldRow = rowToBeUpdated !== null && rowToBeUpdated.nextElementSibling
 
 	if (beforeOldRow && afterOldRow || beforeOldRow && afterOldRow === null) {
-        return updateRow(
-            billingTableRow(
-                newBill, 
-                parseInt(beforeOldRow.getAttribute("data-client-index")) + 1),
-            afterOldRow, "afterend")
+        updateBillingTableRow(newBill, parseInt(beforeOldRow.getAttribute("data-client-index")) + 1, rowToBeUpdated)
 	}
 
 	if (beforeOldRow === null && afterOldRow) {
-        return updateRow(
-            billingTableRow(
-                newBill, 
-                parseInt(afterOldRow.getAttribute("data-client-index")) + 1), 
-            afterOldRow, "beforebegin")
+        updateBillingTableRow(newBill, parseInt(afterOldRow.getAttribute("data-client-index")) - 1, rowToBeUpdated)
 	}
-	
+
 }
 
 /**
- * 
- * @param {string} templateLiteral - The template literal to be used as replacement
- * @param {element} anchor - The element used as a guide on where to place the template literal
+ * Retrieves billing data using the Electron IPC Renderer and sets the bills and responseMessage global variables values
+ * @async
+ * @function getBills
+ * @throws {Error} If an error occurs while fetching billing data.
+ * @returns {void}
  */
-function updateRow(templateLiteral, anchor, position) {
+async function getBills() {
+    try {
+        const { status, data, message } = await window.ipcRenderer.invoke("bills")
+        const isSuccess = status === "success"
 
-    const tempContainer = document.createElement("div");
-    tempContainer.innerHTML = templateLiteral.trim();
-    const row = tempContainer.firstChild;
+        bills = isSuccess ? JSON.parse(data) : []
+        
+        console.log(bills);
+        if (message) {
+            responseMessage = message
+        }
 
-    if (row instanceof Element) {
-        anchor.insertAdjacentElement(position, row);
-    } else {
-        console.error("The 'row' variable is not an Element:", row);
+    } catch (error) {
+        console.error("Error fetching billing data:", error)
     }
 }
+
+
