@@ -29,7 +29,7 @@ const Client_Connection_Status = db.define(
             }
         },
 
-        connectionStatus: {
+        status: {
             type: DataTypes.STRING(30),
             allowNull: false,
             validate: {
