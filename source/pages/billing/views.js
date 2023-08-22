@@ -22,6 +22,8 @@ const { ipcMain } = require("electron")
  */
 ipcMain.handle("bills", async (event, args) => {
 
+    const response = new Response()
+
 	return tryCatchWrapper(async () => {
 
 		const bills = await tryCatchWrapper(async () => {
@@ -42,9 +44,9 @@ ipcMain.handle("bills", async (event, args) => {
 			 * as order: [['id', 'DESC']] is not working
 			 */
 			await bills.forEach(bill => bill.Client_Bills.sort((a, b) => b.id - a.id))
-            return { status: "success", data: JSON.stringify(bills) }
+            return response.success().addObject("data", JSON.stringify(bills)).getResponse()
         } else {
-            return { status: "error", message: "No bills yet" }
+            return response.success().addObject("message", "No bills yet").getResponse()
         }
 
 	})
@@ -63,7 +65,7 @@ ipcMain.handle("get-bill", async (event, args) => {
     const response = new Response()
 
     const { billId, clientId } = args
-
+    
     if (!billId) {
         return response.failed().addToast("Bill id not found").getResponse()
     }
@@ -87,9 +89,9 @@ ipcMain.handle("get-bill", async (event, args) => {
         })
 
         if (clientBill) {
-            return { status: "success", data: JSON.stringify(clientBill) }
+            return response.success().addObject("data", JSON.stringify(clientBill)).getResponse()
         } else {
-            return { status: "error", message: "Cannot find clients bill" }
+            return response.success().addObject("message", "Cannot find clients bill").getResponse()
         }
 
 	})
