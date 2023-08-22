@@ -120,7 +120,7 @@ const Client_Bill = db.define(
                     msg: "Penalty amount must be a decimal number ex: (100.00)"
                 }
             }
-        }
+        },
 
         dueDate: {
             type: DataTypes.DATE,
