@@ -20,7 +20,7 @@ ipcMain.handle("clients", async (event, args) => {
                 { 
                     model: Client_Connection_Status, 
                     as: "Client_Connection_Statuses",
-                    attributes: ['connectionStatus']
+                    attributes: ['status']
                 }
 			],
 		});

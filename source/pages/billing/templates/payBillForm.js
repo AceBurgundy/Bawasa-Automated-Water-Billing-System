@@ -11,6 +11,8 @@ export async function payBillForm(formData) {
     const paymentStatus = latestBill.paymentStatus
     const fullName = formData.fullName
 
+    console.log(latestBill);
+    
     const readingWarning =
         (paymentStatus === "unpaid" && `Mr/Mrs ${fullName} current bill is ${latestBill.billAmount}`) ||
         (paymentStatus === "underpaid" && `Mr/Mrs ${fullName} remaining balance is ${latestBill.remainingBalance}`)

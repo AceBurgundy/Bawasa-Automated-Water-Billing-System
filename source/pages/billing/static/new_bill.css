@@ -60,5 +60,5 @@
 #new-bill-form__input-box > input {
     padding: 0.5rem;
     width: 100%;
-    border: var(--borderPrimary);
+    border: var(--borderDefaultGray);
 }

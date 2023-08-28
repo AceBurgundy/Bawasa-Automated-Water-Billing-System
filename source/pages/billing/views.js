@@ -46,7 +46,7 @@ ipcMain.handle("bills", async (event, args) => {
 			await bills.forEach(bill => bill.Client_Bills.sort((a, b) => b.id - a.id))
             return response.success().addObject("data", JSON.stringify(bills)).getResponse()
         } else {
-            return response.success().addObject("message", "No bills yet").getResponse()
+            return response.failed().addObject("message", "No bills yet").getResponse()
         }
 
 	})

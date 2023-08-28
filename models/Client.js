@@ -2,7 +2,6 @@ const Client_Address = require("./Client_Address")
 const { validations } = require("../constants")
 const { db } = require("../sequelize_init")
 const { DataTypes } = require("sequelize");
-const Client_File = require("./Client_File");
 
 const Client = db.define(
     "Client",

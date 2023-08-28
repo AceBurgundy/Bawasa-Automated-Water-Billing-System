@@ -8,7 +8,7 @@
     --secondary: #272d01;
     --accent: #f62804;
     --transparent: #f0f8ff00;
-    --borderPrimary: 1px solid rgb(31, 31, 31);
+    --borderDefaultGray: 1px solid rgb(31, 31, 31);
 }
 
 :root {
@@ -20,8 +20,9 @@
     --accent: #f62804;
     --transparent: #f0f8ff00;
     --gray: #e7e7e7;
-    --borderPrimary: 2px solid var(--gray);
-    --darkerBorderPrimary: 2px solid #ececec;
+    --borderDefaultGray: 2px solid var(--gray);
+    --borderDefaultPrimary: 2px solid var(--primary);
+    --borderDefaultDarker: 2px solid #ececec;
 }
 
 * {
@@ -181,7 +182,7 @@ nav {
     justify-content: space-between;
     align-items: center;
     width: fit-content;
-    border-right: var(--borderPrimary);
+    border-right: var(--borderDefaultGray);
 }
 
 #nav-items {

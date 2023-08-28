@@ -302,13 +302,14 @@ async function renderUpdatedBill(billId, clientId) {
  * @returns {void}
  */
 async function getBills() {
+
     try {
+        
         const { status, data, message } = await window.ipcRenderer.invoke("bills")
         const isSuccess = status === "success"
 
         bills = isSuccess ? JSON.parse(data) : []
         
-        console.log(bills);
         if (message) {
             responseMessage = message
         }

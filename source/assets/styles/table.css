@@ -1,5 +1,5 @@
 #table-data {
-    border: var(--borderPrimary);
+    border: var(--borderDefaultGray);
     margin: 0 auto;
     margin-top: 1.5rem;
     border-radius: 5px;
@@ -7,7 +7,7 @@
 
 #table-data-title {
     padding: 0.5rem;
-    border-bottom: var(--borderPrimary);
+    border-bottom: var(--borderDefaultGray);
 }
 
 #table-data-title > p {
@@ -37,7 +37,7 @@
     margin: 1rem;
     padding: 1rem;
     background-color: white;
-    border: var(--darkerBorderPrimary);
+    border: var(--borderDefaultDarker);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -127,7 +127,7 @@
 .table-data-headers__item, .table-info__item {
     font-size: 0.85rem;
     position: relative;
-    border-right: var(--borderPrimary);
+    border-right: var(--borderDefaultGray);
     text-align: center;
     overflow-wrap: break-word;
 }

@@ -44,6 +44,7 @@ const ClientPhoneNumber = db.define(
 ClientPhoneNumber.belongsTo(Client, {
     foreignKey: 'clientId',
 })
+
 Client.hasMany(ClientPhoneNumber, {
     foreignKey: 'clientId',
 })
