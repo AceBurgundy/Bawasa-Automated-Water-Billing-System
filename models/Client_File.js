@@ -13,14 +13,24 @@ const Client_File = db.define(
             autoIncrement: true,
         },
 
-        // hashed name of file
-        name: {
-            type: DataTypes.STRING(255)
+        clientId: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            validate: {
+                notNull: {
+                    msg: 'Client ID is required'
+                }
+            }
         },
-
-        // other certifications or legal documents "birth certificate", "marriage contract"
-        filePurpose: {
-            type: DataTypes.STRING(255)
+        
+        name: {
+            allowNull: false,
+            type: DataTypes.STRING(255),
+            validate: {
+                notNull: {
+                    msg: 'Client ID is required'
+                }
+            }
         }
 
     }
