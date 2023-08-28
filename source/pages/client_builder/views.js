@@ -1,3 +1,5 @@
+// @collapse
+
 const Client_Connection_Status = require("../../../models/Client_Connection_Status")
 const ClientPhoneNumber = require("../../../models/Client_Phone_Number")
 const { userRelationshipTypes } = require("../../../constants")
@@ -10,8 +12,8 @@ const { ipcMain } = require("electron")
 const { Op } = require("sequelize")
 const bcrypt = require("bcrypt")
 const crypto = require("crypto")
+const fs = require("fs-extra")
 const path = require("path")
-const fs = require("fs")
 
 const {
     isEmpty,
@@ -21,6 +23,8 @@ const {
     isBirthDate,
     isValidPhoneNumber
 } = require("../input_validations")
+const { log } = require("console")
+const Client_File = require("../../../models/Client_File")
 
 const clientFormFields = {
     firstName: "First Name",
@@ -59,7 +63,8 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 
 	const formData = formDataBuffer.formData
 	const profilePicture = formDataBuffer.image
-	
+	const files = formDataBuffer.files
+
 	if (!profilePicture) {
 		return response.responseError("Client image cannot be empty")
 	}
@@ -132,11 +137,15 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 				{
 					include: [
 						{ model: Client_Address, as: "mainAddress" },
-						{ model: Client_Address, as: "presentAddress" }
+						{ model: Client_Address, as: "presentAddress" },
 					]
 				},
 				{ transaction: manager }
 			)
+
+			if (files) {
+				saveFiles(files, client.id, manager)
+			}
 
 			await ClientPhoneNumber.create(
 				{
@@ -339,6 +348,17 @@ ipcMain.handle("edit-client", async (event, data) => {
  */
 ipcMain.handle("get-client-image-path", async (event, string) => {
 	return path.join(path.resolve(__dirname, '../../assets/images/clients/profile/'), string)
+})
+
+/**
+ * Handles the "get-client-image-path" IPC message to retrieve the path of a client's image.
+ * @function
+ * @param {Electron.Event} event - The IPC event object.
+ * @param {string} string - A string parameter.
+ * @returns {string} The path to the client's image.
+ */
+ipcMain.handle("get-file-image-path", async (event, string) => {
+	return path.join(path.resolve(__dirname, '../../assets/images/icons/'), string)
 })
 
 /**
@@ -674,4 +694,30 @@ function checkMissingFields(formData) {
 	}
 
 	return null
+}
+
+/**
+ * Save files by creating Client_File records and moving files to a designated directory.
+ *
+ * @param {Array} files - Array of file objects to be saved.
+ * @param {number} clientId - ID of the associated client.
+ * @param {Sequelize.Transaction} manager - Sequelize transaction manager.
+ * @returns {Promise<void>} - A Promise that resolves after all files are saved and moved.
+ */
+async function saveFiles(files, clientId, manager) {
+    const moveFilePromises = files.map(async (file) => {
+        await Client_File.create(
+            {
+                clientId: clientId,
+                name: file.name,
+            },
+            { transaction: manager }
+        );
+
+        const sourceFilePath = file.path;
+        const destinationFilePath = path.resolve(__dirname, '../../assets/files', file.name);
+        await fs.move(sourceFilePath, destinationFilePath);
+    });
+
+    await Promise.all(moveFilePromises);
 }
