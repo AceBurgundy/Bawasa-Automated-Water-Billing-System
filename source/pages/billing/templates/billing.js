@@ -9,7 +9,7 @@ import { billingTableRow } from "./billingTableRow.js";
  * @returns {string} - Generated HTML for the billing table.
  */
 export default function billingTable(bills, user, responseMessage) {
-    
+        
     return `
         <section id="section-type-container" class="page">
 

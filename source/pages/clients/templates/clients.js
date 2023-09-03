@@ -1,3 +1,5 @@
+// import { connectionStatusOptions } from "../../../../constants.js";
+
 export function clientTable(user, clients, responseMessage) {
 
     const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -105,23 +107,31 @@ export function clientTable(user, clients, responseMessage) {
                                     ].join(" ")
                                     
                                     const birthdate = new Date(createdAt).toLocaleDateString("en-US", dateOptions)
-                                    
-                                    const connectionStatus = Client_Connection_Statuses.length === 0 ? "Not Set" : Client_Connection_Statuses[0].connectionStatus
-                                    
+
+                                    const connectionStatus = Client_Connection_Statuses.length === 0 ? "Not Set" : Client_Connection_Statuses[0].status
+
+                                    const reconnectButton = connectionStatus !== "Not Set" && 
+                                                            connectionStatus === window.connectionStatusOptions.Disconnected ?
+                                                            `
+                                                            <div class="table-info__options-item reconnect">
+                                                                <svg class="print-bill-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17,11H16a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm0,4H16a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2ZM11,9h6a1,1,0,0,0,0-2H11a1,1,0,0,0,0,2ZM21,3H7A1,1,0,0,0,6,4V7H3A1,1,0,0,0,2,8V18a3,3,0,0,0,3,3H18a4,4,0,0,0,4-4V4A1,1,0,0,0,21,3ZM6,18a1,1,0,0,1-2,0V9H6Zm14-1a2,2,0,0,1-2,2H7.82A3,3,0,0,0,8,18V5H20Zm-9-4h1a1,1,0,0,0,0-2H11a1,1,0,0,0,0,2Zm0,4h1a1,1,0,0,0,0-2H11a1,1,0,0,0,0,2Z"/></svg>
+                                                                <p>Reconnect</p>
+                                                            </div>` : ''                          
                                     return `
                                     <div class="table-info" >
                                         <div class="table-info__options" data-client-id="${id}">
                                             <p>Menu</p>
                                             <div class="table-info__options-item-box" data-client-id="${id}">
+                                                ${ reconnectButton }
                                                 <div class="table-info__options-item edit">
                                                     <svg class="edit-table-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5,18H9.24a1,1,0,0,0,.71-.29l6.92-6.93h0L19.71,8a1,1,0,0,0,0-1.42L15.47,2.29a1,1,0,0,0-1.42,0L11.23,5.12h0L4.29,12.05a1,1,0,0,0-.29.71V17A1,1,0,0,0,5,18ZM14.76,4.41l2.83,2.83L16.17,8.66,13.34,5.83ZM6,13.17l5.93-5.93,2.83,2.83L8.83,16H6ZM21,20H3a1,1,0,0,0,0,2H21a1,1,0,0,0,0-2Z"/></svg>
                                                     <p>Edit</p>
                                                 </div>
-                                                <div class="table-info__options-item" archive>
+                                                <div class="table-info__options-item archive">
                                                     <svg class="archive-table-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10,13h4a1,1,0,0,0,0-2H10a1,1,0,0,0,0,2ZM19,3H5A3,3,0,0,0,4,8.82V18a3,3,0,0,0,3,3H17a3,3,0,0,0,3-3V8.82A3,3,0,0,0,19,3ZM18,18a1,1,0,0,1-1,1H7a1,1,0,0,1-1-1V9H18ZM19,7H5A1,1,0,0,1,5,5H19a1,1,0,0,1,0,2Z"/></svg>
                                                     <p>Archive</p>
                                                 </div>
-                                                <div class="table-info__options-item" print>
+                                                <div class="table-info__options-item print">
                                                     <svg class="print-bill-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17,11H16a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm0,4H16a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2ZM11,9h6a1,1,0,0,0,0-2H11a1,1,0,0,0,0,2ZM21,3H7A1,1,0,0,0,6,4V7H3A1,1,0,0,0,2,8V18a3,3,0,0,0,3,3H18a4,4,0,0,0,4-4V4A1,1,0,0,0,21,3ZM6,18a1,1,0,0,1-2,0V9H6Zm14-1a2,2,0,0,1-2,2H7.82A3,3,0,0,0,8,18V5H20Zm-9-4h1a1,1,0,0,0,0-2H11a1,1,0,0,0,0,2Zm0,4h1a1,1,0,0,0,0-2H11a1,1,0,0,0,0,2Z"/></svg>
                                                     <p>Print</p>
                                                 </div>

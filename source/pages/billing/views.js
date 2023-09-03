@@ -1,4 +1,3 @@
-// @collapse
 
 const Client_Connection_Status = require("../../../models/Client_Connection_Status")
 const Partial_Payment = require("../../../models/Partial_Payment")
@@ -32,10 +31,23 @@ ipcMain.handle("bills", async (event, args) => {
                     {
                         model: Client_Bill,
                         include: [Partial_Payment]
+                    },
+                    {
+                        model: Client_Connection_Status,
+                        attributes: ["status"],
+                        separate: true,
+                        order: [['createdAt', 'DESC']],
+                        limit: 1
                     }
                 ],
                 order: [
-                    [{model: Client_Bill, as: "Client_Bills"}, 'createdAt', 'DESC']
+                    [
+                        {
+                            model: Client_Bill,
+                            as: "Client_Bills"
+                        }, 
+                        'createdAt', 'DESC'
+                    ]
                 ]
             })
         })
@@ -78,9 +90,24 @@ ipcMain.handle("get-bill", async (event, args) => {
                 include: [
                     {
                         model: Client_Bill,
-                        where: { id: billId },
-                        include: [Partial_Payment],
+                        include: [Partial_Payment]
+                    },
+                    {
+                        model: Client_Connection_Status,
+                        attributes: ["status"],
+                        separate: true,
+                        order: [['createdAt', 'DESC']],
+                        limit: 1
                     }
+                ],
+                order: [
+                    [
+                        {
+                            model: Client_Bill,
+                            as: "Client_Bills"
+                        }, 
+                        'createdAt', 'DESC'
+                    ]
                 ]
             })
         })
