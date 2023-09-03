@@ -1,10 +1,10 @@
+// @collapse
 
 const Client_Connection_Status = require("../../../models/Client_Connection_Status")
 const Partial_Payment = require("../../../models/Partial_Payment")
 const { connectionStatusTypes } = require("../../../constants")
 const Client_Bill = require("../../../models/Client_Bill")
 const tryCatchWrapper = require("../view_helpers")
-const { db } = require("../../../sequelize_init")
 const Client = require("../../../models/Client")
 const Response = require("../../IPCResponse")
 const { ipcMain } = require("electron")
@@ -31,19 +31,16 @@ ipcMain.handle("bills", async (event, args) => {
                 include: [
                     {
                         model: Client_Bill,
-                        include: [Partial_Payment],
-                        order: [['id', 'DESC']]
+                        include: [Partial_Payment]
                     }
+                ],
+                order: [
+                    [{model: Client_Bill, as: "Client_Bills"}, 'createdAt', 'DESC']
                 ]
             })
         })
 
         if (bills.length > 0) {
-			/**
-			 * manually sorting each clients bill from latest bill to the first
-			 * as order: [['id', 'DESC']] is not working
-			 */
-			await bills.forEach(bill => bill.Client_Bills.sort((a, b) => b.id - a.id))
             return response.success().addObject("data", JSON.stringify(bills)).getResponse()
         } else {
             return response.failed().addObject("message", "No bills yet").getResponse()
@@ -91,10 +88,35 @@ ipcMain.handle("get-bill", async (event, args) => {
         if (clientBill) {
             return response.success().addObject("data", JSON.stringify(clientBill)).getResponse()
         } else {
-            return response.success().addObject("message", "Cannot find clients bill").getResponse()
+            return response.failed().addObject("message", "Cannot find clients bill").getResponse()
         }
 
 	})
+
+})
+
+/**
+ * Prints the bill of the client
+ * 
+ * @param {Electron.Event} event - The IPC event object.
+ * @param {any} args - Arguments for the handler
+ * @returns {Promise<Object>} - A promise that resolves to the handler response
+ */
+ipcMain.handle("print-bill", async (event, args) => {
+    const { clientId } = args
+    const response = new Response()
+
+    if (!clientId) return response.failed().addToast("Missing client id").getResponse()
+
+    const clientBill = await tryCatchWrapper(async () => {
+        return await Client.findByPk(clientId)
+    })
+
+    if (!clientBill) {
+        return response.failed().addObject("message", "Cannot find clients bill").getResponse()
+    }
+
+    console.log(clientBill)
 
 })
 
@@ -128,12 +150,8 @@ ipcMain.handle("new-bill", async (event, args) => {
      * return if the client doesn't have any connection status records yet or the latest connection status the client (if they have any) is not "connected" 
      * which indicates that the client may currently be "due for disconnection" or is "disconnected"
      */
-    if (!client.Client_Connection_Statuses) {
-        return response.failed().addToast(`Set the clients status to "Connected" first`).getResponse()
-    }
-
     if (client.Client_Connection_Statuses.length > 0) {
-        if (client.Client_Connection_Statuses[0].connectionStatus !== connectionStatusTypes.Connected) {
+        if (client.Client_Connection_Statuses[0].status !== connectionStatusTypes.Connected) {
             return response.failed().addToast(`Set the clients status to "Connected" first`).getResponse()
         }
     }
@@ -204,7 +222,7 @@ ipcMain.handle("pay-bill", async (event, args) => {
     }
 
     const bill = await getClientBillWithPartialPayments(billId)
-
+    
     if (!bill) {
         return response.failed().addToast("Cannot find bill").getResponse()
     }
@@ -217,11 +235,11 @@ ipcMain.handle("pay-bill", async (event, args) => {
     }
 
     if (billJSON.paymentStatus === "underpaid") {
-        return handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, response)
+        return await handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, response)
     }
 	
 	if (billJSON.paymentStatus === "unpaid") {
-		return await handleUnpaidBill(bill, billJSON, paymentAmount, response)
+		return await handleUnpaidBill(bill, billJSON, paymentAmount, bill.clientId, response)
 	}
 
 })
@@ -325,12 +343,15 @@ function updateBillWithSecondReading(bill, monthlyReading, previousBillExcess, r
 		bill.consumption = parseFloat(monthlyReading).toFixed(2) - bill.firstReading
 		bill.billAmount = previousBillExcess !== null ? (bill.consumption * 5) - previousBillExcess : bill.consumption * 5
 		const currentDate = new Date()
-		const twoWeeksFromNow = new Date(currentDate.getTime() + (14 * 24 * 60 * 60 * 1000))
-		bill.dueDate = twoWeeksFromNow
+		// const twoWeeksFromNow = new Date(currentDate.getTime() + (14 * 24 * 60 * 60 * 1000))
+        bill.dueDate = currentDate
 	
-		const fiveDaysFromDisconnectionDate = new Date(currentDate.getTime() + (19 * 24 * 60 * 60 * 1000))
-		bill.disconnectionDate = fiveDaysFromDisconnectionDate
+		// const fiveDaysFromDisconnectionDate = new Date(currentDate.getTime() + (19 * 24 * 60 * 60 * 1000))
+		// bill.disconnectionDate = fiveDaysFromDisconnectionDate
 	
+        const oneDayFromNow = new Date(currentDate.getTime() + (1 * 24 * 60 * 60 * 1000)) // Add 1 day (24 hours)
+        bill.disconnectionDate = oneDayFromNow // Set disconnection date to tomorrow
+
 		bill.save()
 		return response.success().addToast(previousBillExcess !== null ? `Client bill updated with ${previousBillExcess} deduction from previous payment` : "Client bill updated").getResponse()
 
@@ -375,7 +396,7 @@ function calculateTotalPartialPayments(billJSON) {
  * @param {number} paymentAmount - The payment amount for the current payment.
  * @param {Object} response - The response object to update.
  */
-function handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, response) {
+async function handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, response) {
     const newPaymentAmount = totalPartialPayments + paymentAmount
 
     if (newPaymentAmount === bill.billAmount) {
@@ -388,6 +409,24 @@ function handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, response
         bill.paymentStatus = "paid"
         bill.remainingBalance = 0
         responseMessage = "Remaining balance paid"
+
+        const clientRecentStatus = await tryCatchWrapper(async () => {
+            return await Client_Connection_Status.findOne({
+                where: { 
+                    clientId: bill.clientId
+                },
+                attributes: ['status'],
+                order: [
+                    ['createdAt', 'DESC']
+                ]
+            })
+        })
+
+        if (clientRecentStatus.status !== connectionStatusTypes.Connected) {
+            const reconnected = await reconnectClient(bill.clientId, clientRecentStatus.status)
+            
+            responseMessage = reconnected && "Remaining balance paid and client reconnected"
+        }
     } 
 	
 	if (newPaymentAmount < bill.billAmount) {
@@ -411,7 +450,25 @@ function handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, response
 		bill.paymentStatus = "overpaid"
         bill.paymentExcess = newPaymentAmount - bill.billAmount
         bill.remainingBalance = 0
-        responseMessage = "Excess amount saved"
+        responseMessage = "Remaining balance paid and excess amount saved"
+
+        const clientRecentStatus = await tryCatchWrapper(async () => {
+            return await Client_Connection_Status.findOne({
+                where: { 
+                    clientId: bill.clientId
+                },
+                attributes: ['status'],
+                order: [
+                    ['createdAt', 'DESC']
+                ]
+            })
+        })
+
+        if (clientRecentStatus.status !== connectionStatusTypes.Connected) {
+            const reconnected = await reconnectClient(bill.clientId, clientRecentStatus.status)
+            
+            responseMessage = reconnected && "Remaining balance paid, excess saved and client reconnected"
+        }
     }
 
     bill.paymentAmount = newPaymentAmount
@@ -427,13 +484,34 @@ function handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, response
  * @param {number} paymentAmount - The payment amount for the first payment.
  * @param {Object} response - The response object to update.
 */
-async function handleUnpaidBill(bill, billJSON, paymentAmount, response) {
+async function handleUnpaidBill(bill, billJSON, paymentAmount, clientId, response) {
 
 	if (billJSON.billAmount === paymentAmount) {
 		bill.paymentAmount = bill.billAmount
 		bill.paymentStatus = "paid"
 		bill.remainingBalance = 0
-		responseMessage = "Bill successfully paid"
+
+        responseMessage = "Bill successfully paid"
+
+        const clientRecentStatus = await tryCatchWrapper(async () => {
+            return await Client_Connection_Status.findOne({
+                where: { 
+                    clientId: clientId
+                },
+                attributes: ['status'],
+                order: [
+                    ['createdAt', 'DESC']
+                ]
+            })
+        })
+
+        if (clientRecentStatus.status !== connectionStatusTypes.Connected) {
+            const reconnected = await reconnectClient(clientId, clientRecentStatus.status)
+
+            console.log(clientRecentStatus, reconnected)
+            responseMessage = reconnected && "Bill paid and client reconnected"
+        }
+
 	}
 	
 	if (paymentAmount < billJSON.billAmount) {
@@ -454,6 +532,24 @@ async function handleUnpaidBill(bill, billJSON, paymentAmount, response) {
 		bill.paymentAmount = bill.billAmount
 		bill.paymentExcess = paymentAmount - bill.billAmount
 		responseMessage = "Bill paid and excess saved"
+
+        const clientRecentStatus = await tryCatchWrapper(async () => {
+            return await Client_Connection_Status.findOne({
+                where: { 
+                    clientId: clientId
+                },
+                attributes: ['status'],
+                order: [
+                    ['createdAt', 'DESC']
+                ]
+            })
+        })
+
+        if (clientRecentStatus.status !== connectionStatusTypes.Connected) {
+            const reconnected = await reconnectClient(clientId, clientRecentStatus.status)
+            
+            responseMessage = reconnected && "Bill paid, excess recorded and client reconnected"
+        }
 	}
 
 	bill.save()
@@ -491,3 +587,28 @@ async function createLastPartialPayment(bill, paymentAmount) {
         })
     })
 }
+
+/**
+ * Reconnects the client by adding a new "connected" status
+ * @param {string} clientId - The id of the client to be reconnected
+ * @param {string} connectionStatus - The connection status of the client
+ * @returns {Object} - a status of success and a message
+ */
+async function reconnectClient(clientId, connectionStatus) {
+
+    return await tryCatchWrapper(async () => {
+
+        if (connectionStatus === connectionStatusTypes.DueForDisconnection) {
+
+            await Client_Connection_Status.create({
+                clientId: clientId,
+                status: connectionStatusTypes.Connected
+            })
+
+            return true
+        } else {
+            return false
+        }
+    })
+}
+
