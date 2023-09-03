@@ -1,7 +1,7 @@
 const Client_Address = require("./Client_Address")
-const { validations } = require("../constants")
+const validations = require("../constants")
 const { db } = require("../sequelize_init")
-const { DataTypes } = require("sequelize");
+const { DataTypes } = require("sequelize")
 
 const Client = db.define(
     "Client",
@@ -86,10 +86,10 @@ const Client = db.define(
             get() {
                 return `${this.firstName} ${this.middleName
                     .charAt(0)
-                    .toUpperCase()}. ${this.lastName}`;
+                    .toUpperCase()}. ${this.lastName}`
             },
             set(value) {
-                throw new Error("Do not try to set the `fullName` value!");
+                throw new Error("Do not try to set the `fullName` value!")
             },
         },
 
@@ -189,7 +189,7 @@ const Client = db.define(
             }
         }
     }
-);
+)
 
 Client.hasOne(Client_Address, { 
     foreignKey: "mainAddressId", 
@@ -204,19 +204,19 @@ Client.hasOne(Client_Address, {
 Client_Address.belongsTo(Client, {
 	foreignKey: "mainAddressId",
 	as: "clientMainAddress",
-});
+})
 
 Client_Address.belongsTo(Client, {
 	foreignKey: "presentAddressId",
 	as: "clientPresentAddress",
-});
+})
 
 Client.sync()
     .then(() => {
-        console.log("Client model successfully created or synchronized");
+        console.log("Client model successfully created or synchronized")
     })
     .catch((error) => {
-        console.error("\n\nError creating/synchronizing table for Client because of error:", error);
+        console.error("\n\nError creating/synchronizing table for Client because of error:", error)
     })
 
 module.exports = Client

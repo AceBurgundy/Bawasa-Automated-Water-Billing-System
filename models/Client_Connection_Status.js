@@ -40,7 +40,7 @@ const Client_Connection_Status = db.define(
                     msg: "Connection status cannot be left blank"
                 },
                 isIn: {
-                    args: [validations.connectionStatusTypes],
+                    args: validations.connectionStatusOptions,
                     msg: "Invalid connection status"
                 }
             }
