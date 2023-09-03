@@ -1,8 +1,8 @@
 // @collapse
 
+const { userRelationshipTypes, connectionStatusTypes } = require("../../../constants")
 const Client_Connection_Status = require("../../../models/Client_Connection_Status")
 const ClientPhoneNumber = require("../../../models/Client_Phone_Number")
-const { userRelationshipTypes } = require("../../../constants")
 const Client_Address = require("../../../models/Client_Address")
 const tryCatchWrapper = require("../view_helpers")
 const { db } = require("../../../sequelize_init")
@@ -23,7 +23,7 @@ const {
     isBirthDate,
     isValidPhoneNumber
 } = require("../input_validations")
-const { log } = require("console")
+
 const Client_File = require("../../../models/Client_File")
 
 const clientFormFields = {
@@ -151,6 +151,14 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 				{
 					clientId: client.id,
 					phoneNumber: formData.phoneNumber
+				},
+				{ transaction: manager }
+			)
+
+			await Client_Connection_Status.create(
+				{
+					clientId: client.id,
+					status: connectionStatusTypes.Connected
 				},
 				{ transaction: manager }
 			)

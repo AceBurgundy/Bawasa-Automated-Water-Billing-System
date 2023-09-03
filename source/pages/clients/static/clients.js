@@ -6,8 +6,6 @@ import { clientTable } from "../templates/clients.js";
 
 export async function renderClientSection() {
 
-    const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    
     const user = await window.ipcRenderer.invoke("current_user")
     let clients = null
     let responseMessage = null
@@ -20,7 +18,7 @@ export async function renderClientSection() {
 
             if (response.status === "success") {
                 clients = JSON.parse(response.data)
-                console.log(clients)
+                console.log(clients);
             } else {
                 responseMessage = response.message
             }
