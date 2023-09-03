@@ -11,6 +11,8 @@ const connectionStatusTypes = {
     Disconnected: "Disconnected"
 }
 
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 const relationshipOptions = [Object.values(userRelationshipTypes)]
 const connectionStatusOptions = [Object.values(connectionStatusTypes)]
 
@@ -23,6 +25,7 @@ if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
         connectionStatusTypes,
     };
 } else {
+    window.months = months
     window.relationshipOptions = relationshipOptions;
     window.connectionStatusOptions = connectionStatusOptions;
     window.userRelationshipTypes = userRelationshipTypes;
