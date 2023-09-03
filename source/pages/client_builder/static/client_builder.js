@@ -1,3 +1,4 @@
+//@collapse
 import { makeToastNotification, transition } from "../../../assets/scripts/helper.js"
 import { renderBillingSection } from "../../billing/static/billing.js"
 import { renderClientSection } from "../../clients/static/clients.js"
@@ -64,22 +65,23 @@ export async function renderClientBuilder(edit, clientObject) {
 	const input = document.getElementById('client-files-input')
 	const uploadedFiles = [];
 
+	const updateInputFiles = (uploadedFiles, input, doNotDisplayThumbnails = false) => {
+		const dataTransfer = new DataTransfer();
+		uploadedFiles.forEach(uploadedFile => dataTransfer.items.add(uploadedFile));
+		input.files = dataTransfer.files;
+		
+		if (doNotDisplayThumbnails) {
+			return
+		} else {
+			displayThumbnail(input.files)
+		}
+	} 
+
 	window.addEventListener('dragover', (event) => {
         event.preventDefault()
     })
 
 	window.addEventListener('drop', event => {
-
-		const updateInputFiles = (uploadedFiles, input) => {
-			const dataTransfer = new DataTransfer();
-			uploadedFiles.forEach(uploadedFile => dataTransfer.items.add(uploadedFile));
-			
-			input.files = dataTransfer.files;
-			console.log(Array.from(input.files));
-
-			logCurrentFiles(input)
-			displayThumbnail(input.files)
-		} 
 
 		const droppedElement = event.target
 
@@ -87,49 +89,27 @@ export async function renderClientBuilder(edit, clientObject) {
 
 			const files = event.dataTransfer.files
 
-			if (!files) return
+			const uploadedFilesNames = uploadedFiles.map(file => file.name)
+			const fileNames = Array.from(files).map(file => file.name)
 
-			if (files.length > 1) {
-
-				const allFiles = Array.from(files).every(file => file instanceof File)
-				const uploadedFilesNames = uploadedFiles.map(file => file.name)
-				const filesName = Array.from(files).map(file => file.name)
-				console.log(uploadedFilesNames);
-
-				if (allFiles) {
-					filesName.forEach((name, index) => {
-						if (!uploadedFilesNames.includes(name)) {
-							uploadedFiles.push(files[index])
-						} else {
-							makeToastNotification(`${name} already exists`)
-						}
-					})
-
+			fileNames.forEach((name, index) => {
+				if (!uploadedFilesNames.includes(name)) {
+					uploadedFiles.push(files[index])
+				} else {
+					makeToastNotification(`${name} already exists`)
 				}
-
-				updateInputFiles(uploadedFiles, input)
-
-			} else {
-
-				const file = event.dataTransfer.files[0]
-
-				const hasDuplicate = uploadedFiles.find(uploadedFile => uploadedFile.name === file.name)
-
-				if (!hasDuplicate) {
-					uploadedFiles.push(file)
-				}
-
-				updateInputFiles(uploadedFiles, input)
-
-			}
+			})
+			updateInputFiles(uploadedFiles, input)
 		}
+
     })
 
 	input.addEventListener('change', async () => {
-        logCurrentFiles(input)
-		displayThumbnail(input.files[0])
+		[...input.files].forEach(file => uploadedFiles.push(file))
+		displayThumbnail(uploadedFiles)
     })
 
+	// removing a file
 	window.onclick = event => {
 		
 		const target = event.target
@@ -139,7 +119,19 @@ export async function renderClientBuilder(edit, clientObject) {
 			event.preventDefault()
 
 			const fileName = target.getAttribute("data-file-name")
-			removeFile(input, fileName)
+		
+			uploadedFiles.forEach((file, index) => {
+				if (file.name === fileName) uploadedFiles.splice(index, 1)
+			})
+
+			if (uploadedFiles.length === 0) {
+				getElementById("client-form-files-box-message").style.display = "flex"
+			}
+			
+			updateInputFiles(uploadedFiles, input, true)
+
+			target.parentElement.remove()
+
 		}
 
 	}
@@ -472,54 +464,24 @@ async function getFileIcon(fileType, event) {
 }
 
 /**
- * Logs all files currently inside an input type="file" multiple
- * @param {Element} input - The input used to store multiple files 
- */
-function logCurrentFiles(input) {
-	const currentFiles = Array.from(input.files).map(file => file.name).join(', ')
-	console.log('Current files: ', currentFiles)
-}
-
-/**
- * Removes a file from the input type="file" multiple
- * 
- * @param {Element} input - The input used to store multiple files 
- * @param {String} fileName - The name of the file to be removed
- */
-function removeFile(input, fileName) {
-	const files = [...input.files]
-
-	if (files === []) {
-		getElementById("client-form-files-box-message").style.display = "flex"
-	}
-
-	files.find((file, index) => {
-		if (file && file.name === fileName) {
-			files.splice(index, 1)
-			document.querySelector(`[data-preview-file-name='${fileName}']`).remove()
-			makeToastNotification(`${fileName} removed`)
-		}	
-	})
-
-}
-
-/**
  * Adds the thumbnails of the added images preview
  * @param {*} file - File object
  */
 function displayThumbnail(files) {
 
-	[...document.querySelector(".client-form-files__box").children].forEach(child => {
-		if (child.classList.contains("client-form-files-box-preview")) {
-			child.remove()
-		}
-	})
-	
+	const addNewFileMessage = getElementById("client-form-files-box-message")
+	const computedStyle = window.getComputedStyle(addNewFileMessage);
+	const displayPropertyValue = computedStyle.getPropertyValue("display");
+
+	if (displayPropertyValue === "flex") addNewFileMessage.style.display = "none"
+
 	Array.from(files).forEach(file => {
 
-		getElementById("client-form-files-box-message").style.display = "none"
+		const previewExists = document.querySelector(`[data-preview-file-name="${file.name}"]`)
+		if (previewExists) return
 
 		const addNewFilePreview = (image, fileName) => {
+
 			const div = document.createElement("div")
 			div.className = "client-form-files-box-preview"
 			div.setAttribute("data-preview-file-name", fileName)
