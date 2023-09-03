@@ -21,7 +21,7 @@
 }
 
 #table-data-headers.billing, .table-info.billing {
-    grid-template-columns: 7.5% 7.5% 7.5% 6% 7% 7.5% 7% 9% 7.5% 5% 7.5% 7% 10% 4%;
+    grid-template-columns: 6% 12% 6% 6% 6% 7% 6% 8% 6% 5% 5% 6% 7% 10% 4%;
 }
 
 .table-info {
@@ -58,14 +58,9 @@
 }
 
 .table-info__options-item-box {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    display: flex;
     border-radius: 10px;
     gap: 0.5rem;
-}
-
-.table-info__options-item-box.billing {
-    grid-template-columns: 1fr 1fr 1fr;
 }
 
 .table-info__options-item {

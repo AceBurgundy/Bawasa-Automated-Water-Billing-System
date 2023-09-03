@@ -161,7 +161,7 @@ select,
 .country-code {
     width: 11%;
     font-size: 0.9rem;
-    border-right: 2px solid var(--text);
+    border-right: 2px solid var(--gray);
 }
 
 body {

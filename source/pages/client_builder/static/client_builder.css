@@ -116,7 +116,6 @@
 }
 
 .client-phone-container {
-    border: 2px solid black;
     height: 3rem;
     border-radius: 5px;
     display: grid;
@@ -152,7 +151,7 @@
     object-fit: contain;
     position: relative;
     pointer-events: none;
-    border: 2px solid black;
+    border: 2px solid var(--gray);
 }
 
 #client-form-image-template {
@@ -164,7 +163,7 @@
     height: 20vw;
     position: absolute;
     pointer-events: none;
-    border: 2px solid black;
+    border: 2px solid var(--gray);
     z-index: 1;
 }
 
@@ -247,11 +246,12 @@ input[name="mainAddressDetails"] {
 
 .client-form-files__box {
     width: 50rem;
-    height: 20rem;
+    height: fit-content;
     border-radius: 10px;
     border: var(--borderDefaultGray);
     border-style: dashed;
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     justify-content: flex-start;
     padding: 1rem;
@@ -276,10 +276,8 @@ input[name="mainAddressDetails"] {
 }
 
 #client-form-files-box-message {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    margin: 0 auto;
+    padding: 2rem 0;
     pointer-events: none;
     display: flex;
     flex-direction: column;
@@ -329,6 +327,7 @@ input[name="mainAddressDetails"] {
 
 .client-form-files-box-preview__text {
     font-size: 0.6rem;
+    overflow-wrap: break-word;
     color: black !important;
 }
 

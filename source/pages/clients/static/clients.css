@@ -10,6 +10,7 @@
     opacity: 0;
     pointer-events: none;
     transition: 250ms ease;
+    z-index: 20;
 }
 
 #client-options-toggle-options-list.active {
