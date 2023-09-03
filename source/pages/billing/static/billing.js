@@ -6,7 +6,7 @@ import { newBillForm } from "../templates/newBillForm.js"
 import { payBillForm } from "../templates/payBillForm.js"
 import billingTable from "../templates/billing.js"
 
-const element = id => document.getElementById(id)
+const elementId = id => document.getElementById(id)
 const dialogElement = document.querySelector("dialog")
 
 let bills = null
@@ -20,13 +20,17 @@ export async function renderBillingSection() {
 
     const template = billingTable(bills, user, responseMessage)
 
-	element("container").innerHTML += template
+	elementId("container").innerHTML += template
 
 	const tableOptions = {}
 
 	document.querySelectorAll(".table-info__options").forEach(option => {
 		tableOptions[option.getAttribute("data-client-id")] = option.classList
 	})
+
+    let paidClients = 0
+    let unpaidClients = 0
+    let overpaidClients = 0
 
     let meterNumbers = []
     let accountNumbers = []
@@ -35,14 +39,39 @@ export async function renderBillingSection() {
     if (bills) {
 
         bills.map(bill => {
+            
+            const clientBills = bill.Client_Bills
+
+            if (clientBills.length > 0) {
+                const recentBill = clientBills[0]
+
+                if (recentBill.paymentStatus !== "") {
+
+                    const recentBillStatus = recentBill.paymentStatus
+
+                    if (recentBillStatus === "paid") {
+                        paidClients += 1
+                    } 
+    
+                    if (recentBillStatus === "unpaid") {
+                        unpaidClients += 1
+                    }    
+
+                    if (recentBillStatus === "overpaid") {
+                        overpaidClients += 1
+                    }
+                }
+
+            }
+
             meterNumbers.push(bill.meterNumber)
             accountNumbers.push(bill.accountNumber)
             names.push(bill.fullName)
         })    
 
         const searchFilterOptions = ["Full Name", "Meter Number", "Account Number"]
-        const searchFilter = element("search-box-filter")
-        const searchElement = element("search-box-input")
+        const searchFilter = elementId("search-box-filter")
+        const searchElement = elementId("search-box-input")
         
         searchElement.oninput = () => {
 
@@ -91,6 +120,8 @@ export async function renderBillingSection() {
     
     }
     
+    setStatistics(paidClients, unpaidClients, overpaidClients)
+
     // Event delegation
     window.onclick = async event => {
         const elementId = event.target.getAttribute("id")
@@ -138,6 +169,18 @@ export async function renderBillingSection() {
         if (elementId === "new-bill-form-submit" || elementId === "pay-bill-form-submit") {
             processForm(elementId === "new-bill-form-submit" ? "new" : "pay", event)
         }
+
+        if (classList.contains("print")) {
+            const clientId = event.target.parentElement.getAttribute("data-client-id")
+            const response = await window.ipcRenderer.invoke("print-bill", { clientId: clientId})
+
+            if (response.status === "success") {
+                makeToastNotification("success")
+            } else {
+                makeToastNotification(response.toast[0])
+            }
+        }
+
     }
 }
 
@@ -213,10 +256,10 @@ function closeDialog(event) {
 async function processForm(type, event) {
 	event.preventDefault()
 
-	const clientId = element(`${type}-bill-form-submit`).getAttribute("data-client-id")
-	const billId = element(`${type}-bill-form-submit`).getAttribute("data-bill-id")
-	const paymentAmountInput = element(`${type}-bill-form-input-box-input`)
-	const errorElement = element(`${type}-bill-form-input-box-header-error`)
+	const clientId = elementId(`${type}-bill-form-submit`).getAttribute("data-client-id")
+	const billId = elementId(`${type}-bill-form-submit`).getAttribute("data-bill-id")
+	const paymentAmountInput = elementId(`${type}-bill-form-input-box-input`)
+	const errorElement = elementId(`${type}-bill-form-input-box-header-error`)
 
     const paymentAmount = paymentAmountInput.value
 
@@ -248,13 +291,15 @@ async function processForm(type, event) {
 			makeToastNotification(response.toast[0])
             closeDialog(event)
 
+            console.log(billId);
+
             // updates record in the table
             billId ?
                 await renderUpdatedBill(billId, clientId)
             :
                 await renderUpdatedBill(response.billId, clientId)
 
-            await getBills()
+            getBills()
 
         } else {
 			makeToastNotification(response.toast[0])
@@ -271,7 +316,7 @@ async function processForm(type, event) {
  * @param {string} clientId - the id used to get the client
 */
 async function renderUpdatedBill(billId, clientId) {
-
+    
 	const response = await window.ipcRenderer.invoke("get-bill", { billId: billId, clientId: clientId })
 
     if (response.status === "failed") {
@@ -284,13 +329,22 @@ async function renderUpdatedBill(billId, clientId) {
 	const beforeOldRow = rowToBeUpdated !== null && rowToBeUpdated.previousElementSibling
 	const afterOldRow = rowToBeUpdated !== null && rowToBeUpdated.nextElementSibling
 
-	if (beforeOldRow && afterOldRow || beforeOldRow && afterOldRow === null) {
-        updateBillingTableRow(newBill, parseInt(beforeOldRow.getAttribute("data-client-index")) + 1, rowToBeUpdated)
-	}
+    //current row is the first row in the table
+    if (beforeOldRow === null && afterOldRow === null) updateBillingTableRow(newBill, 0, rowToBeUpdated)
 
+    //row has no other row after it
+	if (beforeOldRow && afterOldRow || beforeOldRow && afterOldRow === null) {
+        console.log("called first if");
+        updateBillingTableRow(newBill, parseInt(beforeOldRow.getAttribute("data-client-index")) + 1, rowToBeUpdated)
+        return
+    }
+
+    //row has no other row before it
 	if (beforeOldRow === null && afterOldRow) {
+        console.log("called second if");
         updateBillingTableRow(newBill, parseInt(afterOldRow.getAttribute("data-client-index")) - 1, rowToBeUpdated)
-	}
+        return
+    }
 
 }
 
@@ -319,4 +373,20 @@ async function getBills() {
     }
 }
 
+/**
+ * Sets the value for paid, unpaid, overpaid statistics element
+ * 
+ * @param {Number} paid - holds the value for the number of paid clients
+ * @param {Number} unpaid - holds the value for the number of unpaid clients
+ * @param {Number} overpaid - holds the value for the number of overpaid clients
+ */
+function setStatistics(paid, unpaid, overpaid) {
+    const paidCustomersElement = elementId("paid-clients")
+    const unpaidCustomersElement = elementId("unpaid-clients")
+    const overpaidCustomersElement = elementId("overpaid-clients")
 
+    if (paidCustomersElement) paidCustomersElement.innerHTML = paid
+    if (unpaidCustomersElement) unpaidCustomersElement.innerHTML = unpaid
+    if (overpaidCustomersElement) overpaidCustomersElement.innerHTML = overpaid
+    
+}

@@ -59,6 +59,28 @@ export default function billingTable(bills, user, responseMessage) {
                         <p class="section-child__center-left__section-description">Check the latest reports and updates</p>
                     </div>
                     <div class="section-child__center-right">
+
+                        <div id="statistics">
+                            <div class="statistics__child">
+                                <p>
+                                    <span id="paid-clients"></span>
+                                    Paid
+                                </p>
+                            </div>
+                            <div class="statistics__child">
+                                <p>
+                                    <span id="unpaid-clients"></span>
+                                    Unpaid
+                                </p>
+                            </div>
+                            <div class="statistics__child">
+                                <p>
+                                    <span id="overpaid-clients"></span>
+                                    Overpaid    
+                                </p>
+                            </div>
+                        </div>
+                        
                         <div id="search-box">
                             <input
                                 id="search-box-input"
@@ -72,9 +94,7 @@ export default function billingTable(bills, user, responseMessage) {
                                 <option value="Full Name" >Full Name</option>
                             </select>
                         </div>
-                        <div class="section-child__center-right__options">
-                            
-                        </div>
+
                     </div>
                 </div>
 
@@ -113,6 +133,9 @@ export default function billingTable(bills, user, responseMessage) {
                             </div>
                             <div class="table-data-headers__item">
                                 <p>Status</p>
+                            </div>
+                            <div class="table-data-headers__item">
+                                <p>Penalty</p>
                             </div>
                             <div class="table-data-headers__item">
                                 <p>Excess</p>
