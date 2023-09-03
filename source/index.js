@@ -1,5 +1,5 @@
 const { app, BrowserWindow, screen, ipcMain } = require("electron")
-const {connectionStatusTypes} = require("../constants.js")
+const {connectionStatusTypes, connectionStatusOptions} = require("../constants.js")
 require("./pages/client_builder/views.js")
 require("./pages/authentication/view.js")
 const { resolve, join } = require("path")
@@ -19,6 +19,8 @@ const Client_File = require("../models/Client_File")
 const Client_Bill = require("../models/Client_Bill")
 const Client = require("../models/Client")
 const User = require("../models/User")
+const tryCatchWrapper = require("./pages/view_helpers.js")
+const { log } = require("console")
 
 async function initializeDatabase() {
 	try {
@@ -57,11 +59,11 @@ const createWindow = async () => {
     try {
 
         const displays = screen.getAllDisplays()
-        const secondScreen = displays[1]
+        const availableScreen = displays.length > 1 ? displays[1] : displays[0]
 
         const mainWindow = new BrowserWindow({
-            x: secondScreen.bounds.x,
-            y: secondScreen.bounds.y,
+            x: availableScreen.bounds.x,
+            y: availableScreen.bounds.y,
             minHeight: 720,
             minWidth: 1280,
             height: 720,
@@ -86,7 +88,7 @@ const createWindow = async () => {
                 include: [
                     {
                         model: Client_Bill,
-                        as: 'bills',
+                        as: 'Client_Bills',
                         attributes: ['id', 'penalty', 'billAmount', 'paymentStatus', 'dueDate', 'disconnectionDate', 'createdAt'],
                         required: false,
                         separate: true,
@@ -95,8 +97,8 @@ const createWindow = async () => {
                       },
                       {
                         model: Client_Connection_Status,
-                        as: 'connection',
-                        attributes: ['connectionStatus', 'createdAt'],
+                        as: 'Client_Connection_Statuses',
+                        attributes: ['status', 'createdAt'],
                         required: false,
                         separate: true,
                         order: [['createdAt', 'DESC']],
@@ -106,44 +108,62 @@ const createWindow = async () => {
             })
 	})
 
-    // if (clients.length > 0) {
-        
-    //     const currentDate = new Date()
+    if (clients && clients.length > 0) {
 
-    //     for (let client of clients) {
-            
-    //         const latestBill = client.bills && client.bills.length > 0 ? client.bills[0] : null
-    //         const connectionStatus = client.connection && client.connection.length > 0 ? client.connection[0] : null
-
-    //         if (!latestBill) continue
-    //         if (!connectionStatus) continue
-
-    //         if (new Date(latestBill.dueDate) === currentDate && connectionStatus === connectionStatusTypes.Connected) {
+        const currentDate = new Date();
                 
-    //             //updates status to due for disconnection
-    //             await Client_Connection_Status.create({
-    //                 clientId: client.id,
-    //                 connectionStatus: connectionStatusTypes.DueForDisconnection,
-    //             })
-    
-    //             // adds penaly to current bill
-    //             const penalty = 0
-    //             await latestBill.update({
-    //                 penalty: penalty,
-    //                 billAmount: latestBill.billAmount + penalty,
-    //             })
-    //         } 
+        for (let client of clients) {
 
-    //         if (new Date(latestBill.disconnectionDate) === currentDate && connectionStatus === connectionStatusTypes.DueForDisconnection) {
-    //             //updates status to as disconnected
-    //             await Client_Connection_Status.create({
-    //                 clientId: client.id,
-    //                 connectionStatus: connectionStatusTypes.Disconnected,
-    //             })
-    //         }
-    //     }
+            const latestBill = client.Client_Bills && client.Client_Bills.length > 0 ? client.Client_Bills[0] : null;
+            const connectionStatus = client.Client_Connection_Statuses && client.Client_Connection_Statuses.length > 0 ? client.Client_Connection_Statuses[0].status : null;
+        
+            if (!latestBill) continue;
+            if (!connectionStatus) continue;
+            if (latestBill.paymentStatus === "paid") continue
 
-    // }
+            const billDueDate = new Date(latestBill.dueDate);
+            const billDisconnectionDate = new Date(latestBill.disconnectionDate);
+        
+            const currentDay = currentDate.getDate();
+            const currentMonth = currentDate.getMonth();
+            const dueDateDay = billDueDate.getDate();
+            const dueDateMonth = billDueDate.getMonth();
+            const disconnectionDateDay = billDisconnectionDate.getDate();
+            const disconnectionDateMonth = billDisconnectionDate.getMonth();
+        
+            if (currentDay >= dueDateDay && currentMonth >= dueDateMonth && connectionStatus === connectionStatusTypes.Connected) {
+
+                tryCatchWrapper(async () => {
+                    await Client_Connection_Status.create({
+                        clientId: client.id,
+                        status: connectionStatusTypes.DueForDisconnection,
+                    });
+                })
+
+                // Adds penalty to current bill
+                const penalty = 5;
+
+                tryCatchWrapper(async () => {
+                    await latestBill.update({
+                        penalty: penalty,
+                        billAmount: latestBill.billAmount + penalty,
+                    });
+                })
+
+            }
+        
+            if (currentDay >= disconnectionDateDay && currentMonth >= disconnectionDateMonth && connectionStatus === connectionStatusTypes.DueForDisconnection) {
+
+                tryCatchWrapper(async () => {
+                    await Client_Connection_Status.create({
+                        clientId: client.id,
+                        status: connectionStatusTypes.Disconnected,
+                    });
+                })
+            }
+        }        
+
+    }
 
     } catch (error) {
         console.error('Error connecting to the database:', error)
