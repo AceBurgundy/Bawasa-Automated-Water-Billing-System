@@ -11,20 +11,20 @@ const connectionStatusTypes = {
     Disconnected: "Disconnected"
 }
 
-const validations = {
-    relationshipOptions: [Object.values(userRelationshipTypes)],
-    connectionStatusOptions: [Object.values(connectionStatusTypes)],
-};
+const relationshipOptions = [Object.values(userRelationshipTypes)]
+const connectionStatusOptions = [Object.values(connectionStatusTypes)]
 
 // Export the constants and function based on the environment
 if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
     module.exports = {
-        validations,
+        relationshipOptions,
+        connectionStatusOptions,
         userRelationshipTypes,
         connectionStatusTypes,
     };
 } else {
-    window.validations = validations;
+    window.relationshipOptions = relationshipOptions;
+    window.connectionStatusOptions = connectionStatusOptions;
     window.userRelationshipTypes = userRelationshipTypes;
     window.connectionStatusTypes = connectionStatusTypes;
 }
