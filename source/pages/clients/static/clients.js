@@ -1,8 +1,12 @@
+import { makeToastNotification, transition } from "../../../assets/scripts/helper.js"
 import { renderClientBuilder } from "../../client_builder/static/client_builder.js"
+import { reconnectClientForm } from "../templates/reconnectClientForm.js"
 import { renderBillingSection } from "../../billing/static/billing.js"
+import { connectionStatusTypes } from "../../../../constants.js"
 import loadLogin from "../../authentication/static/login.js"
-import { transition } from "../../../assets/scripts/helper.js"
-import { clientTable } from "../templates/clients.js";
+import { clientTable } from "../templates/clients.js"
+
+const dialogElement = document.querySelector("dialog")
 
 export async function renderClientSection() {
 
@@ -18,7 +22,7 @@ export async function renderClientSection() {
 
             if (response.status === "success") {
                 clients = JSON.parse(response.data)
-                console.log(clients);
+                console.log(clients)
             } else {
                 responseMessage = response.message
             }
@@ -32,7 +36,7 @@ export async function renderClientSection() {
     
     document.getElementById("container").innerHTML += clientTable(user, clients, responseMessage)
 
-    setTimeout(() => {document.getElementById("section-type-container").classList.add("active")}, 500);
+    setTimeout(() => {document.getElementById("section-type-container").classList.add("active")}, 500)
 
     const tableOptions = {}
 
@@ -40,7 +44,7 @@ export async function renderClientSection() {
         tableOptions[option.getAttribute("data-client-id")] = option.classList
     })
 
-    window.onclick = event => {
+    window.onclick = async event => {
         
         const elementId = event.target.getAttribute("id") 
         const classList = event.target.classList
@@ -95,6 +99,71 @@ export async function renderClientSection() {
             transition(() => {renderClientBuilder(true, clientData)})
         }
 
+        if (classList.contains("reconnect")) {
+            const clientId = event.target.parentElement.getAttribute("data-client-id")
+            await renderReconnectForm(clientId)            
+        }
+
+        if (elementId === "reconnect-form-close") {
+            closeDialog(event)
+        }
+
+        if (elementId === "reconnect-form-submit") {
+            await processReconnection(event)
+        }
+
     }
 
+    async function renderReconnectForm(clientId) {
+        if (!clientId) return makeToastNotification("Client id not found")
+        const response = await window.ipcRenderer.invoke("get-client", { clientId: clientId })
+        if (response.status === "failed") return makeToastNotification(response.toast[0])
+
+        const client = JSON.parse(response.data)
+        dialogElement.innerHTML = reconnectClientForm(client)
+        dialogElement.id = "reconnect-form-box"
+        dialogElement.showModal()
+    }
+
+    /**
+     * Closes the dialog and clears its innerHTML leaving an empty dialog element.
+     * @param {Event} event - The click event.
+     */
+    function closeDialog(event) {
+        event.preventDefault()
+        dialogElement.close()
+        dialogElement.innerHTML =
+        dialogElement.id = ""
+    }
+
+    async function processReconnection(event) {
+
+        event.preventDefault()
+        const clientId = event.target.dataset.clientId
+        const reconnectFormInput = document.getElementById("reconnect-form-input-box-input")
+        const expectedPayment = reconnectFormInput.dataset.total
+        const paidAmount = reconnectFormInput.value
+
+        if (paidAmount !== expectedPayment) {
+            makeToastNotification("The full amount must be paid in order to continue")
+        } else {
+            
+            const response = window.ipcRenderer.invoke("reconnect-client", {
+                clientId: clientId,
+                paidAmount: paidAmount
+            })
+
+            if (response.status === "failed") {
+                makeToastNotification(response.toast[0])
+            } else {
+                closeDialog(event)
+                setTimeout(() => {
+                    makeToastNotification("Client reconnected")
+                }, 200)
+                const clientRow = document.getElementById(`client-row-${clientId}`)
+                clientRow.children[7].firstElementChild.textContent = connectionStatusTypes.Connected
+                event.target.remove()
+            }
+        }
+    }
 }
