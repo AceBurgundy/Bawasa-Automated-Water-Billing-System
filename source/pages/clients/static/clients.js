@@ -145,24 +145,28 @@ export async function renderClientSection() {
         const paidAmount = reconnectFormInput.value
 
         if (paidAmount !== expectedPayment) {
+
             makeToastNotification("The full amount must be paid in order to continue")
+
         } else {
-            
+
             const response = window.ipcRenderer.invoke("reconnect-client", {
                 clientId: clientId,
                 paidAmount: paidAmount
             })
 
             if (response.status === "failed") {
+
                 makeToastNotification(response.toast[0])
+
             } else {
+
                 closeDialog(event)
-                setTimeout(() => {
-                    makeToastNotification("Client reconnected")
-                }, 200)
+                setTimeout(() => makeToastNotification("Client reconnected"), 200)
                 const clientRow = document.getElementById(`client-row-${clientId}`)
                 clientRow.children[7].firstElementChild.textContent = connectionStatusTypes.Connected
                 event.target.remove()
+
             }
         }
     }
