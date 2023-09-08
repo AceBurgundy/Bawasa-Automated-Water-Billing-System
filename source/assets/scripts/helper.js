@@ -52,42 +52,35 @@ export function makeToastNotification(message) {
 }
 
 /**
- * Appends a string to the head of the dom as an element.
- * @param {string} elementString - The string version of an element that needs to be added.
+ * 
+ * @param {String} data - The data from the sequelize object the needed to be shown 
+ * @param {*} placeholder - A placeholder that replaces the data if the data is null or undefined. Default: ""
+ * @returns string
  */
-export function appendToHead(elementString) {
-	const linkElements = document.head.querySelectorAll("link");
-	let elementsPresent = [];
-
-	linkElements.forEach(child => {
-		if (child.outerHTML === elementString) {
-			elementsPresent.push(child);
-		}
-	});
-
-	if (elementsPresent.length <= 0) {
-		document.head.innerHTML += elementString;
+export function showData(data, placeholder = "") {
+	
+	if (data !== null && data !== undefined) {
+		return data
+	} else {
+		return placeholder
 	}
 }
 
+export const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+    
+export const formatDate = date => date ? new Date(date).toLocaleDateString("en-US", dateOptions) : "";
+
 /**
- * Clears DOM Head to give way for new ones.
+ * Wraps a callback function in a try-catch block for error handling.
+ * @function
+ * @param {Function} callback - The callback function to wrap.
  */
-export function clearDOMHead(linkExemptions = [], scriptExemptions = []) {
-	const linkElements = document.head.querySelectorAll("link");
-	const scriptElements = document.head.querySelectorAll("script");
-
-	linkElements.forEach(link => {
-		if (link.outerHTML !== '<link rel="stylesheet" href="assets/styles/root.css">') {
-			if (!linkExemptions.includes(link.outerHTML)) {
-				link.remove();
-			}
-		}
-	});
-
-	scriptElements.forEach(script => {
-		if (!scriptExemptions.includes(script.outerHTML)) {
-			script.remove();
-		}
-	});
+export async function tryCatchWrapper(callback) {
+	try {
+		return await callback()
+	} catch (error) {
+		console.log(error)
+		console.log(`\n${error.name}\n`)
+		console.log(`${error.message}`)
+	}
 }
