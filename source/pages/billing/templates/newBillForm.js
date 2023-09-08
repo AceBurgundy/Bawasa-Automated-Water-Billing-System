@@ -1,8 +1,8 @@
 /**
  * Generates a new bill entry form template for a client's billing record.
- * This form will be added as the html template of the <dialog></dialog> code in html
  *
  * @param {Object} formData - The form data containing client details and bills.
+ * @param {boolean} forNewBill - Indicates whether the form is for a new bill entry.
  * @returns {string} - The HTML template for the new bill entry form.
  */
 export function newBillForm(formData, forNewBill) {
