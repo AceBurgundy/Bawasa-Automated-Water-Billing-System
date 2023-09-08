@@ -12,17 +12,22 @@
 }
 
 :root {
-    --text: #011e23;
-    --background: white;
-    --lighterPrimary: #ff8e7a;
-    --primary: #fd765e;
-    --secondary: #272d01;
-    --accent: #f62804;
+    --text: #efe6ec;
+    --background: #160e13;
+    --borderlessInputBackground: #241e21;
+    --primary: #a77277;
+    --navHover: #422b38;
+    --navActive: #5f3e51;
+    --secondary: #2f241d;
+    --accent: #a78772;
+
+    --lighterPrimary: var(--primary);
+    --lightestPrimary: var(--primary);
     --transparent: #f0f8ff00;
-    --gray: #e7e7e7;
-    --borderDefaultGray: 2px solid var(--gray);
-    --borderDefaultPrimary: 2px solid var(--primary);
-    --borderDefaultDarker: 2px solid #ececec;
+    --gray: #343434;
+    --borderDefaultGray: 1px solid var(--gray);
+    --borderDefaultPrimary: 1px solid var(--primary);
+    --borderDefaultDarker: 1px solid #ececec;
 }
 
 * {
@@ -33,21 +38,27 @@
 }
 
 body {
-    background-color: var(--background);
-    color: var(--text);
-    /* overflow: hidden; */
+    color: var(--text) !important;
 }
 
 p, h1, h2, h3, h4, h5, h6 {
     cursor: default;
 }
 
+input {
+    color: var(--text);
+}
+
 button, input[type="file"] {
     cursor: pointer;
 }
 
+dialog {
+    background-color: var(--background);
+}
+
 svg {
-    fill: black;
+    fill: var(--text);
     pointer-events: none;
 }
 
@@ -55,14 +66,14 @@ svg {
     padding: 0.5rem 0.9rem;
     font-size: 0.8rem;
     background-color: var(--primary);
-    color: black;
+    color: var(--background);
     border-radius: 20px;
     border: none;
     transition: 250ms ease;
 }
 
 .button-primary:hover {
-    background-color: #ff8e7a;
+    background-color: var(--accent);
 }
 
 .page {
@@ -117,6 +128,13 @@ svg {
     opacity: 1;
 }
 
+.borderless-input {
+    border: none !important;
+    border-bottom: 1px solid var(--gray) !important;
+    border-radius: 0px !important;
+    background-color: var(--borderlessInputBackground) !important;
+}
+
 input[type="text"],
 input[type="date"],
 input[type="number"],
@@ -127,8 +145,10 @@ select,
 .input-style {
     padding: 0.7rem;
     border-radius: 5px;
-    border: 2px solid var(--gray);
+    border: 1px solid var(--gray);
+    background-color: inherit;
     height: 47px;
+    color: var(--text);
 }
 
 .input-style > input {
@@ -206,26 +226,57 @@ nav {
 }
 
 .nav-item > div {
-    width:  3.5rem;
-    height: 3.5rem;
+    width: 3.3rem;
+    height: 1.8rem;
     border-radius: 20px;
     display: grid;
     place-items: center;
-    background-color: #eee;
     transition: 250ms ease;
 }
 
 .nav-item:hover > div {
-    background-color: var(--primary);
+    background-color: var(--navHover);
 }
 
+.nav-item.active > div {
+    width:  3.5rem;
+    background-color: var(--navActive);
+}
+
+#bill-icon {
+    width: 1.3rem;
+}
+
+.nav-item:hover > div > #user-icon > circle,
+.nav-item:hover > div > #user-icon > path,
+.nav-item:hover > div > #users-icon > circle,
+.nav-item:hover > div > #users-icon > path,
+.nav-item:hover > div > #power-icon > line,
+.nav-item:hover > div > #power-icon > path {
+    stroke-width: 22;
+}
+
+.nav-item:hover > div > #bill-icon > path {
+    stroke-width: 3;
+}
+
+#user-icon > circle,
+#user-icon > path,
+#users-icon > circle,
+#users-icon > path,
+#power-icon > line,
+#power-icon > path,
+#bill-icon > path {
+    stroke: var(--text);
+}
+
+
 .nav-item > div > svg {
-    width: 1.2rem;
+    width: 1.4rem;
 }
 
 .nav-item > p {
-    font-size: 0.8rem;
-    margin-top: 5px;
+    font-size: 0.7rem;
 }
 
 @media screen and (max-width: 1280px) {
@@ -234,7 +285,6 @@ nav {
     }
     .nav-item > div {
         width: 2.5rem;
-        height: 2.5rem;
         border-radius: 13px;
     }
     .nav-item > p {
@@ -245,10 +295,6 @@ nav {
 
 :root.dark .nav-item:hover {
     color: black;
-}
-
-:root .nav-item:hover {
-    color: var(--accent);
 }
 
 .section-child {
