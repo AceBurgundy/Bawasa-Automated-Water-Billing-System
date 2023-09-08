@@ -1,8 +1,14 @@
-// import { connectionStatusOptions } from "../../../../constants.js";
+import { formatDate, showData } from "../../../assets/scripts/helper.js"
 
+/**
+ * Generates an HTML template for the client table section.
+ *
+ * @param {Object} user - The user data.
+ * @param {Array} clients - An array of client data.
+ * @param {string|null} responseMessage - The response message (or null if there's no message).
+ * @returns {string} - The HTML template for the client table section.
+ */
 export function clientTable(user, clients, responseMessage) {
-
-    const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
 
     const template = `
 
@@ -10,7 +16,7 @@ export function clientTable(user, clients, responseMessage) {
 
         <nav>
             <div id="nav-items">
-                <div id="clients" class="nav-item">
+                <div id="clients" class="nav-item active">
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="users-icon"><rect width="256" height="256" fill="none"></rect><circle cx="88" cy="108" r="52" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="16"></circle><path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" d="M155.41251 57.937A52.00595 52.00595 0 1 1 169.52209 160M15.99613 197.39669a88.01736 88.01736 0 0 1 144.00452-.00549M169.52209 160a87.89491 87.89491 0 0 1 72.00032 37.3912"></path></svg>
                     </div>
@@ -18,7 +24,9 @@ export function clientTable(user, clients, responseMessage) {
                 </div>
                 <div id="billing" class="nav-item">
                     <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" data-name="Layer 1" viewBox="0 0 32 32" id="bill-icon"><path d="M22 5H10a1 1 0 000 2H22a1 1 0 000-2zM22 9H10a1 1 0 000 2H22a1 1 0 000-2z"></path><path d="M6,31a1,1,0,0,0,.66-.25l3.26-1.6,2.52,1.68a1,1,0,0,0,1.1,0L16,29.23l2.45,1.6a1,1,0,0,0,1.1,0l2.52-1.68,3.26,1.6A1,1,0,0,0,27,30V9a1,1,0,0,0-2,0V28.36L22.44,27.1a1,1,0,0,0-1,.07L19,28.8l-2.44-1.6a1,1,0,0,0-1.09,0L13,28.8l-2.45-1.63a1,1,0,0,0-1-.07L7,28.36V3H25V5a1,1,0,0,0,2,0V2a1,1,0,0,0-1-1H6A1,1,0,0,0,5,2V30A1,1,0,0,0,6,31Z"></path></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" id="bill-icon">
+                            <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m25 29-1.59-.8a6 6 0 0 0-4.91-.2L16 29l-2.5-1a6 6 0 0 0-4.91.2L7 29V3h18ZM11 7h8M11 11h6M11 15h10"></path>
+                        </svg>
                     </div>
                     <p>Billing</p>
                 </div>
@@ -95,9 +103,10 @@ export function clientTable(user, clients, responseMessage) {
                             responseMessage !== null ? `<p style="margin: 1rem;">${responseMessage}</p>` : 
                             
                             clients !== null &&
+                            
                                 clients.map(client => {
 
-                                    const { fullName, createdAt, Client_Connection_Statuses, meterNumber, id, Client_Phone_Numbers } = client
+                                    const { fullName, birthDate, Client_Connection_Statuses, meterNumber, id, Client_Phone_Numbers } = client
 
                                     const address = [
                                         client.mainAddress.details,
@@ -105,9 +114,7 @@ export function clientTable(user, clients, responseMessage) {
                                         client.mainAddress.subdivision ? client.mainAddress.subdivision + ', ' : '',
                                         client.mainAddress.barangay
                                     ].join(" ")
-                                    
-                                    const birthdate = new Date(createdAt).toLocaleDateString("en-US", dateOptions)
-
+                                                                        
                                     const connectionStatus = Client_Connection_Statuses.length === 0 ? "Not Set" : Client_Connection_Statuses[0].status
 
                                     const reconnectButton = connectionStatus === window.connectionStatusTypes.Disconnected ?
@@ -146,10 +153,10 @@ export function clientTable(user, clients, responseMessage) {
                                             </p>
                                         </div>
                                         <div class="table-info__item">
-                                            <p>+63${Client_Phone_Numbers[0]?.phoneNumber}</p>
+                                            <p>+63${showData(Client_Phone_Numbers[0].phoneNumber)}</p>
                                         </div>
                                         <div class="table-info__item">
-                                            <p>${birthdate}</p>
+                                            <p>${formatDate(birthDate)}</p>
                                         </div>
                                         <div class="table-info__item">
                                             <p>${meterNumber}</p>
