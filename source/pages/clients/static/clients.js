@@ -1,47 +1,44 @@
-import { makeToastNotification, transition } from "../../../assets/scripts/helper.js"
-import { renderClientBuilder } from "../../client_builder/static/client_builder.js"
+// @collapse
+
+import { makeToastNotification, transition, tryCatchWrapper } from "../../../assets/scripts/helper.js"
+import { renderClientBuilder } from "../../clientBuilder/static/clientBuilder.js"
 import { reconnectClientForm } from "../templates/reconnectClientForm.js"
 import { renderBillingSection } from "../../billing/static/billing.js"
-import { connectionStatusTypes } from "../../../../constants.js"
 import loadLogin from "../../authentication/static/login.js"
 import { clientTable } from "../templates/clients.js"
 
+const elementId = tag => document.getElementById(tag)
 const dialogElement = document.querySelector("dialog")
 
+/**
+ * Renders the client section, including client data table, options, and event handlers.
+ * 
+ * @returns {Promise<void>} - Resolves when the client section is fully rendered.
+ */
 export async function renderClientSection() {
 
     const user = await window.ipcRenderer.invoke("current_user")
     let clients = null
     let responseMessage = null
 
-    async function fetchClientData() {
+    await tryCatchWrapper(async () => {
+        const response = await window.ipcRenderer.invoke("clients")
 
-        try {
-
-            const response = await window.ipcRenderer.invoke("clients")
-
-            if (response.status === "success") {
-                clients = JSON.parse(response.data)
-                console.log(clients)
-            } else {
-                responseMessage = response.message
-            }
-            
-        } catch (error) {
-            console.error("Error fetching client data:", error)
+        if (response.status === "success") {
+            clients = JSON.parse(response.data)
+        } else {
+            responseMessage = response.message
         }
-    }
-      
-    await fetchClientData()
+    })
     
-    document.getElementById("container").innerHTML += clientTable(user, clients, responseMessage)
+    elementId("container").innerHTML += clientTable(user, clients, responseMessage)
 
-    setTimeout(() => {document.getElementById("section-type-container").classList.add("active")}, 500)
+    setTimeout(() => {elementId("section-type-container").classList.add("active")}, 500)
 
-    const tableOptions = {}
+    const rowOptionsToggleList = {}
 
     document.querySelectorAll(".table-info__options").forEach(option => {
-        tableOptions[option.getAttribute("data-client-id")] = option.classList
+        rowOptionsToggleList[option.getAttribute("data-client-id")] = option.classList
     })
 
     window.onclick = async event => {
@@ -59,7 +56,7 @@ export async function renderClientSection() {
 
         if (elementId === "client-options-toggle") {
 
-            const optionsList = document.getElementById("client-options-toggle-options-list")
+            const optionsList = elementId("client-options-toggle-options-list")
 
             if (optionsList.classList.contains("active")) {
                 optionsList.classList.remove("active")
@@ -73,35 +70,15 @@ export async function renderClientSection() {
         }
 
         if (classList.contains("table-menu")) {
-            
-            const clientId = event.target.getAttribute("data-client-id")
-
-            if (tableOptions) {
-                Object.keys(tableOptions).forEach(id => {
-                    if (id === clientId && tableOptions[id].contains("active")) {
-                        tableOptions[id].remove("active")
-                        return
-                    }
-                    if (id !== clientId) {
-                        tableOptions[id].remove("active")
-                    } else {
-                        tableOptions[id].add("active")
-                    }
-                })
-            }
+            toggleRowOptions(event)
         }
 
         if (classList.contains("edit")) {
-
-            const clientId = event.target.parentElement.getAttribute("data-client-id")
-            const clientData = Object.values(clients).filter(client => client.id === parseInt(clientId))
-            
-            transition(() => {renderClientBuilder(true, clientData)})
+            editClient(event)
         }
 
         if (classList.contains("reconnect")) {
-            const clientId = event.target.parentElement.getAttribute("data-client-id")
-            await renderReconnectForm(clientId)            
+            await renderReconnectForm(event)
         }
 
         if (elementId === "reconnect-form-close") {
@@ -114,8 +91,22 @@ export async function renderClientSection() {
 
     }
 
-    async function renderReconnectForm(clientId) {
+    /**
+     * Renders the reconnect form for a specific client based on the event target.
+     * 
+     * @param {Event} event - The event that triggered the rendering of the reconnect form.
+     */
+    async function renderReconnectForm(event) {
+
+        const rowRootParent = event.target.parentElement.parentElement.parentElement
+
+        const clientId = event.target.parentElement.getAttribute("data-client-id")
         if (!clientId) return makeToastNotification("Client id not found")
+
+        if (rowRootParent.classList.contains("table-info")) {
+            rowRootParent.id = `client-row-${clientId}`
+        }
+
         const response = await window.ipcRenderer.invoke("get-client", { clientId: clientId })
         if (response.status === "failed") return makeToastNotification(response.toast[0])
 
@@ -123,6 +114,7 @@ export async function renderClientSection() {
         dialogElement.innerHTML = reconnectClientForm(client)
         dialogElement.id = "reconnect-form-box"
         dialogElement.showModal()
+
     }
 
     /**
@@ -136,38 +128,72 @@ export async function renderClientSection() {
         dialogElement.id = ""
     }
 
+    /**
+     * Shows the client builder section
+     * 
+     * @param {Event} event - The event that triggered the client edit action.
+     */
+    async function editClient(event) {
+        const clientId = event.target.parentElement.getAttribute("data-client-id")
+        const clientData = Object.values(clients).filter(client => client.id === parseInt(clientId))
+        transition(() => { renderClientBuilder(true, clientData) })
+    }
+
+    /**
+     * Processes the reconnection of a client.
+     * 
+     * @param {Event} event - The event that triggered the client reconnection.
+     */
     async function processReconnection(event) {
 
         event.preventDefault()
         const clientId = event.target.dataset.clientId
-        const reconnectFormInput = document.getElementById("reconnect-form-input-box-input")
+        const reconnectFormInput = elementId("reconnect-form-input-box-input")
+        const errorMessage = elementId("reconnect-form-input-box-header-error")
         const expectedPayment = reconnectFormInput.dataset.total
         const paidAmount = reconnectFormInput.value
 
         if (paidAmount !== expectedPayment) {
-
-            makeToastNotification("The full amount must be paid in order to continue")
-
-        } else {
-
-            const response = window.ipcRenderer.invoke("reconnect-client", {
-                clientId: clientId,
-                paidAmount: paidAmount
-            })
-
-            if (response.status === "failed") {
-
-                makeToastNotification(response.toast[0])
-
-            } else {
-
-                closeDialog(event)
-                setTimeout(() => makeToastNotification("Client reconnected"), 200)
-                const clientRow = document.getElementById(`client-row-${clientId}`)
-                clientRow.children[7].firstElementChild.textContent = connectionStatusTypes.Connected
-                event.target.remove()
-
-            }
+            errorMessage.textContent = "The full amount must be paid in order to continue"
+            return
         }
+
+        const response = await window.ipcRenderer.invoke("reconnect-client", {
+            clientId: clientId,
+            paidAmount: paidAmount
+        })
+
+        if (response.status === "failed") return makeToastNotification(response.toast[0])
+
+        closeDialog(event)
+        setTimeout(() => makeToastNotification(response.toast[0]), 200)
+        const rowRootParent = elementId(`client-row-${clientId}`)
+        rowRootParent.children[6].firstElementChild.textContent = window.connectionStatusTypes.Connected
+        rowRootParent.removeAttribute(`id`)
+        rowRootParent.querySelector(".table-info__options-item.reconnect").remove()
+    }
+
+    /**
+     * Processes showing and handling the option for a tables' row
+     * 
+     * @param {Event} event - The event that triggered the option.
+     * @returns 
+     */
+    function toggleRowOptions(event) {
+        const clientId = event.target.getAttribute("data-client-id")
+
+        if (!rowOptionsToggleList) return
+
+        Object.keys(rowOptionsToggleList).forEach(id => {
+            if (id === clientId && rowOptionsToggleList[id].contains("active")) {
+                rowOptionsToggleList[id].remove("active")
+                return
+            }
+            if (id !== clientId) {
+                rowOptionsToggleList[id].remove("active")
+            } else {
+                rowOptionsToggleList[id].add("active")
+            }
+        })
     }
 }
