@@ -1,9 +1,11 @@
 import { makeToastNotification, transition } from "../../../assets/scripts/helper.js";
-import { renderClientSection } from "../../clients/static/clients.js";
-import { loadRegister } from "./register.js"
-import "../../input_validations.js"
 import { renderBillingSection } from "../../billing/static/billing.js";
+import { loadRegister } from "./register.js"
+import "../../../utilities/validations.js"
 
+/**
+ * Handles user login
+ */
 export default async function loadLogin() {
 
     const template = `

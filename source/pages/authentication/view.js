@@ -1,10 +1,11 @@
-const { userRelationshipTypes, userTypes } = require("../../../constants")
-const UserPhoneNumber = require("../../../models/User_Phone_Number")
-const User = require("../../../models/User")
-const session = require("../../../session")
+const { userRelationshipTypes } = require("../../utilities/constants")
+const session = require("../../utilities/session")
 const { ipcMain } = require("electron")
 const bcrypt = require("bcrypt")
 const crypto = require("crypto")
+
+const UserPhoneNumber = require("../../../models/User_Phone_Number")
+const User = require("../../../models/User")
 
 const {
     isEmpty,
@@ -13,7 +14,7 @@ const {
     notIn,
     isBirthDate,
     isValidPhoneNumber
-} = require("../input_validations")
+} = require("../../utilities/validations")
 
 ipcMain.handle("login", async (event, formData) => {
     

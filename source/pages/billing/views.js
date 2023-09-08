@@ -1,14 +1,16 @@
+// @collapse
 
-const Client_Connection_Status = require("../../../models/Client_Connection_Status")
-const Partial_Payment = require("../../../models/Partial_Payment")
-const { connectionStatusTypes } = require("../../../constants")
-const Client_Bill = require("../../../models/Client_Bill")
-const tryCatchWrapper = require("../view_helpers")
-const Client = require("../../../models/Client")
-const Response = require("../../IPCResponse")
+const { connectionStatusTypes } = require("../../utilities/constants")
+const tryCatchWrapper = require("../../utilities/helpers")
+const Response = require("../../utilities/response")
 const { ipcMain } = require("electron")
 
-// Client_Bill.destroy({
+const ClientConnectionStatus = require("../../../models/ClientConnectionStatus")
+const PartialPayment = require("../../../models/PartialPayment")
+const ClientBill = require("../../../models/ClientBill")
+const Client = require("../../../models/Client")
+
+// ClientBill.destroy({
 // 	where: {}
 // })
 
@@ -29,11 +31,11 @@ ipcMain.handle("bills", async (event, args) => {
             return await Client.findAll({
                 include: [
                     {
-                        model: Client_Bill,
-                        include: [Partial_Payment]
+                        model: ClientBill,
+                        include: [PartialPayment]
                     },
                     {
-                        model: Client_Connection_Status,
+                        model: ClientConnectionStatus,
                         attributes: ["status"],
                         separate: true,
                         order: [['createdAt', 'DESC']],
@@ -43,7 +45,7 @@ ipcMain.handle("bills", async (event, args) => {
                 order: [
                     [
                         {
-                            model: Client_Bill,
+                            model: ClientBill,
                             as: "Client_Bills"
                         }, 
                         'createdAt', 'DESC'
@@ -89,11 +91,11 @@ ipcMain.handle("get-bill", async (event, args) => {
             return await Client.findByPk(clientId, {
                 include: [
                     {
-                        model: Client_Bill,
-                        include: [Partial_Payment]
+                        model: ClientBill,
+                        include: [PartialPayment]
                     },
                     {
-                        model: Client_Connection_Status,
+                        model: ClientConnectionStatus,
                         attributes: ["status"],
                         separate: true,
                         order: [['createdAt', 'DESC']],
@@ -103,7 +105,7 @@ ipcMain.handle("get-bill", async (event, args) => {
                 order: [
                     [
                         {
-                            model: Client_Bill,
+                            model: ClientBill,
                             as: "Client_Bills"
                         }, 
                         'createdAt', 'DESC'
@@ -284,12 +286,12 @@ async function getClientWithBills(clientId) {
         return await Client.findByPk(clientId, {
             include: [
                 { 
-                    model: Client_Bill, 
+                    model: ClientBill, 
                     as: "Client_Bills",
                     order: [ [ 'createdAt', 'DESC' ]]
                 },
                 { 
-                    model: Client_Connection_Status, 
+                    model: ClientConnectionStatus, 
                     as: "Client_Connection_Statuses",
                     order: [ [ 'createdAt', 'DESC' ]]
                 }
@@ -306,7 +308,7 @@ async function getClientWithBills(clientId) {
  */
 async function getClientBillById(billId) {
     return await tryCatchWrapper(async () => {
-        return await Client_Bill.findByPk(billId)
+        return await ClientBill.findByPk(billId)
     })
 }
 
@@ -330,7 +332,7 @@ async function getPreviousBillExcess(billId) {
  */
 async function createNewBill(clientId, firstReading) {
     return await tryCatchWrapper(async () => {
-        return await Client_Bill.create({
+        return await ClientBill.create({
             clientId: clientId,
             firstReading: parseFloat(firstReading).toFixed(2)
         })
@@ -397,9 +399,9 @@ function updateBillWithSecondReading(bill, monthlyReading, previousBillExcess, r
  */
 async function getClientBillWithPartialPayments(billId) {
     return await tryCatchWrapper(async () => {
-        return await Client_Bill.findByPk(billId, {
+        return await ClientBill.findByPk(billId, {
             include: [
-                { model: Partial_Payment }
+                { model: PartialPayment }
             ]
         })
     })
@@ -438,7 +440,7 @@ async function handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, re
         responseMessage = "Remaining balance paid"
 
         const clientRecentStatus = await tryCatchWrapper(async () => {
-            return await Client_Connection_Status.findOne({
+            return await ClientConnectionStatus.findOne({
                 where: { 
                     clientId: bill.clientId
                 },
@@ -480,7 +482,7 @@ async function handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, re
         responseMessage = "Remaining balance paid and excess amount saved"
 
         const clientRecentStatus = await tryCatchWrapper(async () => {
-            return await Client_Connection_Status.findOne({
+            return await ClientConnectionStatus.findOne({
                 where: { 
                     clientId: bill.clientId
                 },
@@ -521,7 +523,7 @@ async function handleUnpaidBill(bill, billJSON, paymentAmount, clientId, respons
         responseMessage = "Bill successfully paid"
 
         const clientRecentStatus = await tryCatchWrapper(async () => {
-            return await Client_Connection_Status.findOne({
+            return await ClientConnectionStatus.findOne({
                 where: { 
                     clientId: clientId
                 },
@@ -561,7 +563,7 @@ async function handleUnpaidBill(bill, billJSON, paymentAmount, clientId, respons
 		responseMessage = "Bill paid and excess saved"
 
         const clientRecentStatus = await tryCatchWrapper(async () => {
-            return await Client_Connection_Status.findOne({
+            return await ClientConnectionStatus.findOne({
                 where: { 
                     clientId: clientId
                 },
@@ -592,7 +594,7 @@ async function handleUnpaidBill(bill, billJSON, paymentAmount, clientId, respons
  */
 async function createNewPartialPayment(bill, paymentAmount) {
     return await tryCatchWrapper(async () => {
-        return await Partial_Payment.create({
+        return await PartialPayment.create({
             clientBillId: bill.id,
             amountPaid: paymentAmount
         })
@@ -608,7 +610,7 @@ async function createNewPartialPayment(bill, paymentAmount) {
  */
 async function createLastPartialPayment(bill, paymentAmount) {
     return await tryCatchWrapper(async () => {
-        return await Partial_Payment.create({
+        return await PartialPayment.create({
             clientBillId: bill.id,
             amountPaid: paymentAmount
         })
@@ -627,7 +629,7 @@ async function reconnectClient(clientId, connectionStatus) {
 
         if (connectionStatus === connectionStatusTypes.DueForDisconnection) {
 
-            await Client_Connection_Status.create({
+            await ClientConnectionStatus.create({
                 clientId: clientId,
                 status: connectionStatusTypes.Connected
             })

@@ -1,7 +1,9 @@
+// @collapse
+
 import { transition, makeToastNotification } from "../../../assets/scripts/helper.js"
-import loadLogin from "../../authentication/static/login.js"
 import { renderClientSection } from "../../clients/static/clients.js"
 import { updateBillingTableRow } from "./updateBillingTableRow.js"
+import loadLogin from "../../authentication/static/login.js"
 import { newBillForm } from "../templates/newBillForm.js"
 import { payBillForm } from "../templates/payBillForm.js"
 import billingTable from "../templates/billing.js"
@@ -12,6 +14,9 @@ const dialogElement = document.querySelector("dialog")
 let bills = null
 let responseMessage = null
 
+/**
+ * Renders the billing section, including the table of client bills and statistics.
+ */
 export async function renderBillingSection() {
 
 	const user = await window.ipcRenderer.invoke("current_user")
@@ -201,6 +206,9 @@ export async function renderBillingSection() {
  */
 function handleTableMenuClick(tableOptions, event) {
     const clientId = event.target.getAttribute("data-client-id")
+    const clientDisconnected = event.target.dataset.clientDisconnected
+
+    if (clientDisconnected === true) return makeToastNotification("Reconnect client first")
 
     if (tableOptions) {
         Object.keys(tableOptions).forEach(id => {

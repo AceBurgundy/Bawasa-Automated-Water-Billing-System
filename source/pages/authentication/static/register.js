@@ -1,8 +1,11 @@
 import { makeToastNotification, transition } from "../../../assets/scripts/helper.js"
-import "../../../../constants.js"
-import "../../input_validations.js"
+import "../../../utilities/validations.js"
 import loadLogin from "./login.js"
+import "../../../../constants.js"
 
+/**
+ * Handles user registration
+ */
 export function loadRegister() {
 
     const template = `
