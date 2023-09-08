@@ -2,8 +2,8 @@ const { DataTypes } = require('sequelize')
 const { db } = require("../sequelize_init")
 const User = require("./User")
 
-const User_Address = db.define(
-    "User_Address",
+const UserAddress = db.define(
+    "UserAddress",
 
     {
 
@@ -83,10 +83,10 @@ const User_Address = db.define(
     }
 )
 
-User_Address.belongsTo(User, { foreignKey: "userId" })
-User.hasMany(User_Address, { foreignKey: "userId" })
+UserAddress.belongsTo(User, { foreignKey: "userId" })
+User.hasMany(UserAddress, { foreignKey: "userId" })
 
-User_Address.sync()
+UserAddress.sync()
     .then(() => {
         console.log("User Address model successfully created or synchronized");
     })
@@ -94,4 +94,4 @@ User_Address.sync()
         console.error("\n\nError creating/synchronizing table for User Address because of error:", error);
     })
 
-module.exports = User_Address
+module.exports = UserAddress

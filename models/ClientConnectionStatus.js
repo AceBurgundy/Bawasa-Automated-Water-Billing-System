@@ -3,8 +3,8 @@ const { db } = require("../sequelize_init")
 const { DataTypes } = require('sequelize')
 const Client = require("./Client")
 
-const Client_Connection_Status = db.define(
-    "Client_Connection_Status",
+const ClientConnectionStatus = db.define(
+    "ClientConnectionStatus",
 
     {
         id: {
@@ -48,10 +48,10 @@ const Client_Connection_Status = db.define(
     }
 )
 
-Client_Connection_Status.belongsTo(Client, { foreignKey: "clientId" })
-Client.hasMany(Client_Connection_Status, { foreignKey: "clientId" })
+ClientConnectionStatus.belongsTo(Client, { foreignKey: "clientId" })
+Client.hasMany(ClientConnectionStatus, { foreignKey: "clientId" })
 
-Client_Connection_Status.sync()
+ClientConnectionStatus.sync()
     .then(() => {
         console.log("Client Connection Status model successfully created or synchronized");
     })
@@ -59,4 +59,4 @@ Client_Connection_Status.sync()
         console.error("\n\nError creating/synchronizing table for Client Connection Status because of error:", error);
     });
 
-module.exports = Client_Connection_Status
+module.exports = ClientConnectionStatus

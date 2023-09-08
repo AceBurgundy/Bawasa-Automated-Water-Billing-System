@@ -1,9 +1,8 @@
 const { db } = require("../sequelize_init")
 const { DataTypes } = require("sequelize")
-const Client = require("./Client")
 
-const Client_Address = db.define(
-    "Client_Address",
+const ClientAddress = db.define(
+    "ClientAddress",
 
     {
 
@@ -115,7 +114,7 @@ const Client_Address = db.define(
     }
 )
 
-Client_Address.sync()
+ClientAddress.sync()
     .then(() => {
         console.log("Client Address model successfully created or synchronized");
     })
@@ -123,4 +122,4 @@ Client_Address.sync()
         console.error("\n\nError creating/synchronizing table for Client Address because of error:", error);
     });
 
-module.exports = Client_Address
+module.exports = ClientAddress

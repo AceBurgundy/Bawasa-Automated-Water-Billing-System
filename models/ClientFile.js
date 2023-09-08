@@ -2,8 +2,8 @@ const { db } = require("../sequelize_init")
 const { DataTypes } = require("sequelize")
 const Client = require("./Client")
 
-const Client_File = db.define(
-    "Client_File",
+const ClientFile = db.define(
+    "ClientFile",
 
     {
 
@@ -36,15 +36,15 @@ const Client_File = db.define(
     }
 )
 
-Client_File.belongsTo(Client, {
+ClientFile.belongsTo(Client, {
     foreignKey: 'clientId',
 })
 
-Client.hasMany(Client_File, {
+Client.hasMany(ClientFile, {
     foreignKey: 'clientId',
 })
 
-Client_File.sync()
+ClientFile.sync()
     .then(() => {
         console.log("Client File model successfully created or synchronized");
     })
@@ -52,4 +52,4 @@ Client_File.sync()
         console.error("\n\nError creating/synchronizing table for Client File because of error:", error);
     });
 
-module.exports = Client_File
+module.exports = ClientFile

@@ -1,4 +1,4 @@
-const Client_Address = require("./Client_Address")
+const ClientAddress = require("./ClientAddress")
 const validations = require("../constants")
 const { db } = require("../sequelize_init")
 const { DataTypes } = require("sequelize")
@@ -191,22 +191,22 @@ const Client = db.define(
     }
 )
 
-Client.hasOne(Client_Address, { 
+Client.hasOne(ClientAddress, { 
     foreignKey: "mainAddressId", 
     as: "mainAddress"
 })
 
-Client.hasOne(Client_Address, { 
+Client.hasOne(ClientAddress, { 
     foreignKey: "presentAddressId", 
     as: "presentAddress"
 })
 
-Client_Address.belongsTo(Client, {
+ClientAddress.belongsTo(Client, {
 	foreignKey: "mainAddressId",
 	as: "clientMainAddress",
 })
 
-Client_Address.belongsTo(Client, {
+ClientAddress.belongsTo(Client, {
 	foreignKey: "presentAddressId",
 	as: "clientPresentAddress",
 })

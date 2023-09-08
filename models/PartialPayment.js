@@ -1,9 +1,9 @@
-const Client_Bill = require("./Client_Bill")
+const ClientBill = require("./ClientBill")
 const { db } = require("../sequelize_init")
 const { DataTypes } = require("sequelize")
 
-const Partial_Payment = db.define(
-    "Partial_Payment", 
+const PartialPayment = db.define(
+    "PartialPayment", 
     
     {
         id: {
@@ -42,10 +42,10 @@ const Partial_Payment = db.define(
     }
 )
 
-Partial_Payment.belongsTo(Client_Bill, { foreignKey: "clientBillId" })
-Client_Bill.hasMany(Partial_Payment, { foreignKey: "clientBillId" })
+PartialPayment.belongsTo(ClientBill, { foreignKey: "clientBillId" })
+ClientBill.hasMany(PartialPayment, { foreignKey: "clientBillId" })
 
-Partial_Payment.sync()
+PartialPayment.sync()
     .then(() => {
         console.log("Partial Payment model successfully created or synchronized");
     })
@@ -53,4 +53,4 @@ Partial_Payment.sync()
         console.error("\n\nError creating/synchronizing table for Partial Payment because of error:", error);
     })
 
-module.exports = Partial_Payment
+module.exports = PartialPayment

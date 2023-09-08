@@ -2,8 +2,8 @@ const { db } = require("../sequelize_init")
 const { DataTypes } = require("sequelize")
 const Client = require("./Client")
 
-const Client_Bill = db.define(
-    "Client_Bill",
+const ClientBill = db.define(
+    "ClientBill",
 
     {
 
@@ -143,10 +143,10 @@ const Client_Bill = db.define(
     }
 )
 
-Client_Bill.belongsTo(Client, { foreignKey: "clientId" })
-Client.hasMany(Client_Bill, { foreignKey: "clientId" })
+ClientBill.belongsTo(Client, { foreignKey: "clientId" })
+Client.hasMany(ClientBill, { foreignKey: "clientId" })
 
-Client_Bill.sync()
+ClientBill.sync()
     .then(() => {
         console.log("Client Bill model successfully created or synchronized");
     })
@@ -154,4 +154,4 @@ Client_Bill.sync()
         console.error("\n\nError creating/synchronizing table Client Bill because of error:", error);
     });
 
-module.exports = Client_Bill
+module.exports = ClientBill
