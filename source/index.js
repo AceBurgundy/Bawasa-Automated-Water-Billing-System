@@ -1,26 +1,26 @@
-const { app, BrowserWindow, screen, ipcMain } = require("electron")
-const {connectionStatusTypes, connectionStatusOptions} = require("../constants.js")
+const {connectionStatusTypes } = require("./utilities/constants.js")
+const { app, BrowserWindow, screen } = require("electron")
+const tryCatchWrapper = require("./utilities/helpers.js")
+const { db } = require("./utilities/sequelize.js")
+const session = require("./utilities/session.js")
+const { resolve, join } = require("path")
+
+// views
 require("./pages/client_builder/views.js")
 require("./pages/authentication/view.js")
-const { resolve, join } = require("path")
-const session = require("../session.js")
 require("./pages/clients/views.js")
 require("./pages/billing/views.js")
 
-const { db } = require("../sequelize_init")
-
-const Client_Connection_Status = require("../models/Client_Connection_Status")
+const ClientConnectionStatus = require("../models/ClientConnectionStatus")
 const Client_Phone_Number = require("../models/Client_Phone_Number.js")
 const User_Phone_Number = require("../models/User_Phone_Number")
-const Partial_Payment = require("../models/Partial_Payment")
-const Client_Address = require("../models/Client_Address")
-const User_Address = require("../models/User_Address")
-const Client_File = require("../models/Client_File")
-const Client_Bill = require("../models/Client_Bill")
+const PartialPayment = require("../models/PartialPayment")
+const ClientAddress = require("../models/ClientAddress")
+const UserAddress = require("../models/UserAddress")
+const ClientFile = require("../models/ClientFile")
+const ClientBill = require("../models/ClientBill")
 const Client = require("../models/Client")
 const User = require("../models/User")
-const tryCatchWrapper = require("./pages/view_helpers.js")
-const { log } = require("console")
 
 async function initializeDatabase() {
 	try {
@@ -87,7 +87,7 @@ const createWindow = async () => {
             return await Client.findAll({
                 include: [
                     {
-                        model: Client_Bill,
+                        model: ClientBill,
                         as: 'Client_Bills',
                         attributes: ['id', 'penalty', 'billAmount', 'paymentStatus', 'dueDate', 'disconnectionDate', 'createdAt'],
                         required: false,
@@ -96,7 +96,7 @@ const createWindow = async () => {
                         limit: 1,
                       },
                       {
-                        model: Client_Connection_Status,
+                        model: ClientConnectionStatus,
                         as: 'Client_Connection_Statuses',
                         attributes: ['status', 'createdAt'],
                         required: false,
@@ -134,7 +134,7 @@ const createWindow = async () => {
             if (currentDay >= dueDateDay && currentMonth >= dueDateMonth && connectionStatus === connectionStatusTypes.Connected) {
 
                 tryCatchWrapper(async () => {
-                    await Client_Connection_Status.create({
+                    await ClientConnectionStatus.create({
                         clientId: client.id,
                         status: connectionStatusTypes.DueForDisconnection,
                     });
@@ -155,7 +155,7 @@ const createWindow = async () => {
             if (currentDay >= disconnectionDateDay && currentMonth >= disconnectionDateMonth && connectionStatus === connectionStatusTypes.DueForDisconnection) {
 
                 tryCatchWrapper(async () => {
-                    await Client_Connection_Status.create({
+                    await ClientConnectionStatus.create({
                         clientId: client.id,
                         status: connectionStatusTypes.Disconnected,
                     });
