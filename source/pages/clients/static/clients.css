@@ -60,13 +60,8 @@
     border: none;
     width: fit-content;
 }
+
 @media screen and (max-width: 1300px) {
-    /* nav {
-        width: 20%;
-    }
-    section {
-        width: 80%;
-    } */
     #client-data {
         border-radius: 5px;
     }

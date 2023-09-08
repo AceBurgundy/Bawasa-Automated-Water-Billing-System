@@ -17,7 +17,7 @@
 #table-data-headers, .table-info {
     display: grid;
     grid-template-columns: 25% 30% 10% 10% 10% 10% 5%;
-    border-bottom: 2px solid var(--gray);
+    border-bottom: var(--borderDefaultGray);
 }
 
 #table-data-headers.billing, .table-info.billing {
@@ -36,8 +36,8 @@
     bottom: -10%;
     margin: 1rem;
     padding: 1rem;
-    background-color: white;
-    border: var(--borderDefaultDarker);
+    background-color: var(--borderlessInputBackground);
+    border: var(--borderDefaultGray);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -74,7 +74,7 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background-color: var(--gray);
+    background-color: var(--navHover);
     cursor: pointer;
     transition: 250ms ease;
 }
@@ -84,15 +84,15 @@
 }
 
 .table-info__options-item:hover {
-    background-color: #ffe3de;
+    background-color: var(--primary);
 }
 
 .table-info__options-item:hover > svg {
-    fill: var(--accent);
+    fill: var(--background);
 }
 
 .table-info__options-item:hover > p {
-    color: var(--accent);
+    color: var(--background);
 }
 
 .table-info__options-item > svg {
@@ -120,9 +120,8 @@
 }
 
 .table-data-headers__item, .table-info__item {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     position: relative;
-    border-right: var(--borderDefaultGray);
     text-align: center;
     overflow-wrap: break-word;
 }

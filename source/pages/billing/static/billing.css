@@ -4,9 +4,16 @@
     gap: 1rem;
 }
 
-.statistics__child {
-    background-color: #ffab9c;
-    border-radius: 5px;
+.statistics__child > p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.statistics__child > p > span {
+    background-color: var(--primary);
+    color: var(--background);
+    border-radius: 50px;
     display: grid;
     place-items: center;
     padding: 0.5rem 1rem;
@@ -32,6 +39,7 @@
 
 #search-box-input {
     width: 500px;
+    background-color: inherit;
 }
 
 #magnifier {
