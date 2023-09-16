@@ -12,7 +12,7 @@ const fs = require("fs-extra")
 const path = require("path")
 
 const ClientConnectionStatus = require("../../../models/ClientConnectionStatus")
-const ClientPhoneNumber = require("../../../models/Client_Phone_Number")
+const ClientPhoneNumber = require("../../../models/ClientPhoneNumber")
 const ClientAddress = require("../../../models/ClientAddress")
 const ClientFile = require("../../../models/ClientFile")
 const Client = require("../../../models/Client")
@@ -210,14 +210,14 @@ ipcMain.handle("edit-client", async (event, data) => {
 			include: [
 				{ 
 					model: ClientPhoneNumber, 
-					as: "Client_Phone_Numbers",
+					as: "phoneNumbers",
 					attributes: ['phoneNumber']
 				},
 				{ model: ClientAddress, as: "mainAddress" },
 				{ model: ClientAddress, as: "presentAddress" },
 				{ 
 					model: ClientConnectionStatus, 
-					as: "Client_Connection_Statuses",
+					as: "connectionStatuses",
 					attributes: ['connectionStatus']
 				}
 			]
@@ -351,7 +351,7 @@ ipcMain.handle("edit-client", async (event, data) => {
  * Handles the "get-client-image-path" IPC message to retrieve the path of a client's image.
  * @function
  * @param {Electron.Event} event - The IPC event object.
- * @param {string} string - A string parameter.
+ * @param {string} string - The name of the clients image file.
  * @returns {string} The path to the client's image.
  */
 ipcMain.handle("get-client-image-path", async (event, string) => {
