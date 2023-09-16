@@ -1,0 +1,45 @@
+.form-field__info__error {
+    font-size: 0.7rem;
+    color: red;
+}
+
+/* Apply styles to all input elements except submit and reset */
+input:not([type="submit"]):not([type="reset"]),
+.number,
+select,
+.input-style {
+    padding: 0.7rem;
+    border-radius: 5px;
+    border: 1px solid var(--gray);
+    background-color: inherit;
+    height: 47px;
+    color: var(--text);
+}   
+
+.input-style {
+    display: flex;
+}
+
+.form-field__info {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 3px;
+    align-items: center;
+}
+
+.form-field__input {
+    width: 100%;
+}
+
+.input-style > input {
+    height: 1rem;
+}
+
+.input-readonly {
+    padding: 0 !important;
+    border-radius: 0px !important;
+    border: none !important;
+    height: fit-content !important;
+    font-size: 1.1rem !important;
+    pointer-events: none;
+}
