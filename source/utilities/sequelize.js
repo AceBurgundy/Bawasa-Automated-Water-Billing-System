@@ -11,7 +11,7 @@ function customLogger(query, timing) {
 
 const db = new Sequelize({
     dialect: 'sqlite',
-    storage: '../../Bawasa.sqlite3',
+    storage: './Bawasa.sqlite3',
     define: {
         freezeTableName: true
     },
