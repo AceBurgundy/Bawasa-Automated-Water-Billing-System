@@ -1,6 +1,7 @@
-const ClientBill = require("./ClientBill")
-const { db } = require("../sequelize_init")
+const { db } = require("../source/utilities/sequelize")
 const { DataTypes } = require("sequelize")
+
+const ClientBill = require("./ClientBill")
 
 const PartialPayment = db.define(
     "PartialPayment", 
