@@ -1,5 +1,6 @@
-const { db } = require("../sequelize_init")
+const { db } = require("../source/utilities/sequelize")
 const { DataTypes } = require("sequelize")
+
 const Client = require("./Client")
 
 const ClientBill = db.define(
@@ -143,8 +144,8 @@ const ClientBill = db.define(
     }
 )
 
-ClientBill.belongsTo(Client, { foreignKey: "clientId" })
-Client.hasMany(ClientBill, { foreignKey: "clientId" })
+ClientBill.belongsTo(Client, { foreignKey: "clientId", as: "Bills" })
+Client.hasMany(ClientBill, { foreignKey: "clientId", as: "Bills" })
 
 ClientBill.sync()
     .then(() => {
