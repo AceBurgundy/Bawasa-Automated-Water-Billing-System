@@ -1,4 +1,4 @@
-import { formatDate, showData } from "../../../assets/scripts/helper.js"
+import { formatDate, queryElement, showData } from "../../../assets/scripts/helper.js"
 
 /**
  * Updates the contents of a billing table row in the DOM.
@@ -8,10 +8,10 @@ import { formatDate, showData } from "../../../assets/scripts/helper.js"
  */
 export function updateBillingTableRow(billing, index, element) {
 
-    const clientHasBills = billing.Client_Bills.length > 0
+    const clientHasBills = billing.Bills.length > 0
     
-    const billData = billing.Client_Bills.length > 0 ? 
-                     billing.Client_Bills[0] : 
+    const billData = billing.Bills.length > 0 ? 
+                     billing.Bills[0] : 
                      {}
     
     const {
@@ -30,7 +30,7 @@ export function updateBillingTableRow(billing, index, element) {
     
     const clientHasPaid = paymentStatus === "paid" || paymentStatus === "overpaid"
 
-    const connectionStatus = billing.Client_Connection_Statuses.length > 0 ? billing.Client_Connection_Statuses[0].status : null
+    const connectionStatus = billing.connectionStatuses.length > 0 ? billing.connectionStatuses[0].status : null
     
     const clientDisconnected = connectionStatus !== null && connectionStatus === window.connectionStatusTypes.Disconnected ? true : false
 
@@ -61,42 +61,60 @@ export function updateBillingTableRow(billing, index, element) {
     // Use the provided element for updating
     if (element) {
 
-        element.querySelector(".billing").innerHTML = !clientDisconnected ? `
+        const { 
+            querySelector, 
+            dataset, 
+            querySelectorAll 
+        } = element
+
+        querySelector(".billing").innerHTML = !clientDisconnected ? `
             ${
                 [newBillButton, payBillButton, printBillButton].join('')
             }
         ` : ''
         
-        element.dataset.accountNumber = billing.accountNumber
-        element.dataset.fullName = billing.fullName
-        element.dataset.meterNumber = billing.meterNumber
+        dataset.accountNumber = billing.accountNumber
+        dataset.fullName = billing.fullName
+        dataset.meterNumber = billing.meterNumber
 
-        let targetElement = element.querySelector('.table-info__options-item-box')
-        if (targetElement) {
-            targetElement.dataset.clientHasPaid = clientHasPaid
-            targetElement.dataset.clientHasBills = clientHasBills
-        }
-        
-        // Update add option index
-        targetElement = element.querySelector('.table-info__options-item.add')
-        if (targetElement) {
-            targetElement.dataset.clientIndex = index
-        }
-        
-        // Update pay option class and index
-        targetElement = element.querySelector('.table-info__options-item.pay')
-        if (targetElement) {
-            targetElement.dataset.clientIndex = index
-        }
+        updateDataset(
+            '.table-info__options-item.add', 
+            'clientIndex', 
+            index
+        )
 
-        targetElement = element.querySelector(".table-info__item.table-menu")
-        if (targetElement) {
-            targetElement.dataset.clientId = billing.id
-            targetElement.dataset.clientDisconnected = clientDisconnected
-        }
+        updateDataset(
+            '.table-info__options-item-box', 
+            'clientHasPaid', 
+            clientHasPaid
+        )
+        
+        updateDataset(
+            '.table-info__options-item-box', 
+            'clientHasBills', 
+            clientHasBills
+        )
+                                
+        updateDataset(
+            '.table-info__item.table-menu', 
+            'clientId', 
+            billing.id
+        )
+        
+        updateDataset(
+            '.table-info__item.table-menu', 
+            'clientDisconnected', 
+            clientDisconnected
+        )
+
+        updateDataset(
+            '.table-info__options-item.pay', 
+            'clientIndex', 
+            index
+        )
 
         // Update text content for each item in the row
-        const items = element.querySelectorAll('.table-info__item p')
+        const items = querySelectorAll('.table-info__item p')
 
         const textContentUpdates = {
             0: billing.accountNumber,
@@ -119,5 +137,18 @@ export function updateBillingTableRow(billing, index, element) {
             items[index].textContent = textContentUpdates[index]
         }
 
+    }
+}
+
+/**
+ * 
+ * @param {String} selector - The query selector to be used 
+ * @param {String} key - The data attribute to be updated
+ * @param {String} value - The value for the data attribute to be updated
+ */
+function updateDataset(selector, key, value) {
+    const targetElement = queryElement(selector)
+    if (targetElement) {
+        targetElement.dataset[key] = value;
     }
 }
