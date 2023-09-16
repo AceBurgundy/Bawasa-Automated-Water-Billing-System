@@ -1,6 +1,5 @@
+const { db } = require("../source/utilities/sequelize")
 const { DataTypes } = require('sequelize')
-const { db } = require("../sequelize_init")
-const User = require("./User")
 
 const UserAddress = db.define(
     "UserAddress",
@@ -11,19 +10,6 @@ const UserAddress = db.define(
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
-        },
-
-        userId: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            validate: {
-                notNull: {
-                    msg: "User ID is required"
-                },
-                isNumeric: {
-                    msg: "User ID must be an integer"
-                }
-            }
         },
 
         city: {
@@ -82,9 +68,6 @@ const UserAddress = db.define(
         }
     }
 )
-
-UserAddress.belongsTo(User, { foreignKey: "userId" })
-User.hasMany(UserAddress, { foreignKey: "userId" })
 
 UserAddress.sync()
     .then(() => {
