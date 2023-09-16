@@ -1,9 +1,10 @@
-const { db } = require('../sequelize_init')
+const { db } = require('../source/utilities/sequelize')
 const { DataTypes } = require('sequelize')
+
 const Client = require('./Client')
 
 const ClientPhoneNumber = db.define(
-    'Client_Phone_Number',
+    'ClientPhoneNumber',
 
     {
 
@@ -43,10 +44,12 @@ const ClientPhoneNumber = db.define(
 
 ClientPhoneNumber.belongsTo(Client, {
     foreignKey: 'clientId',
+    as: "phoneNumbers"
 })
 
 Client.hasMany(ClientPhoneNumber, {
     foreignKey: 'clientId',
+    as: "phoneNumbers"
 })
 
 ClientPhoneNumber.sync()
