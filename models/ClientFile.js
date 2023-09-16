@@ -1,5 +1,6 @@
-const { db } = require("../sequelize_init")
+const { db } = require("../source/utilities/sequelize")
 const { DataTypes } = require("sequelize")
+
 const Client = require("./Client")
 
 const ClientFile = db.define(
