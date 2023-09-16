@@ -1,12 +1,35 @@
-import { makeToastNotification, transition } from "../../../assets/scripts/helper.js"
 import "../../../utilities/validations.js"
+import "../../../utilities/constants.js"
 import loadLogin from "./login.js"
-import "../../../../constants.js"
+
+import { 
+    makeToastNotification, 
+    transition,
+    getById,
+    getFormData,
+    queryElements,
+    camelToDashed
+} from "../../../assets/scripts/helper.js"
+
+import { Select } from "../../../assets/scripts/classes/Select.js"
+import { Input } from "../../../assets/scripts/classes/Input.js"
+
+const { 
+    isBirthDate, 
+    isEmail, 
+    isEmpty, 
+    isValidPhoneNumber, 
+    notIn,
+    userRelationshipTypes
+} = window
 
 /**
  * Handles user registration
  */
-export function loadRegister() {
+export default function loadRegister() {
+
+    const longestRelationshipOption = Object.values(userRelationshipTypes).reduce((a, b) => b.length > a.length ? b : a).length
+    const shortestRelationshipOption = Object.values(userRelationshipTypes).reduce((a, b) => b.length < a.length ? b : a).length
 
     const template = `
     
@@ -20,99 +43,127 @@ export function loadRegister() {
 
                 <div class="authentication-form__inputs-child">
 
-                    <input 
-                        type="text"
-                        name="firstName"
-                        id="register-form-first-name" 
-                        required
-                        placeholder="First name"
-                        value="Sam"
-                        maxlength="255">
+                    ${
+                        [
+                            
+                            new Input(false, [isEmpty, [isOverThan, 2, 255]], {
+                                flags: ["required"],
+                                attributes: {
+                                    name: "firstName",
+                                    value: "James",
+                                    title: "First Name",
+                                    placeholder: "First Name",
+                                    maxlength: "255"
+                                }
+                            }),
 
-                    <input 
-                        type="text"
-                        name="middleName"
-                        id="register-form-middle-name" 
-                        required
-                        placeholder="Middle name"
-                        value="Panganoron"
-                        maxlength="255">
+                            new Input(false, [isEmpty, [isOverThan, 2, 255]], {
+                                flags: ["required"],
+                                attributes: {
+                                    name: "middleName",
+                                    title: "Middle Name",
+                                    placeholder: "Middle Name",
+                                    value: "Panganoron",
+                                    maxlength: "255",    
+                                }
+                            }),
 
-                    <input 
-                        type="text"
-                        name="lastName"
-                        id="register-form-last-name" 
-                        required
-                        placeholder="Last name"
-                        value="Sabalo"
-                        maxlength="255">
+                            new Input(false, [isEmpty, [isOverThan, 2, 255]], {
+                                flags: ["required"],
+                                attributes: {
+                                    name: "lastName",
+                                    title: "Last Name",
+                                    placeholder: "Last Name",
+                                    value: "Sabalo",
+                                    maxlength: "255",    
+                                }
+                            }),
 
-                    <input 
-                        type="date"
-                        name="birthDate"
-                        id="register-form-birthdate" 
-                        required
-                        value="2001-08-20"
-                        placeholder="Birthdate">
+                            new Input(false, [isEmpty, isBirthDate], {
+                                flags: ["required"],
+                                attributes: {
+                                    name: "birthDate",
+                                    type: "date",
+                                    title: "BirthDate",
+                                    placeholder: "BirthDate",
+                                    value: "2001-08-20"
+                                }
+                            }),
 
-                    <input 
-                        type="number"
-                        name="age"
-                        id="register-form-age" 
-                        required
-                        value="18"
-                        placeholder="Age">
-                        
+                            new Input(false, [isEmpty, [isOverThan, 15, 70]], {
+                                flags: ["required"],
+                                attributes: {
+                                    name: "age",
+                                    type: "number",
+                                    title: "Age",
+                                    placeholder: "Age",
+                                    value: "18"
+                                }
+                            })
+
+                        ].join("\n")
+                    }
+
                 </div>
 
                 <div class="authentication-form__inputs-child">
-
-                    <select 
-                        class="input-style"
-                        name="relationshipStatus" 
-                        id="register-form-relationship-status"
-                        required>
-                        <option disabled selected>Relationship Status</option>
-                        ${Object.values(window.userRelationshipTypes).map((value) => {
-                            return (
-                                value === "Single" ?
-                                `<option value="${value}" selected>${value}</option>` :
-                                `<option value="${value}">${value}</option>`
-                            )
-                        })}
-                    </select>
-
-                    <div class="authentication-form__input-box__input number input-style">
-                        <div class="country-code">
-                            +63
-                        </div>
-                        <input 
-                            type="number" 
-                            name="phoneNumber"
-                            id="register-form-phone-number"
-                            required
-                            placeholder="12-345-6789"
-                            value="123456789"
-                            maxlength="9">
-                    </div>
                     
-                    <input 
-                        type="email"
-                        name="email"
-                        id="register-form-email" 
-                        required
-                        placeholder="Email"
-                        value="samadriansabalo99@gmail.com"
-                        maxlength="255">
+                    ${
 
-                    <input 
-                        type="password" 
-                        name="password"
-                        id="register-form-password" 
-                        required
-                        placeholder="Password"
-                        value="Adrian2001."
-                        maxlength="255">
+                        [
+
+                            new Select(false, [
+                                isEmpty,
+                                [isOverThan, shortestRelationshipOption, longestRelationshipOption],
+                                [notIn, [...Object.keys(window.userRelationshipTypes)]]
+                            ], {
+                                options: window.userRelationshipTypes,
+                                attributes: {
+                                    name: "relationshipStatus",
+                                    selected: "Single",
+                                    title: "Relationship Status"
+                                },
+                                flags: ["required"]
+                            }),
+
+                            new Input(false, [], {
+                                flags: ["required"],
+                                classes: ["number-input"],
+                                attributes: {
+                                    name: "phoneNumber",
+                                    type: "number",
+                                    title: "Phone Number",
+                                    placeholder: "Phone Number",
+                                    value: "",
+                                    maxlength: "10"
+                                }
+                            }),
+
+                            new Input(false, [isEmpty, isEmail, [isOverThan, 10, 255]], {
+                                flags: ["required"],
+                                attributes: {
+                                    name: "email",
+                                    type: "email",
+                                    title: "Email",
+                                    placeholder: "Email",
+                                    value: "sabalo99@gmail.com"
+                                }
+                            }),
+
+                            new Input(false, [isEmpty, [isOverThan, 10, 255]], {
+                                flags: ["required"],
+                                attributes: {
+                                    name: "password",
+                                    type: "password",
+                                    title: "Password",
+                                    placeholder: "Password",
+                                    value: "AceBurgundy"
+                                }
+                            }),
+
+                        ].join("\n")
+
+                    }
 
                 </div>
             </div>
@@ -131,18 +182,15 @@ export function loadRegister() {
         </p>
     `
 
-    document.getElementById("container").innerHTML += template
+    getById("container").innerHTML += template
 
     setTimeout(() => {
-        document
-            .getElementById("register")
-            .classList.add("active")
+        getById("register").classList.add("active")
     }, 500)
 
     window.onclick = async (event) => {
 
         const elementId = event.target.getAttribute("id")
-        console.log(elementId);
 
         if (elementId === "to-login-prompt") {
             transition(loadLogin)
@@ -152,88 +200,36 @@ export function loadRegister() {
 
             event.preventDefault()
 
-            const formData = new FormData(document.getElementById("register-form"))
+            const form = getById("register-form")
+            const formData = getFormData(form)
 
-            const longestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => b.length > a.length ? b : a).length
-            const shortestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => b.length < a.length ? b : a).length
+            const invalidElements = queryElements("invalid")
 
-            let errors = 0
+            if (invalidElements > 0)
+                return makeToastNotification("Fix errors first")
 
-            const validationMethods = {
-                
-                firstName: [
-                    [window.isEmpty, "First name"],
-                    [window.isOverThan, 2, 255, "First name"]
-                ],
+            const response = await window.ipcRenderer.invoke("register", formData);
 
-                middleName: [
-                    [window.isEmpty, "Middle name"],
-                    [window.isOverThan, 2, 255, "Middle name"]
-                ],
-
-                lastName: [
-                    [window.isEmpty, "Last name"],
-                    [window.isOverThan, 2, 255, "Last name"]
-                ],
-                
-                birthDate: [
-                    [window.isEmpty, "Birthdate"],
-                    [window.isBirthDate]
-                ],
-
-                age: [
-                    [window.isEmpty, "Age"],
-                    [window.isOverThan, 15, 70, "Age"]
-                ],
-
-                relationshipStatus: [
-                    [window.isEmpty, "Relationship Status"],
-                    [window.isOverThan, shortestRelationshipOption, longestRelationshipOption, "Relationship Status"],
-                    [window.notIn, [...Object.values(window.userRelationshipTypes)], "Relationship Status"]
-                ],
-
-                phoneNumber: [
-                    [window.isEmpty, "Phone Number"],
-                    [window.isValidPhoneNumber, "Phone Number"]
-                ],
-
-                email: [
-                    [window.isEmpty, "Email"],
-                    [window.isEmail, "Email"],
-                    [window.isOverThan, 10, 255, "Email"]
-                ],
-
-                password: [
-                    [window.isEmpty, "Password"],
-                    [window.isOverThan, 10, 255, "Password"]
-                ],
-
-            }
-
-            formData.forEach((dirtyValue, key) => {
-
-                const value = dirtyValue.trim()
-
-                if (!validationMethods.hasOwnProperty(key)) {
-                    console.error(`Validation methods for key '${key}' not found.`)
-                    return
-                }    
-                
-                validationMethods[key].forEach(([validationMethod, ...args]) => {
-                    const [validationErrors, validationMessage] = validationMethod(value, ...args)
-                    errors += validationErrors
-
-                    validationMessage.length > 0 && validationMessage.forEach((message) => makeToastNotification(message))
+            if (response.status === "success") {
+            
+                makeToastNotification(response.toast[0])
+                transition(loadLogin);
+            
+            } else {
+            
+                response.toast.forEach(error => {
+                    makeToastNotification(error)
                 })
-            })
+            
+                if (response.hasOwnProperty("fieldErrors")) {
 
-            if (errors === 0) {
-                const response = await window.ipcRenderer.invoke("register", Object.fromEntries(formData.entries()));
+                    const { fieldErrors } = response
+                    const fieldNames = Object.keys(fieldErrors)
 
-                if (response.status === "success") {
-                    transition(loadLogin);
-                } else {
-                    response.message.forEach(message => { makeToastNotification(message) })
+                    fieldNames.forEach(name => {
+                        getById(`${camelToDashed(name)}-field__info__error`).textContent = fieldErrors[name]
+                    })
+
                 }
             }
         }
