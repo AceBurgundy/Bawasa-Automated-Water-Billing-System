@@ -1,19 +1,20 @@
 const {connectionStatusTypes } = require("./utilities/constants.js")
-const { app, BrowserWindow, screen } = require("electron")
+const { app, BrowserWindow, screen, ipcMain } = require("electron")
 const tryCatchWrapper = require("./utilities/helpers.js")
 const { db } = require("./utilities/sequelize.js")
 const session = require("./utilities/session.js")
 const { resolve, join } = require("path")
 
 // views
-require("./pages/client_builder/views.js")
+require("./pages/clientBuilder/views.js")
 require("./pages/authentication/view.js")
 require("./pages/clients/views.js")
 require("./pages/billing/views.js")
+require("./pages/profile/view.js")
 
 const ClientConnectionStatus = require("../models/ClientConnectionStatus")
-const Client_Phone_Number = require("../models/Client_Phone_Number.js")
-const User_Phone_Number = require("../models/User_Phone_Number")
+const ClientPhoneNumber = require("../models/ClientPhoneNumber.js")
+const UserPhoneNumber = require("../models/UserPhoneNumber")
 const PartialPayment = require("../models/PartialPayment")
 const ClientAddress = require("../models/ClientAddress")
 const UserAddress = require("../models/UserAddress")
@@ -88,7 +89,7 @@ const createWindow = async () => {
                 include: [
                     {
                         model: ClientBill,
-                        as: 'Client_Bills',
+                        as: 'Bills',
                         attributes: ['id', 'penalty', 'billAmount', 'paymentStatus', 'dueDate', 'disconnectionDate', 'createdAt'],
                         required: false,
                         separate: true,
@@ -97,7 +98,7 @@ const createWindow = async () => {
                       },
                       {
                         model: ClientConnectionStatus,
-                        as: 'Client_Connection_Statuses',
+                        as: 'connectionStatuses',
                         attributes: ['status', 'createdAt'],
                         required: false,
                         separate: true,
@@ -114,8 +115,8 @@ const createWindow = async () => {
                 
         for (let client of clients) {
 
-            const latestBill = client.Client_Bills && client.Client_Bills.length > 0 ? client.Client_Bills[0] : null;
-            const connectionStatus = client.Client_Connection_Statuses && client.Client_Connection_Statuses.length > 0 ? client.Client_Connection_Statuses[0].status : null;
+            const latestBill = client.Bills && client.Bills.length > 0 ? client.Bills[0] : null;
+            const connectionStatus = client.connectionStatuses && client.connectionStatuses.length > 0 ? client.connectionStatuses[0].status : null;
         
             if (!latestBill) continue;
             if (!connectionStatus) continue;
@@ -177,6 +178,10 @@ app.on("window-all-closed", () => {
     if (process.platform !== "darwin") {
         app.quit()
     }
+})
+
+ipcMain.handle("current_user", async event => {
+    return await session.current_user()
 })
 
 app.on("before-quit", () => {
