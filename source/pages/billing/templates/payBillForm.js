@@ -7,7 +7,7 @@
  */
 export async function payBillForm(formData) {
 
-    const latestBill = formData.Client_Bills[0]
+    const latestBill = formData.Bills[0]
     const paymentStatus = latestBill.paymentStatus
     const fullName = formData.fullName
 
