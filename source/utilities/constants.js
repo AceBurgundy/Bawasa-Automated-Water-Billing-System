@@ -1,17 +1,29 @@
-
 const userRelationshipTypes = {
     Single: "Single",
     Married: "Married",
-    RatherNotSay: "Rather not say"
+    RatherNotSay: "Rather not say",
 }
 
 const connectionStatusTypes = {
     Connected: "Connected",
     DueForDisconnection: "Due for Disconnection",
-    Disconnected: "Disconnected"
+    Disconnected: "Disconnected",
 }
 
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+]
 
 const relationshipOptions = [Object.values(userRelationshipTypes)]
 const connectionStatusOptions = [Object.values(connectionStatusTypes)]
@@ -23,11 +35,11 @@ if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
         connectionStatusOptions,
         userRelationshipTypes,
         connectionStatusTypes,
-    };
+    }
 } else {
     window.months = months
-    window.relationshipOptions = relationshipOptions;
-    window.connectionStatusOptions = connectionStatusOptions;
-    window.userRelationshipTypes = userRelationshipTypes;
-    window.connectionStatusTypes = connectionStatusTypes;
+    window.relationshipOptions = relationshipOptions
+    window.connectionStatusOptions = connectionStatusOptions
+    window.userRelationshipTypes = userRelationshipTypes
+    window.connectionStatusTypes = connectionStatusTypes
 }
