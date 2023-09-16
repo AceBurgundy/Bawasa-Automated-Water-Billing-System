@@ -1,13 +1,18 @@
-//@collapse
-import { makeToastNotification, transition } from "../../../assets/scripts/helper.js"
+// @collapse
+
 import { renderBillingSection } from "../../billing/static/billing.js"
 import { renderClientSection } from "../../clients/static/clients.js"
 import { getTemplate } from "../templates/clientBuilder.js"
 import Webcam from "../../../assets/scripts/Webcam.js"
 import "../../../utilities/constants.js"
 
-const getElementById = id => document.getElementById(id)
-const querySelector = selector => document.querySelector(selector)
+import { 
+	makeToastNotification, 
+	transition,
+	getById,
+	queryElement,
+	queryElements
+} from "../../../assets/scripts/helper.js"
 
 /**
  * Renders and manages a client registration or edit form.
@@ -30,12 +35,12 @@ export async function renderClientBuilder(edit, clientObject) {
 		files: null
 	}
 
-	getElementById("container").innerHTML += getTemplate(forEdit, clientData)
+	getById("container").innerHTML += getTemplate(forEdit, clientData)
 
-	setTimeout(() => {getElementById("section-type-container").classList.add("active")}, 500)
+	setTimeout(() => {getById("section-type-container").classList.add("active")}, 500)
 
-	const canvas = getElementById("client-form-image-template")
-	const camera = getElementById("client-form-video")
+	const canvas = getById("client-form-image-template")
+	const camera = getById("client-form-video")
 	const webcam = new Webcam(camera, "user", canvas)
     
     //if webcam is allowed, renders the capture toggle, else renders an file image input
@@ -67,7 +72,7 @@ export async function renderClientBuilder(edit, clientObject) {
 		}
     } 
 
-	const input = document.getElementById('client-files-input')
+	const input = getById('client-files-input')
 	const uploadedFiles = [];
 
 	const updateInputFiles = (uploadedFiles, input, doNotDisplayThumbnails = false) => {
@@ -138,7 +143,7 @@ export async function renderClientBuilder(edit, clientObject) {
 			})
 
 			if (uploadedFiles.length === 0) {
-				getElementById("client-form-files-box-message").style.display = "flex"
+				getById("client-form-files-box-message").style.display = "flex"
 			}
 			
 			updateInputFiles(uploadedFiles, input, true)
@@ -150,9 +155,9 @@ export async function renderClientBuilder(edit, clientObject) {
 	}
 
 	// Handle form submission
-	getElementById("client-register-submit-button").addEventListener("click", event => {
+	getById("client-register-submit-button").addEventListener("click", event => {
 		event.preventDefault()
-        formDataBuffer.formData = new FormData(getElementById("client-form"))
+        formDataBuffer.formData = new FormData(getById("client-form"))
 		if (forEdit && clientData !== null) {
 			handleFormSubmit(formDataBuffer, forEdit, clientData.id)
 		} else {
@@ -161,7 +166,7 @@ export async function renderClientBuilder(edit, clientObject) {
 	})
 
 	// Handle image capture
-	getElementById("client-form-image-capture").addEventListener("click", event => {
+	getById("client-form-image-capture").addEventListener("click", event => {
 		event.preventDefault()
 
 		const { target } = event
@@ -181,7 +186,7 @@ export async function renderClientBuilder(edit, clientObject) {
 				.catch(error => {
 					if (error === "Camera access denied") {
 						makeToastNotification(error)
-						getElementById("client-form-image").style.display = "block"
+						getById("client-form-image").style.display = "block"
 						target.nextElementSibling.style.display = "none"
 					}
 				})
@@ -202,14 +207,14 @@ export async function renderClientBuilder(edit, clientObject) {
 	let duplicateAddress = false
 
     //clears all input if duplicate address was unchecked else refills their values
-    getElementById("mergePresentAndMainPrompt").addEventListener("change", event => {
+    getById("mergePresentAndMainPrompt").addEventListener("change", event => {
 		duplicateAddress = event.target.checked
 		const addressType = duplicateAddress ? "present" : "main"
-        const inputFields = document.querySelectorAll(`input[name^='${addressType}']`)
+        const inputFields = queryElements(`input[name^='${addressType}']`)
 
 		inputFields.forEach(input => {
 			const targetName = input.name.replace(addressType, "main")
-			const targetInput = document.querySelector(`input[name='${targetName}']`)
+			const targetInput = queryElement(`input[name='${targetName}']`)
 			targetInput.value = duplicateAddress ? input.value : ""
 		})
 	})
@@ -218,16 +223,16 @@ export async function renderClientBuilder(edit, clientObject) {
         if duplicate address is checked,
         any values placed inside present address fields also duplicates to main address fields 
     */
-    getElementById("client-form").addEventListener("keyup", ({ target }) => {
+    getById("client-form").addEventListener("keyup", ({ target }) => {
 		if (duplicateAddress) {
 			const targetName = target.getAttribute("name").replace("present", "main")
-			querySelector(`input[name='${targetName}']`).value = target.value
+			queryElement(`input[name='${targetName}']`).value = target.value
 		}
 	})
     
-	getElementById("client-form-image").addEventListener("change", event => {
+	getById("client-form-image").addEventListener("change", event => {
 
-        const fileInput = document.getElementById("client-form-image")
+        const fileInput = getById("client-form-image")
 
 		const ctx = canvas.getContext("2d")
 
@@ -267,8 +272,8 @@ export async function renderClientBuilder(edit, clientObject) {
 	})
 
 	function showHideImageCapture(numWebcams) {
-		const registrationImage = getElementById("client-form-image")
-		const imageCapture = getElementById("client-form-image-capture")
+		const registrationImage = getById("client-form-image")
+		const imageCapture = getById("client-form-image-capture")
 
 		if (numWebcams > 0) {
 			registrationImage.style.display = "none"
@@ -280,7 +285,7 @@ export async function renderClientBuilder(edit, clientObject) {
 	}
 
 	function addFieldError(field, error) {
-		const errorField = querySelector(`ul[data-error-key="${field}"]`)
+		const errorField = queryElement(`ul[data-error-key="${field}"]`)
 
 		if (errorField) {
 			errorField.innerHTML = `<li class="client-form-input-box__title__errors-item">${error}</li>`
@@ -288,7 +293,7 @@ export async function renderClientBuilder(edit, clientObject) {
 	}
 
 	function clearFieldErrors() {
-		const fieldErrors = document.querySelectorAll(".client-form-input-box__title__errors-item")
+		const fieldErrors = queryElements(".client-form-input-box__title__errors-item")
 
 		if (fieldErrors) {
 			fieldErrors.forEach(field => (field.innerHTML = ""))
@@ -378,64 +383,73 @@ export async function renderClientBuilder(edit, clientObject) {
 
 	async function handleFormSubmit(formDataBuffer, forEdit = false, clientId = null) {
 
-		const errors = validateFormData(formDataBuffer)
+		clearFieldErrors()
 
-		if (errors === 0) {
+		// DSGKHOS;D update to check proper validate
+		// DSGJDS check for proper files.
+		const result = validateFormData(formDataBuffer.formData)
 
-			//load a simplified version of files to formDataBuffer files
-			const inputFiles = document.getElementById('client-files-input');
+		if (result.count > 0) {
+			const { field, message } = result
+			message.forEach(text => addFieldError(field, text))
+			return
+		}
 
-			if (inputFiles) {
-			  const filesData = [];
-			  
-			  for (const file of inputFiles.files) {
-				filesData.push({
-				  name: file.name,
-				  size: file.size,
-				  path: file.path
-				});
-			  }
+		const inputFiles = getById('client-files-input');
+
+		if (inputFiles) {
+		  const filesData = [];
+		  
+		  for (const file of inputFiles.files) {
+			filesData.push({
+				name: file.name,
+				size: file.size,
+				path: file.path
+			})
+		  }
+		
+		  formDataBuffer.files = filesData;
+		}
+
+		//remove clientFiles from formData 
+		formDataBuffer.formData.delete("clientFiles")
+		formDataBuffer.formData = Object.fromEntries(formDataBuffer.formData.entries())
+
+		let response = null
+		
+		if (forEdit && clientId !== null) {
+
+			response = await window.ipcRenderer.invoke("edit-client", {
+				formDataBuffer: formDataBuffer,
+				clientId: clientId
+			})
+
+		} else {
 			
-			  formDataBuffer.files = filesData;
-			}
+			response = await window.ipcRenderer.invoke("add-client", formDataBuffer)
 
-			//remove clientFiles from formData 
-			formDataBuffer.formData.delete("clientFiles")
-			formDataBuffer.formData = Object.fromEntries(formDataBuffer.formData.entries())
+		}
 
-			let response = null
-			
-			if (forEdit && clientId !== null) {
-				const data = {
-					formDataBuffer: formDataBuffer,
-					clientId: clientId
-				}
+		if (response.status === "success") {
 
-				// response = await window.ipcRenderer.invoke("edit-client", data)
-			} else {
-				console.log(formDataBuffer);
-				response = await window.ipcRenderer.invoke("add-client", formDataBuffer)
-			}
+			response.toast.forEach(toast => makeToastNotification(toast))
+			transition(renderClientSection)
 
-			if (response.status === "success") {
+		} else {
 
-				response.toast.forEach(toast => {
-					makeToastNotification(toast)
-				})
-				transition(renderClientSection)
-
-			} else {
-
-				if (response.field_errors) {
-					Object.keys(response.field_errors).forEach(key => {
-						querySelector(`ul[data-error-key="${key}"]`).innerHTML = `<li class="client-form-input-box__title__errors-item">${response.field_errors[key]}</li>`
-					})
-				}
-
-				response.toast.forEach(toast => {
-					makeToastNotification(toast)
+			if (response.field_errors) {
+				Object.keys(response.field_errors).forEach(key => {
+					queryElement(`ul[data-error-key="${key}"]`).innerHTML = `
+						<li class="client-form-input-box__title__errors-item">
+							${response.field_errors[key]}
+						</li>
+					`
 				})
 			}
+
+			response.toast.forEach(toast => {
+				makeToastNotification(toast)
+			})
 		}
 	}
 }
@@ -482,7 +496,7 @@ async function getFileIcon(fileType, event) {
  */
 function displayThumbnail(files) {
 
-	const addNewFileMessage = getElementById("client-form-files-box-message")
+	const addNewFileMessage = getById("client-form-files-box-message")
 	const computedStyle = window.getComputedStyle(addNewFileMessage);
 	const displayPropertyValue = computedStyle.getPropertyValue("display");
 
@@ -490,7 +504,7 @@ function displayThumbnail(files) {
 
 	Array.from(files).forEach(file => {
 
-		const previewExists = document.querySelector(`[data-preview-file-name="${file.name}"]`)
+		const previewExists = queryElement(`[data-preview-file-name="${file.name}"]`)
 		if (previewExists) return
 
 		const addNewFilePreview = (image, fileName) => {
@@ -521,7 +535,7 @@ function displayThumbnail(files) {
 			img.src = await getFileIcon(file.type, event)
 			img.alt = file.name
 			const imagePreview = addNewFilePreview(img, file.name)
-			document.querySelector(".client-form-files__box").appendChild(imagePreview)
+			queryElement(".client-form-files__box").appendChild(imagePreview)
 		}
 		reader.readAsDataURL(file)
 
