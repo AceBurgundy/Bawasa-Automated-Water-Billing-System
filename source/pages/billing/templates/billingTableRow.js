@@ -9,8 +9,8 @@ import { showData, formatDate } from "../../../assets/scripts/helper.js";
  */
 export function billingTableRow(billing, index) {
 
-    const clientHasBills = billing.Client_Bills.length > 0 
-    const billData = billing.Client_Bills.length > 0 ? billing.Client_Bills[0] : {};
+    const clientHasBills = billing.Bills.length > 0 
+    const billData = billing.Bills.length > 0 ? billing.Bills[0] : {};
     
     const { 
         firstReading, 
@@ -28,7 +28,7 @@ export function billingTableRow(billing, index) {
     
     const clientHasPaid = paymentStatus === "paid" || paymentStatus === "overpaid"
 
-    const connectionStatus = billing.Client_Connection_Statuses.length > 0 ? billing.Client_Connection_Statuses[0].status : null
+    const connectionStatus = billing.connectionStatuses.length > 0 ? billing.connectionStatuses[0].status : null
 
     const clientDisconnected =  connectionStatus !== null && 
                                 (connectionStatus !== window.connectionStatusTypes.Connected && 
