@@ -1,13 +1,13 @@
-// @collapse
+// collapse
 
-const { connectionStatusTypes } = require("../../../constants")
-const tryCatchWrapper = require("../../utilities/helpers")
-const Response = require("../../utilities/response")
+const { connectionStatusTypes } = require("../../../source/utilities/constants")
+const tryCatchWrapper = require("../../../source/utilities/helpers")
+const Response = require("../../../source/utilities/response")
 const { ipcMain } = require("electron")
 
 // models
 const ClientConnectionStatus = require("../../../models/ClientConnectionStatus")
-const ClientPhoneNumber = require("../../../models/Client_Phone_Number")
+const ClientPhoneNumber = require("../../../models/ClientPhoneNumber")
 const ClientAddress = require("../../../models/ClientAddress")
 const ClientBill = require("../../../models/ClientBill")
 const Client = require("../../../models/Client")
@@ -30,7 +30,7 @@ ipcMain.handle("clients", async (event, args) => {
             include: [
 				{ 
                     model: ClientPhoneNumber, 
-                    as: "Client_Phone_Numbers",
+                    as: "phoneNumbers",
                     attributes: ['phoneNumber']
                 },
                 { 
@@ -43,7 +43,7 @@ ipcMain.handle("clients", async (event, args) => {
                 },
                 { 
                     model: ClientConnectionStatus, 
-                    as: "Client_Connection_Statuses",
+                    as: "connectionStatuses",
                     attributes: ['status']
                 }
 			],
@@ -51,14 +51,14 @@ ipcMain.handle("clients", async (event, args) => {
                 [
                     {
                         model: ClientPhoneNumber, 
-                        as: "Client_Phone_Numbers"
+                        as: "phoneNumbers"
                     },
                     'createdAt', 'DESC'
                 ],
                 [
                     {
                         model: ClientConnectionStatus, 
-                        as: "Client_Connection_Statuses"
+                        as: "connectionStatuses"
                     },
                     'createdAt', 'DESC'
                 ]
@@ -131,7 +131,7 @@ ipcMain.handle("reconnect-client", async (event, args) => {
 
     if (client) {
 
-        const recentBill = client.Client_Bills[0]
+        const recentBill = client.Bills[0]
 
         if (recentBill.billAmount !== parseFloat(paidAmount)) {
             return response.failed().addToast("Payment amount must be the same as bill").getResponse()
@@ -165,7 +165,7 @@ async function getClientWithRecentBill(clientId) {
 			include: [
 				{
 					model: ClientBill,
-					as: "Client_Bills",
+					as: "Bills",
 					attributes: ["id", "billAmount", "paymentStatus", "paymentAmount", "remainingBalance"],
 					order: [
                         ["createdAt", "DESC"]
