@@ -97,7 +97,6 @@ export default async function loadLogin() {
             if (invalidElements > 0)
                 return makeToastNotification("Fix errors first")
 
-            return
             const response = await window.ipcRenderer.invoke("login", formData)
 
             console.log(response);
