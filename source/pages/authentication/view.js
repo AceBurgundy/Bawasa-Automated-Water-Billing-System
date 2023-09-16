@@ -1,99 +1,78 @@
-const { userRelationshipTypes } = require("../../utilities/constants")
+const Response = require("../../utilities/response")
 const session = require("../../utilities/session")
 const { ipcMain } = require("electron")
 const bcrypt = require("bcrypt")
 const crypto = require("crypto")
 
-const UserPhoneNumber = require("../../../models/User_Phone_Number")
+const UserPhoneNumber = require("../../../models/UserPhoneNumber")
 const User = require("../../../models/User")
 
 const {
-    isEmpty,
-    isOverThan,
-    isEmail,
-    notIn,
-    isBirthDate,
-    isValidPhoneNumber
+    validateFormData,
 } = require("../../utilities/validations")
 
 ipcMain.handle("login", async (event, formData) => {
-    
-    const data = {
-        status: "success",
-        message: [],
+
+    const response = new Response()
+
+    if (Object.keys(formData).length === 0) {
+        console.error("Form data seems to be empty")
+        return response.failed().addToast("Something went wrong").getResponse()
     }
 
     const fields = {
         email: "Email",
-        password: "Password"
+        password: "Password",
     }
 
     const keysArray = Object.keys(formData)
 
-    const missingElements = Object.keys(fields).filter((field) => !keysArray.includes(field))
+    const missingElements = Object.keys(fields).filter(
+        field => !keysArray.includes(field)
+    )
 
     if (missingElements.length > 0) {
-        data.status = "error"
-        data.message = [`Missing elements: ${missingElements.map(field => fields[field]).join(", ")}`]
-        return data
-    }
-    
-    let errors = 0
-
-    const validationMethods = {
-
-        email: [
-            [isEmpty, "Email"],
-            [isEmail, "Email"],
-            [isOverThan, 10, 255, "Email"]
-        ],
-
-        password: [
-            [isEmpty, "Password"],
-            [isOverThan, 10, 255, "Password"]
-        ]
-
+        return response
+            .failed()
+            .addToast(
+                `Missing elements: ${missingElements
+                    .map(field => fields[field])
+                    .join(", ")}`
+            )
+            .getResponse()
     }
 
-    for (const [key, dirtyValue] of Object.entries(formData)) {
+    const validateResponse = validateFormData(formData)
 
-        const value = dirtyValue.trim()
+    if (validateResponse.status === false) {
+        const { field, message } = validateResponse
 
-        if (!validationMethods.hasOwnProperty(key)) {
-            console.error(`Validation methods for key '${key}' not found.`)
-            return
-        }    
-        
-        validationMethods[key].forEach(([validationMethod, ...args]) => {
-            const [validationErrors, validationMessage] = validationMethod(value, ...args)
-            errors += validationErrors
-            validationMessage.length > 0 && [...data.message, ...validationMessage]
-        })
-
+        return response.failed().addFieldError(field, message).getResponse()
     }
 
     try {
-
         const user = await User.findOne({ where: { email: formData.email } })
-    
+
         const userJSON = user ? user.toJSON() : null
-        
+
         if (!userJSON) {
-            data.status = "error"
-            data.message = [`User with email ${formData.email} might not have been registered yet`]
-            return data
+            return response
+                .failed()
+                .addToast(`User with email ${formData.email} might not have been registered yet`)
+                .getResponse()
         }
 
         bcrypt
             .compare(formData.password, userJSON.password)
-            .then((result) => {
+            .then(result => {
                 if (!result) {
-                    data.status = "error"
-                    data.message.push("Password does not match!")
-                    return data
+                    return response
+                        .failed()
+                        .addToast("Password does not match")
+                        .getResponse()
                 }
             })
-            .catch((error) => {
+            .catch(error => {
                 console.error("Error comparing passwords:", error)
             })
 
@@ -103,29 +82,24 @@ ipcMain.handle("login", async (event, formData) => {
         await user.save()
 
         session.login(newAccesskey)
-        
+
+        return response.success().addToast(`Welcome ${user.firstName}`).getResponse()
+
     } catch (error) {
         console.error(error.message)
     }
-        
-    if (errors > 0) {
-        data.status = "error"
-    }
-
-    if (errors === 0) {
-        data.message = ["Welcome"]
-    }
-
-    return data
+    
 })
 
 ipcMain.handle("register", async (event, formData) => {
-    
-    const data = {
-        status: "success",
-        message: [],
-    }
 
+    const response = new Response()
+
+    if (Object.keys(formData).length === 0) {
+        console.error("Form data seems to be empty")
+        return response.failed().addToast("Something went wrong").getResponse()
+    }
+    
     const fields = {
         firstName: "First name",
         middleName: "Middle name",
@@ -140,97 +114,42 @@ ipcMain.handle("register", async (event, formData) => {
 
     const keysArray = Object.keys(formData)
 
-    const missingElements = Object.keys(fields).filter((field) => !keysArray.includes(field))
+    const missingElements = Object.keys(fields).filter(
+        field => !keysArray.includes(field)
+    )
 
     if (missingElements.length > 0) {
-        data.status = "error"
-        data.message = [`Missing elements: ${missingElements.map(field => fields[field]).join(", ")}`]
-        return data
+        return response
+            .failed()
+            .addToast(
+                `Missing elements: ${missingElements
+                    .map(field => fields[field])
+                    .join(", ")}`
+            )
+            .getResponse()
     }
 
-    let errors = 0
+    const validateResponse = validateFormData(formData)
 
-    const longestRelationshipOption = Object.values(userRelationshipTypes).reduce((a, b) => b.length > a.length ? b : a).length
-    const shortestRelationshipOption = Object.values(userRelationshipTypes).reduce((a, b) => b.length < a.length ? b : a).length
+    if (validateResponse.status === false) {
+        const { field, message } = validateResponse
 
-    const validationMethods = {
-
-        firstName: [
-            [isEmpty, "First name"],
-            [isOverThan, 2, 255, "First name"]
-        ],
-
-        middleName: [
-            [isEmpty, "Middle name"],
-            [isOverThan, 2, 255, "Middle name"]
-        ],
-
-        lastName: [
-            [isEmpty, "Last name"],
-            [isOverThan, 2, 255, "Last name"]
-        ],
-
-        birthDate: [
-            [isEmpty, "Birthdate"],
-            [isBirthDate]
-        ],
-
-        age: [
-            [isEmpty, "Age"],
-            [isOverThan, 15, 70, "Age"]
-        ],
-
-        relationshipStatus: [
-            [isEmpty, "Relationship Status"],
-            [isOverThan, shortestRelationshipOption, longestRelationshipOption, "Relationship Status"],
-            [notIn, [...Object.values(userRelationshipTypes)], "Relationship Status"]
-        ],
-
-        phoneNumber: [
-            [isEmpty, "Phone Number"],
-            [isValidPhoneNumber, "Phone Number"]
-        ],
-
-        email: [
-            [isEmpty, "Email"],
-            [isEmail, "Email"],
-            [isOverThan, 10, 255, "Email"]
-        ],
-
-        password: [
-            [isEmpty, "Password"],
-            [isOverThan, 10, 255, "Password"]
-        ],
-
-    }
-
-    for (const [key, dirtyValue] of Object.entries(formData)) {
-
-        const value = dirtyValue.trim()
-
-        if (!validationMethods.hasOwnProperty(key)) {
-            console.error(`Validation methods for key '${key}' not found.`)
-            return
-        }    
-        
-        validationMethods[key].forEach(([validationMethod, ...args]) => {
-            const [validationErrors, validationMessage] = validationMethod(value, ...args)
-            errors += validationErrors
-            validationMessage.length > 0 && [...data.message, ...validationMessage]
-        })
+        return response.failed().addFieldError(field, message).getResponse()
     }
 
     try {
+        
         const user = await User.findOne({ where: { email: formData.email } })
 
         if (user) {
-            data.status = "error"
-            data.message.push(`User ${formData.email} is already registered`)
-            return data
+            return response
+                .failed()
+                .addToast(`User ${formData.email} is already registered`)
+                .getResponse()
         }
 
     } catch (error) {
-        console.error(`\n\n${[...error.errors.map((err) => err.message)]}\n\n`)
+        console.error(`\n\n${[...error.errors.map(err => err.message)]}\n\n`)
     }
 
     formData.password = await bcrypt.hash(formData.password, 10)
@@ -245,53 +164,41 @@ ipcMain.handle("register", async (event, formData) => {
             middleName: formData.middleName,
             lastName: formData.lastName,
             relationshipStatus: formData.relationshipStatus,
-            birthDate: formData.birthDate, 
+            birthDate: formData.birthDate,
             age: formData.age,
-            accessKey: formData.accessKey
+            accessKey: formData.accessKey,
         })
 
-        if (user) {
+        await UserPhoneNumber.create({
+            userId: user.id,
+            phoneNumber: formData.phoneNumber,
+        })
 
-            data.message.push("New admin added")
-            await UserPhoneNumber.create({
-                userId: user.id,
-                phoneNumber: formData.phoneNumber
-            })
-        }
+        return response.success().addToast(`New admin ${user.firstName} added`).getResponse()
 
     } catch (error) {
 
-        data.status = "error"
-        errors++
+        let errors = []
 
         if (error.name === "SequelizeValidationError") {
-            data.message.push(...error.errors.map((err) => err.message));
+            [...error.errors.map(err => errors.push(err.message))]
         } else {
-            data.message.push(error.message);
+            errors.push(error.message)
         }
 
-        console.error("Errors:", data.message);
+        console.error("Errors:", data.message)
+
+        return response
+            .failed()
+            .addToast(errors)
+            .getResponse()
 
     }
 
-    if (errors > 0) {
-        data.status = "error"
-    }
-    
-    if (errors === 0) {
-        data.message = ["Welcome"]
-    }
-
-    return data
-
-})
-
-ipcMain.handle("current_user", async event => {
-    return await session.current_user()
 })
 
 async function generateAccessKey() {
-    const randomString = crypto.randomBytes(32).toString('hex')
+    const randomString = crypto.randomBytes(32).toString("hex")
     const hash = bcrypt.hashSync(randomString, 10)
     return hash.slice(0, 64)
 }
