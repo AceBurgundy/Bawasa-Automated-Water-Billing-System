@@ -1,6 +1,6 @@
 import { camelToDashed, showData } from "../helper.js";
 
-const allowedAttributes = ["name", "placeholder", "title", "selected"];
+const allowedAttributes = ["name", "title", "selected"];
 
 /**
  * Represents a field for form input.
