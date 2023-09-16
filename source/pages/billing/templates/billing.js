@@ -58,21 +58,21 @@ export default function billingTable(bills, user, responseMessage) {
 
         <section>
 
-            <div id="clients-section" class="section-child">
+            <div id="clients-section" class="content">
 
-                <div class="section-child__top">
+                <div class="content__top">
                     <div>
                         <img src="assets/images/Logo.png" alt="">
-                        <p class="section-child__top-title">${user ? `Welcome, ${user.firstName}` : `Welcome User`}</p></p>
+                        <p class="content__top-title">${user ? `Welcome, ${user.firstName}` : `Welcome User`}</p></p>
                     </div>
                     <img src="assets/images/Logo.png" alt="">
                 </div>
-                <div class="section-child__center">
-                    <div class="section-child__center-left">
-                        <p class="section-child__center-left__section-title">Billing</p>
-                        <p class="section-child__center-left__section-description">Check the latest reports and updates</p>
+                <div class="content__center">
+                    <div class="content__center-left">
+                        <p class="content__center-left__section-title">Billing</p>
+                        <p class="content__center-left__section-description">Check the latest reports and updates</p>
                     </div>
-                    <div class="section-child__center-right">
+                    <div class="content__center-right">
 
                         <div id="statistics">
                             <div class="statistics__child">
@@ -113,7 +113,7 @@ export default function billingTable(bills, user, responseMessage) {
                     </div>
                 </div>
 
-                <div class="section-child__bottom">
+                <div class="content__bottom">
 
                     <div id="table-data">
 

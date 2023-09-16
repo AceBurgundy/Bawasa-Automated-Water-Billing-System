@@ -1,4 +1,4 @@
-#client, .section-child__center-client-client {
+#client, .content__form {
     height: 95vh;
     overflow-y: scroll;
     display: flex;
@@ -11,87 +11,44 @@
     margin: 0.5rem 0 3rem 0;
 }
 
-.section-child__center-client-box__section-group {
+.content__form-box__group {
     display: flex;
     gap: 2rem;
 }
 
-.section-child__center-client-box,
-.section-child__center-client-box__section-group__left {
+.content__form-box,
+.content__form-box__group__left {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 3rem;
+    gap: 5rem;
     /* border: 2px solid orange; */
 }
 
-.section-child__center-client-box__section-group__left {
+.content__form-box__group__left {
     width: fit-content;
 }
 
-.section-child__center-client-box__section {
+.content__form-box__ {
     display: flex;
     width: 100%;
     gap: 2rem;
 }
 
-.section-child__center-client-box__section__input-box {
-    /* border: 2px solid red; */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.section-child__center-client-box__section__input-box-title {
-    display: flex;
-    align-items: center;
-    width: fit-content;
-    gap: 2rem;
-    justify-content: space-between;
-}
-
-.section-child__center-client-box__section__input-box-title > div {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.section-child__center-client-box__section__input-box-title > div > p {
-    font-size: 0.9rem;
-}
-
-.section-child__center-client-box__section__input-box-title > div > input {
-    cursor: pointer;
-}
-
-.section-child__center-client-box__section__input-box.no-title {
-    justify-content: flex-end;
-}
-
-.section-child__center-client-box__section__input-box > p,
-.section-child__center-client-box__section__input-box-title {
-    font-size: 1.2rem;
-    margin-bottom: 3rem;
-}
-
-.section-child__center-client-builder__child__child {
-    /* border: 2px solid green; */
-    max-width: 1500px;
+.content__form-box__input-box__inputs {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 2.5rem;
 }
 
-.client-form-input-box {
+.content__form-box__input-box__inputs > * {
+    width: 20%;
+}
+
+.content__form-box__input-box {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    width: 240px;
-}
-
-.client-form-input-box > input,
-.radio-box > label,
-.radio-box > input {
-    font-size: 0.9rem;
+    gap: 2rem;
 }
 
 .client-form-input-box__title {
@@ -103,37 +60,6 @@
 
 .client-form-input-box__title > label {
     font-size: 0.9rem;
-}
-
-.client-form-input-box__title__errors-item {
-    list-style: none;
-    font-size: 0.6rem;
-    color: red;
-}
-
-.client-form-input-box > input {
-    padding: 0.5rem;
-}
-
-.client-phone-container {
-    height: 3rem;
-    border-radius: 5px;
-    display: grid;
-    grid-template-columns: 23% 77%;
-    align-items: center;
-}
-
-.country-code.client {
-    width: 100%;
-    display: grid;
-    place-items: center;
-}
-
-#client-register-phone-number {
-    height: 1rem;
-    border: none;
-    letter-spacing: 2px;
-    width: 90%;
 }
 
 #client-form-image-box {
@@ -196,35 +122,18 @@
     background: var(--lighterPrimary);
 }
 
-/* #client-register-profile {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-} */
-
-#radio-inputs, .radio-box {
-    display: flex;
+#duplicate-addresses-box, #duplicate-addresses-box > div {
+    display: flex; 
     gap: 0.5rem;
+    align-items: center;
 }
 
-#radio-inputs {
-    gap: 1.5rem;
+#duplicate-addresses-box {
+    gap: 2rem;
 }
 
-.client-form-input-box.radio > label {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-    margin-left: 7px;
-}
-
-.radio-box > input {
-    transform: scale(2.5);
-    margin: 1rem;
-    border: 2px solid black;
+input[name="presentAddressDetails"] {
+    width: 215px;
 }
 
 input[name="presentAddressDetails"],
@@ -232,7 +141,7 @@ input[name="mainAddressDetails"] {
     width: 413px;
 }
 
-.section-child__center-client-box__section.last {
+.last {
     justify-content: flex-end;
 }
 
@@ -333,7 +242,7 @@ input[name="mainAddressDetails"] {
 
 @media screen and (orientation: portrait) {
 
-    .section-child__center-client-box__section-group {
+    .content__form-box__group {
         flex-direction: column-reverse;
     }
 

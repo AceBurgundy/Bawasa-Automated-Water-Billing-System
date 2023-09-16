@@ -1,7 +1,13 @@
+
+import { Select } from "../../../assets/scripts/classes/Select.js";
+import { Input } from "../../../assets/scripts/classes/Input.js";
 import "../../../utilities/constants.js";
 
 export function getTemplate(forEdit, clientData) { 
     
+    const longestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => b.length > a.length ? b : a).length
+    const shortestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => b.length < a.length ? b : a).length
+
     return `
 
     <section id="section-type-container" class="page client">
@@ -37,534 +43,440 @@ export function getTemplate(forEdit, clientData) {
 
         <section>
 
-            <div id="client" class="section-child">
+            <div id="client" class="content">
 
-                <div class="section-child__top">
+                <div class="content__top">
                     <div>
                         <img src="assets/images/Logo.png" alt="">
-                        <p class="section-child__top-title">BAWASA Automated Billing System</p>
+                        <p class="content__top-title">BAWASA Automated Billing System</p>
                     </div>
                     <img src="assets/images/Logo.png" alt="">
                 </div>
 
-                <form class="section-child__center-client-client" id="client-form">
+                <form class="content__form content__center" id="client-form">
 
                     <p id="new-client-form-title">Client ${forEdit ? "Edit" : "Registration"} Form</p>
 
-                    <div class="section-child__center-client-box">
+                        <div class="content__form-box">
 
-                        <div class="section-child__center-client-box__section-group">
+                            <div class="content__form-box__group">
 
-                            <div class="section-child__center-client-box__section-group__left">
+                                <div class="content__form-box__group__left">
 
-                                <div class="section-child__center-client-box__section">
 
-                                    <div class="section-child__center-client-box__section__input-box">
+                                        <div class="content__form-box__input-box">
 
-                                        <p>Full Name</p>
+                                            <p>Full Name</p>
 
-                                        <div class="section-child__center-client-builder__child__child">
+                                            <div class="content__form-box__input-box__inputs first-group">
 
-                                                <div class="client-form-input-box">
-                                                    <div class="client-form-input-box__title">
-                                                        <label>First Name</label>
-                                                        <ul class="client-form-input-box__title__errors" data-error-key="firstName" >
-                                                        </ul>
-                                                    </div>
-                                                    <input 
-                                                        type="text"
-                                                        name="firstName"
-                                                        value="${forEdit ? clientData?.firstName : ''}">
+                                                    ${
+                                                        [
 
-                                                </div>
-                                                <div class="client-form-input-box">
-                                                    <div class="client-form-input-box__title">
-                                                        <label>Middle Name</label>
-                                                        <ul class="client-form-input-box__title__errors" data-error-key="middleName" >
-                                                        </ul>
-                                                    </div>
-                                                    <input 
-                                                        type="text"
-                                                        name="middleName"
-                                                        value="${forEdit ? clientData?.middleName : ''}">
+                                                            new Input(false, [], {
+                                                                attributes: {
+                                                                    title: "First Name",
+                                                                    name: "firstName",
+                                                                    value: `${forEdit ? clientData?.firstName : 'Sam'}`
+                                                                },
+                                                                flags: ["required"]
+                                                            }),
 
-                                                </div>
-                                                <div class="client-form-input-box">
-                                                    <div class="client-form-input-box__title">
-                                                        <label>Last Name</label>
-                                                        <ul class="client-form-input-box__title__errors" data-error-key="lastName" >
-                                                        </ul>
-                                                    </div>
-                                                    <input 
-                                                        type="text"
-                                                        name="lastName"
-                                                        value="${forEdit ? clientData?.lastName : ''}">
+                                                            new Input(false, [], {
+                                                                attributes: {
+                                                                    title: "Middle Name",
+                                                                    name: "middleName",
+                                                                    value: `${forEdit ? clientData?.middleName : 'Adrian'}`
+                                                                },
+                                                                flags: ["required"]
+                                                            }),
 
-                                                </div>
-                                                <div class="client-form-input-box">
-                                                    <div class="client-form-input-box__title">
-                                                        <label>Extension</label>
-                                                        <ul class="client-form-input-box__title__errors" data-error-key="extension" >
-                                                        </ul>
-                                                    </div>
-                                                    <input 
-                                                        type="text"
-                                                        name="extension"
-                                                        value="${forEdit ? clientData?.extension : ''}">
+                                                            new Input(false, [], {
+                                                                attributes: {
+                                                                    title: "Last Name",
+                                                                    name: "lastName",
+                                                                    value: `${forEdit ? clientData?.lastName : 'Panganoron'}`
+                                                                },
+                                                                flags: ["required"]
+                                                            }),
 
-                                                </div>
+                                                            new Input(false, [], {
+                                                                attributes: {
+                                                                    title: "Extension",
+                                                                    name: "extension",
+                                                                    value: `${forEdit ? clientData?.extension : 'Sabalo'}`
+                                                                },
+                                                                flags: ["required"]
+                                                            })
 
-                                        </div>
+                                                        ].join("\n")
 
-                                    </div>
-                                    
-                                </div>
-                                
-                                <div class="section-child__center-client-box__section">                            
-
-                                    <div class="section-child__center-client-box__section__input-box no-title">
-
-                                        <div class="section-child__center-client-builder__child__child">
-
-                                            <div class="client-form-input-box">
-
-                                                    <div class="client-form-input-box__title">
-                                                        <label>Relationship Status</label>
-                                                        <ul class="client-form-input-box__title__errors" data-error-key="relationshipStatus" >
-                                                        </ul>
-                                                    </div>
-
-                                                <select 
-                                                    class="input-style"
-                                                    name="relationshipStatus" 
-                                                    required>
-                                                    <option disabled selected>Relationship Status</option>
-                                                    ${Object.values(window.userRelationshipTypes).map(value =>
-                                                        `<option value="${value}" ${value === clientData?.relationshipStatus ? " selected" : ""}>
-                                                            ${value}
-                                                        </option>`
-                                                    )}                                                    
-                                                </select>
+                                                    }
 
                                             </div>
 
                                         </div>
-
-                                    </div>
-                                
-                                </div>
-                                
-                                <div class="section-child__center-client-box__section">                            
-                                    
-                                    <div class="section-child__center-client-box__section__input-box no-title">
-
-                                        <div class="section-child__center-client-builder__child__child">
-
-                                            <div class="client-form-input-box">
-                                                <div class="client-form-input-box__title">
-                                                    <label>Birthdate</label>
-                                                    <ul class="client-form-input-box__title__errors" data-error-key="birthDate" >
-                                                    </ul>
-                                                </div>
-                                                <input 
-                                                    type="date"
-                                                    required name="birthDate"
-                                                    value="${forEdit ? clientData?.birthDate : ''}">
-
-                                            </div>
-
-                                            <div class="client-form-input-box">
-                                                <div class="client-form-input-box__title">
-                                                    <label>Age</label>
-                                                    <ul class="client-form-input-box__title__errors" data-error-key="age" >
-                                                    </ul>
-                                                </div> 
-                                            <input 
-                                                    type="number"
-                                                    required 
-                                                    name="age" 
-                                                    max="70" 
-                                                    min="15"
-                                                    value="${forEdit ? clientData?.age : ''}">
-
-                                            </div>
-
-                                            <div class="client-form-input-box">
-                                                <div class="client-form-input-box__title">
-                                                    <label>Email</label>
-                                                    <ul class="client-form-input-box__title__errors" data-error-key="email" >
-                                                    </ul>
-                                                </div>
-                                                <input 
-                                                    type="email"
-                                                    name="email" 
-                                                    required 
-                                                    maxLength="255" 
-                                                    minlength="5"
-                                                    value="${forEdit ? clientData?.email : ''}">
-
-                                            </div>
-
-                                            <div class="client-form-input-box">
-                                                <div class="client-form-input-box__title">
-                                                    <label>Occupation</label>
-                                                    <ul class="client-form-input-box__title__errors" data-error-key="occupation" >
-                                                    </ul>
-                                                </div>
-                                                <input 
-                                                    type="text"
-                                                    name="occupation" 
-                                                    required 
-                                                    maxLength="100" 
-                                                    minLength="5"
-                                                    value="${forEdit ? clientData?.occupation : ''}">
-
-                                            </div>
-
-                                            <div class="client-form-input-box">
-                                                <div class="client-form-input-box__title">
-                                                    <label>Meter Number</label>
-                                                    <ul class="client-form-input-box__title__errors" data-error-key="meterNumber" >
-                                                    </ul>
-                                                </div>
-                                                <input 
-                                                    type="text"
-                                                    required 
-                                                    name="meterNumber"
-                                                    value="${forEdit ? clientData?.meterNumber : ''}">
-
-                                            </div>
-
-                                            <div class="client-form-input-box">
-                                                <div class="client-form-input-box__title">
-                                                    <label>Phone Number</label>
-                                                    <ul class="client-form-input-box__title__errors" data-error-key="phoneNumber" >
-                                                    </ul>
-                                                </div>
-                                                <div class="client-phone-container number">
-                                                    <div class="country-code client">
-                                                        +63
-                                                    </div>
-                                                    <input 
-                                                        type="number" 
-                                                        name="phoneNumber"
-                                                        required
-                                                        id="client-register-phone-number"
-                                                        placeholder="12-345-6789"
-                                                        value="${forEdit ? clientData?.phoneNumbers[0]?.phoneNumber : ''}"
-                                                        maxlength="10">
-
-                                                </div>
-
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                    
-                                </div>
-                                
-                            </div>
-
-                            <div id="client-form-image-box">
-                                <video id="client-form-video" autoplay playsinline></video>
-                                <canvas id="client-form-image-template"></canvas>
-                            
-                                <div id="client-form-image-box-options">
-                                    <input type="file" accept="image/*" id="client-form-image">
-                                    <button id="client-form-image-capture" class="button-primary take-image">
-                                        Take Image
-                                    </button>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="section-child__center-client-box__section">                            
-                            
-                            <div class="section-child__center-client-box__section__input-box">
-
-                                <div class="section-child__center-client-box__section__input-box-title">
-                                    <p>Present Address</p>
-                                    <div>
-                                        <input type="checkbox" id="mergePresentAndMainPrompt"> 
-                                        <p>Main Address the same as Present Address</p>
-                                    </div>
-                                </div>
-
-                                <div class="section-child__center-client-builder__child__child">
-
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>Street</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="presentAddressStreet" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="text"
-                                                name="presentAddressStreet" 
-                                                maxLength="50" 
-                                                minLength="5"
-                                                value="${forEdit ? clientData?.presentAddress?.street : ''}">
-
-                                        </div>
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>Subdivision</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="presentAddressSubdivision" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="text"
-                                                name="presentAddressSubdivision" 
-                                                maxLength="50" 
-                                                minLength="5"
-                                                value="${forEdit ? clientData?.presentAddress?.subdivision : ''}">
-
-                                        </div>
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>Barangay</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="presentAddressBarangay" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="text"
-                                                name="presentAddressBarangay" 
-                                                required 
-                                                maxLength="50" 
-                                                minLength="5"
-                                                value="${forEdit ? clientData?.presentAddress?.barangay : ''}">
-
-                                        </div>
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>City</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="presentAddressCity" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="text"
-                                                name="presentAddressCity" 
-                                                required 
-                                                maxLength="100" 
-                                                minLength="5"
-                                                value="${forEdit ? clientData?.presentAddress?.city : ''}">
-
-                                        </div>
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>Province</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="presentAddressProvince" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="text"
-                                                name="presentAddressProvince" 
-                                                required 
-                                                maxLength="50" 
-                                                minLength="10"
-                                                value="${forEdit ? clientData?.presentAddress?.province : ''}">
-
-                                        </div>
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>Postal Code</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="presentAddressPostalCode" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="number"
-                                                name="presentAddressPostalCode" 
-                                                required 
-                                                maxLength="4" 
-                                                minLength="4"
-                                                value="${forEdit ? clientData?.presentAddress?.postalCode : ''}">
-
-                                        </div>
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>Details</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="presentAddressDetails" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="text"
-                                                name="presentAddressDetails" 
-                                                required 
-                                                maxLength="255" 
-                                                minLength="20"
-                                                value="${forEdit ? clientData?.presentAddress?.details : ''}">
-
-                                        </div>
-
-                                </div>
-
-                            </div>
-                        
-                        </div>
-
-                        <div class="section-child__center-client-box__section">                            
-                                
-                            <div class="section-child__center-client-box__section__input-box">
-
-                                <p>Main Address</p>
-
-                                <div class="section-child__center-client-builder__child__child">
-
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>Street</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="mainAddressStreet" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="text"
-                                                name="mainAddressStreet" 
-                                                maxLength="50" 
-                                                minLength="5"
-                                                value="${forEdit ? clientData?.mainAddress?.street : ''}">
-
-                                        </div>
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>Subdivision</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="mainAddressSubdivision" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="text"
-                                                name="mainAddressSubdivision" 
-                                                maxLength="50" 
-                                                minLength="5"
-                                                value="${forEdit ? clientData?.mainAddress?.subdivision : ''}">
-
-                                        </div>
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>Barangay</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="mainAddressBarangay" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="text"
-                                                name="mainAddressBarangay" 
-                                                required 
-                                                maxLength="50" 
-                                                minLength="5"
-                                                value="${forEdit ? clientData?.mainAddress?.barangay : ''}">
-
-                                        </div>
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>City</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="mainAddressCity" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="text"
-                                                name="mainAddressCity" 
-                                                required 
-                                                maxLength="100" 
-                                                minLength="5"
-                                                value="${forEdit ? clientData?.mainAddress?.city : ''}">
-
-                                        </div>
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>Province</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="mainAddressProvince" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="text"
-                                                name="mainAddressProvince" 
-                                                required 
-                                                maxLength="50" 
-                                                minLength="10"
-                                                value="${forEdit ? clientData?.mainAddress?.province : ''}">
-
-                                        </div>
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>Postal Code</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="mainAddressPostalCode" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="number"
-                                                name="mainAddressPostalCode" 
-                                                required 
-                                                maxLength="4" 
-                                                minLength="4"
-                                                value="${forEdit ? clientData?.mainAddress?.postalCode : ''}">
-
-                                        </div>
-                                        <div class="client-form-input-box">
-                                            <div class="client-form-input-box__title">
-                                                <label>Details</label>
-                                                <ul class="client-form-input-box__title__errors" data-error-key="mainAddressDetails" >
-                                                </ul>
-                                            </div>
-                                            <input 
-                                                type="text"
-                                                name="mainAddressDetails" 
-                                                required 
-                                                maxLength="255" 
-                                                minLength="20"
-                                                value="${forEdit ? clientData?.mainAddress?.details : ''}">
-
-                                        </div>
-
-                                </div>
-
-                            </div>
-                        
-                        </div>
-
-                        <div class="section-child__center-client-box__section">                            
-
-                            <div class="section-child__center-client-builder__child__child">
-
-                                <div class="client-form-input-box__title">
-                                    <label>Client Documents</label>
-                                    <ul class="client-form-input-box__title__errors" data-error-key="clientFiles" >
-                                    </ul>
-                                </div>
-                                <label for="client-files-input" class="client-form-files__box">
-                                    <input 
-                                        type="file" 
-                                        id="client-files-input"
-                                        hidden
-                                        name="clientFiles"
-                                        multiple>
                                         
-                                    <div id="client-form-files-box-message">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="upload"><path d="M8.71,7.71,11,5.41V15a1,1,0,0,0,2,0V5.41l2.29,2.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42l-4-4a1,1,0,0,0-.33-.21,1,1,0,0,0-.76,0,1,1,0,0,0-.33.21l-4,4A1,1,0,1,0,8.71,7.71ZM21,12a1,1,0,0,0-1,1v6a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V13a1,1,0,0,0-2,0v6a3,3,0,0,0,3,3H19a3,3,0,0,0,3-3V13A1,1,0,0,0,21,12Z"></path></svg>
-                                        <p>Drag and drop or click here to upload documents</p>
-                                        <p>Upload any files from desktop</p>
-                                    </div>
-                                </label>
+                                    
+                                        <div class="content__form-box__input-box no-title">
 
+                                            <div class="content__form-box__input-box__inputs">
+
+                                                ${
+                                                    new Select(false, [
+                                                        isEmpty,
+                                                        [isOverThan, shortestRelationshipOption, longestRelationshipOption],
+                                                        [notIn, [...Object.keys(window.userRelationshipTypes)]]
+                                                    ], {
+                                                        options: window.userRelationshipTypes,
+                                                        attributes: {
+                                                            title: "Relationship Status",
+                                                            name: "relationshipStatus",
+                                                            selected: clientData?.relationshipStatus,
+                                                        },
+                                                        classes: ["input-style"],
+                                                        flags: ["Required"]
+                                                    })
+                                                }
+
+                                            </div>
+
+                                        </div>
+                                    
+                                                                        
+                                        <div class="content__form-box__input-box no-title">
+
+                                            <div class="content__form-box__input-box__inputs">
+
+                                                ${
+                                                    
+                                                    [
+
+                                                        new Input(false, [isEmpty, isBirthDate], {
+                                                            flags: ["required"],
+                                                            attributes: {
+                                                                name: "birthDate",
+                                                                type: "date",
+                                                                title: "BirthDate",
+                                                                value: `${forEdit ? clientData?.birthDate : ''}`
+                                                            }
+                                                        }),
+
+                                                        new Input(false, [isEmpty, [isOverThan, 15, 70]], {
+                                                            flags: ["required"],
+                                                            attributes: {
+                                                                name: "age",
+                                                                type: "number",
+                                                                title: "Age",
+                                                                value: `${forEdit ? clientData?.birthDate : ''}`
+                                                            }
+                                                        }),
+                            
+                                                        new Input(false, [isEmpty, isEmail, [isOverThan, 10, 255]], {
+                                                            flags: ["required"],
+                                                            attributes: {
+                                                                name: "email",
+                                                                type: "email",
+                                                                title: "Email",
+                                                                value: "sabalo99@gmail.com",
+                                                                minLength: 5
+                                                            }
+                                                        }),
+
+                                                        new Input(false, [isEmpty, isEmail, [isOverThan, 10, 255]], {
+                                                            flags: ["required"],
+                                                            attributes: {
+                                                                name: "occupation",
+                                                                title: "Occupation",
+                                                                value: `${forEdit ? clientData?.occupation : 'Software Engineer'}`,
+                                                                minLength: 5,
+                                                                maxLength: 100
+                                                            }
+                                                        }),
+
+                                                        new Input(false, [isEmpty, isEmail, [isOverThan, 10, 255]], {
+                                                            flags: ["required"],
+                                                            attributes: {
+                                                                name: "meterNumber",
+                                                                title: "Meter Number",
+                                                                value: `${forEdit ? clientData?.meterNumber : 'dsgds3125'}`
+                                                            }
+                                                        }),
+
+                                                        new Input(false, [], {
+                                                            flags: ["required"],
+                                                            classes: ["number-input"],
+                                                            attributes: {
+                                                                name: "phoneNumber",
+                                                                type: "number",
+                                                                title: "Phone Number",
+                                                                value: `${forEdit ? clientData?.phoneNumbers[0]?.phoneNumber : '9965739119'}`,
+                                                                maxlength: "10"
+                                                            }
+                                                        }),
+
+                                                    ].join("\n")
+                                                }
+
+                                            </div>
+
+                                        </div>
+                                        
+                                    
+                                </div>
+
+                                <div id="client-form-image-box">
+                                    <video id="client-form-video" autoplay playsinline></video>
+                                    <canvas id="client-form-image-template"></canvas>
+                                
+                                    <div id="client-form-image-box-options">
+                                        <input type="file" accept="image/*" id="client-form-image">
+                                        <button id="client-form-image-capture" class="button-primary take-image">
+                                            Take Image
+                                        </button>
+                                    </div>
+                                </div>
+
+                            </div>
+                                
+                                <div class="content__form-box__input-box">
+
+                                    <div id="duplicate-addresses-box">
+                                        <p>Present Address</p>
+                                        <div>
+                                            <input type="checkbox" id="mergePresentAndMainPrompt"> 
+                                            <p>Main Address the same as Present Address</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="content__form-box__input-box__inputs">
+
+                                            ${
+                                                
+                                                [
+
+                                                    new Input(false, [], {
+                                                        flags: ["required"],
+                                                        attributes: {
+                                                            name: "presentAddressStreet",
+                                                            title: "Street",
+                                                            value: `${forEdit ? clientData?.presentAddress?.street : 'Yumang'}`,
+                                                            maxlength: 50,
+                                                            minLength: 5
+                                                        }
+                                                    }),
+
+                                                    new Input(false, [], {
+                                                        flags: ["required"],
+                                                        attributes: {
+                                                            name: "presentAddressSubdivision",
+                                                            title: "Subdivision",
+                                                            value: `${forEdit ? clientData?.presentAddress?.subdivision : 'Pineda'}`,
+                                                            maxlength: 50,
+                                                            minLength: 5
+                                                        }
+                                                    }),
+
+                                                    new Input(false, [], {
+                                                        flags: ["required"],
+                                                        attributes: {
+                                                            name: "presentAddressBarangay",
+                                                            title: "Barangay",
+                                                            value: `${forEdit ? clientData?.presentAddress?.barangay : 'City Heights'}`,
+                                                            maxlength: 50,
+                                                            minLength: 5
+                                                        }
+                                                    }),
+
+                                                    new Input(false, [], {
+                                                        flags: ["required"],
+                                                        attributes: {
+                                                            name: "presentAddressCity",
+                                                            title: "City",
+                                                            value: `${forEdit ? clientData?.presentAddress?.city : 'General Santos City'}`,
+                                                            maxlength: 50,
+                                                            minLength: 5
+                                                        }
+                                                    }),
+
+                                                    new Input(false, [], {
+                                                        flags: ["required"],
+                                                        attributes: {
+                                                            name: "presentAddressProvince",
+                                                            title: "Province",
+                                                            value: `${forEdit ? clientData?.presentAddress?.province : 'South Cotabato'}`,
+                                                            maxlength: 50,
+                                                            minLength: 10
+                                                        }
+                                                    }),
+
+                                                    new Input(false, [], {
+                                                        flags: ["required"],
+                                                        attributes: {
+                                                            name: "presentAddressPostalCode",
+                                                            title: "Postal Code",
+                                                            type: "number",
+                                                            value: `${forEdit ? clientData?.presentAddress?.postalCode : 9500}`,
+                                                            maxlength: 4,
+                                                            minLength: 4
+                                                        }
+                                                    }),
+
+                                                    new Input(false, [], {
+                                                        flags: ["required"],
+                                                        attributes: {
+                                                            name: "presentAddressDetails",
+                                                            title: "Details",
+                                                            value: `${forEdit ? clientData?.presentAddress?.details : "Black gate, ladder style"}`,
+                                                            maxLength: 255, 
+                                                            minLength: 20
+                                                        }
+                                                    }),
+
+                                                ].join("\n")
+
+                                            }
+
+                                    </div>
+
+                                </div>
+                                                                
+                                <div class="content__form-box__input-box">
+
+                                    <p>Main Address</p>
+
+                                    <div class="content__form-box__input-box__inputs">
+
+                                        ${
+                                                    
+                                            [
+
+                                                new Input(false, [], {
+                                                    flags: ["required"],
+                                                    attributes: {
+                                                        name: "mainAddressStreet",
+                                                        title: "Street",
+                                                        value: `${forEdit ? clientData?.mainAddress?.street : 'Yumang'}`,
+                                                        maxlength: 50,
+                                                        minLength: 5
+                                                    }
+                                                }),
+
+                                                new Input(false, [], {
+                                                    flags: ["required"],
+                                                    attributes: {
+                                                        name: "mainAddressSubdivision",
+                                                        title: "Subdivision",
+                                                        value: `${forEdit ? clientData?.mainAddress?.subdivision : 'Pineda'}`,
+                                                        maxlength: 50,
+                                                        minLength: 5
+                                                    }
+                                                }),
+
+                                                new Input(false, [], {
+                                                    flags: ["required"],
+                                                    attributes: {
+                                                        name: "mainAddressBarangay",
+                                                        title: "Barangay",
+                                                        value: `${forEdit ? clientData?.mainAddress?.barangay : 'City Heights'}`,
+                                                        maxlength: 50,
+                                                        minLength: 5
+                                                    }
+                                                }),
+
+                                                new Input(false, [], {
+                                                    flags: ["required"],
+                                                    attributes: {
+                                                        name: "mainAddressCity",
+                                                        title: "City",
+                                                        value: `${forEdit ? clientData?.mainAddress?.city : 'General Santos City'}`,
+                                                        maxlength: 50,
+                                                        minLength: 5
+                                                    }
+                                                }),
+
+                                                new Input(false, [], {
+                                                    flags: ["required"],
+                                                    attributes: {
+                                                        name: "mainAddressProvince",
+                                                        title: "Province",
+                                                        value: `${forEdit ? clientData?.mainAddress?.province : 'South Cotabato'}`,
+                                                        maxlength: 50,
+                                                        minLength: 10
+                                                    }
+                                                }),
+
+                                                new Input(false, [], {
+                                                    flags: ["required"],
+                                                    attributes: {
+                                                        name: "mainAddressPostalCode",
+                                                        title: "Postal Code",
+                                                        type: "number",
+                                                        value: `${forEdit ? clientData?.mainAddress?.postalCode : 9500}`,
+                                                        maxlength: 4,
+                                                        minLength: 4
+                                                    }
+                                                }),
+
+                                                new Input(false, [], {
+                                                    flags: ["required"],
+                                                    attributes: {
+                                                        name: "mainAddressDetails",
+                                                        title: "Details",
+                                                        value: `${forEdit ? clientData?.mainAddress?.details : "Black gate, ladder style"}`,
+                                                        maxLength: 255, 
+                                                        minLength: 20
+                                                    }
+                                                }),
+
+                                            ].join("\n")
+
+                                        }
+
+                                    </div>
+
+                                </div>
+                            
+
+                                <div class="content__form-box__input-box__inputs">
+
+                                    <div class="client-form-input-box__title">
+                                        <label>Client Documents</label>
+                                        <ul class="client-form-input-box__title__errors" data-error-key="clientFiles" >
+                                        </ul>
+                                    </div>
+                                    <label for="client-files-input" class="client-form-files__box">
+                                        <input 
+                                            type="file" 
+                                            id="client-files-input"
+                                            hidden
+                                            name="clientFiles"
+                                            multiple>
+                                            
+                                        <div id="client-form-files-box-message">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="upload"><path d="M8.71,7.71,11,5.41V15a1,1,0,0,0,2,0V5.41l2.29,2.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42l-4-4a1,1,0,0,0-.33-.21,1,1,0,0,0-.76,0,1,1,0,0,0-.33.21l-4,4A1,1,0,1,0,8.71,7.71ZM21,12a1,1,0,0,0-1,1v6a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V13a1,1,0,0,0-2,0v6a3,3,0,0,0,3,3H19a3,3,0,0,0,3-3V13A1,1,0,0,0,21,12Z"></path></svg>
+                                            <p>Drag and drop or click here to upload documents</p>
+                                            <p>Upload any files from desktop</p>
+                                        </div>
+                                    </label>
+
+                                </div>
+                        
+                            <div class="content__form-box__ last">                            
+                                <button class="button-primary" id="client-register-submit-button">
+                                    ${forEdit ? clientData && "Edit" : 'Create' }
+                                </button>
                             </div>
 
                         </div>
-                        
-                        <div class="section-child__center-client-box__section last">                            
-                            <button class="button-primary" id="client-register-submit-button">
-                                ${forEdit ? clientData && "Edit" : 'Create' }
-                            </button>
-                        </div>
 
-                    </div>
+                    </form>
 
-                </form>
+                </div>
 
             </div>
 
-        </div>
-
-    </section>
+        </section>
 
     </section>`;
 
