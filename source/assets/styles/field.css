@@ -27,6 +27,10 @@ select,
     align-items: center;
 }
 
+.form-field__info__label {
+    font-size: 0.9rem;
+}
+
 .form-field__input {
     width: 100%;
 }
