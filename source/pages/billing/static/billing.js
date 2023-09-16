@@ -1,6 +1,5 @@
-// @collapse
+// collapse
 
-import { transition, makeToastNotification } from "../../../assets/scripts/helper.js"
 import { renderClientSection } from "../../clients/static/clients.js"
 import { updateBillingTableRow } from "./updateBillingTableRow.js"
 import loadLogin from "../../authentication/static/login.js"
@@ -8,8 +7,16 @@ import { newBillForm } from "../templates/newBillForm.js"
 import { payBillForm } from "../templates/payBillForm.js"
 import billingTable from "../templates/billing.js"
 
-const elementId = id => document.getElementById(id)
-const dialogElement = document.querySelector("dialog")
+import { 
+    transition, 
+    makeToastNotification,
+    getById,
+    queryElement,
+    queryElements
+} from "../../../assets/scripts/helper.js"
+import { renderProfile } from "../../profile/static/profile.js"
+
+const dialogElement = queryElement("dialog")
 
 let bills = null
 let responseMessage = null
@@ -25,11 +32,11 @@ export async function renderBillingSection() {
 
     const template = billingTable(bills, user, responseMessage)
 
-	elementId("container").innerHTML += template
+	getById("container").innerHTML += template
 
 	const tableOptions = {}
 
-	document.querySelectorAll(".table-info__options").forEach(option => {
+	queryElements(".table-info__options").forEach(option => {
 		tableOptions[option.getAttribute("data-client-id")] = option.classList
 	})
 
@@ -45,7 +52,7 @@ export async function renderBillingSection() {
 
         bills.map(bill => {
             
-            const clientBills = bill.Client_Bills
+            const clientBills = bill.Bills
 
             if (clientBills.length > 0) {
                 const recentBill = clientBills[0]
@@ -75,12 +82,12 @@ export async function renderBillingSection() {
         })    
 
         const searchFilterOptions = ["Full Name", "Meter Number", "Account Number"]
-        const searchFilter = elementId("search-box-filter")
-        const searchElement = elementId("search-box-input")
+        const searchFilter = getById("search-box-filter")
+        const searchElement = getById("search-box-input")
         
         searchElement.oninput = () => {
 
-            const tableRows = document.querySelectorAll(".table-info")
+            const tableRows = queryElements(".table-info")
 
             if (!tableRows) {
                 makeToastNotification("No clients yet")
@@ -99,7 +106,7 @@ export async function renderBillingSection() {
 
             const find = (data, value) => data.toLowerCase().includes(value.toLowerCase())
             const rerenderTable = (filteredClients, attribute) => {
-                const tableRows = document.querySelectorAll(".table-info")
+                const tableRows = queryElements(".table-info")
                 tableRows.forEach(row => {
                     if (!filteredClients.includes(row.getAttribute(attribute))) {
                         row.style.display = "none"
@@ -134,6 +141,10 @@ export async function renderBillingSection() {
 
         if (elementId === "clients") {
             transition(renderClientSection)
+        }
+
+        if (elementId === "profile") {
+            transition(renderProfile)
         }
 
         if (elementId === "logout") {
@@ -172,7 +183,7 @@ export async function renderBillingSection() {
         }
 
         if (elementId === "new-bill-form-submit" || elementId === "pay-bill-form-submit") {
-            processForm(elementId === "new-bill-form-submit" ? "new" : "pay", event)
+            processForm(getById === "new-bill-form-submit" ? "new" : "pay", event)
         }
 
         if (classList.contains("print")) {
@@ -264,10 +275,10 @@ function closeDialog(event) {
 async function processForm(type, event) {
 	event.preventDefault()
 
-	const clientId = elementId(`${type}-bill-form-submit`).getAttribute("data-client-id")
-	const billId = elementId(`${type}-bill-form-submit`).getAttribute("data-bill-id")
-	const paymentAmountInput = elementId(`${type}-bill-form-input-box-input`)
-	const errorElement = elementId(`${type}-bill-form-input-box-header-error`)
+	const clientId = getById(`${type}-bill-form-submit`).getAttribute("data-client-id")
+	const billId = getById(`${type}-bill-form-submit`).getAttribute("data-bill-id")
+	const paymentAmountInput = getById(`${type}-bill-form-input-box-input`)
+	const errorElement = getById(`${type}-bill-form-input-box-header-error`)
 
     const paymentAmount = paymentAmountInput.value
 
@@ -333,7 +344,7 @@ async function renderUpdatedBill(billId, clientId) {
     }
 
     const newBill = JSON.parse(response.data)
-	const rowToBeUpdated = document.querySelector(`[data-meter-number='${newBill.meterNumber}']`)
+	const rowToBeUpdated = queryElement(`[data-meter-number='${newBill.meterNumber}']`)
 	const beforeOldRow = rowToBeUpdated !== null && rowToBeUpdated.previousElementSibling
 	const afterOldRow = rowToBeUpdated !== null && rowToBeUpdated.nextElementSibling
 
@@ -389,9 +400,9 @@ async function getBills() {
  * @param {Number} overpaid - holds the value for the number of overpaid clients
  */
 function setStatistics(paid, unpaid, overpaid) {
-    const paidCustomersElement = elementId("paid-clients")
-    const unpaidCustomersElement = elementId("unpaid-clients")
-    const overpaidCustomersElement = elementId("overpaid-clients")
+    const paidCustomersElement = getById("paid-clients")
+    const unpaidCustomersElement = getById("unpaid-clients")
+    const overpaidCustomersElement = getById("overpaid-clients")
 
     if (paidCustomersElement) paidCustomersElement.innerHTML = paid
     if (unpaidCustomersElement) unpaidCustomersElement.innerHTML = unpaid
