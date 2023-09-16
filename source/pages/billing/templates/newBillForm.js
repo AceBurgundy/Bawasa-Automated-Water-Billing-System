@@ -7,7 +7,7 @@
  */
 export function newBillForm(formData, forNewBill) {
 
-    const latestBill = formData.Client_Bills[0];
+    const latestBill = formData.Bills[0];
 
     const readingWarning = (latestBill === undefined || forNewBill) ?
         "This will be the client's new billing record" :
