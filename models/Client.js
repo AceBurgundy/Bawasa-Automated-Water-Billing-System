@@ -1,7 +1,9 @@
-const ClientAddress = require("./ClientAddress")
-const validations = require("../constants")
-const { db } = require("../sequelize_init")
+
+const { relationshipOptions } = require("../source/utilities/constants")
+const { db } = require("../source/utilities/sequelize")
 const { DataTypes } = require("sequelize")
+
+const ClientAddress = require("./ClientAddress")
 
 const Client = db.define(
     "Client",
@@ -104,7 +106,7 @@ const Client = db.define(
                     msg: "Relationship status is required",
                 },
                 isIn: {
-                    args: validations.relationshipOptions,
+                    args: relationshipOptions,
                     msg: "Invalid relationship status",
                 },
             },
@@ -203,12 +205,12 @@ Client.hasOne(ClientAddress, {
 
 ClientAddress.belongsTo(Client, {
 	foreignKey: "mainAddressId",
-	as: "clientMainAddress",
+	as: "mainAddress",
 })
 
 ClientAddress.belongsTo(Client, {
 	foreignKey: "presentAddressId",
-	as: "clientPresentAddress",
+	as: "presentAddress",
 })
 
 Client.sync()
