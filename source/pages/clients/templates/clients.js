@@ -106,7 +106,7 @@ export function clientTable(user, clients, responseMessage) {
                             
                                 clients.map(client => {
 
-                                    const { fullName, birthDate, Client_Connection_Statuses, meterNumber, id, Client_Phone_Numbers } = client
+                                    const { fullName, birthDate, connectionStatuses, meterNumber, id, phoneNumbers } = client
 
                                     const address = [
                                         client.mainAddress.details,
@@ -115,7 +115,7 @@ export function clientTable(user, clients, responseMessage) {
                                         client.mainAddress.barangay
                                     ].join(" ")
                                                                         
-                                    const connectionStatus = Client_Connection_Statuses.length === 0 ? "Not Set" : Client_Connection_Statuses[0].status
+                                    const connectionStatus = connectionStatuses.length === 0 ? "Not Set" : connectionStatuses[0].status
 
                                     const reconnectButton = connectionStatus === window.connectionStatusTypes.Disconnected ?
                                                             `
@@ -153,7 +153,7 @@ export function clientTable(user, clients, responseMessage) {
                                             </p>
                                         </div>
                                         <div class="table-info__item">
-                                            <p>+63${showData(Client_Phone_Numbers[0].phoneNumber)}</p>
+                                            <p>+63${showData(phoneNumbers[0].phoneNumber)}</p>
                                         </div>
                                         <div class="table-info__item">
                                             <p>${formatDate(birthDate)}</p>
