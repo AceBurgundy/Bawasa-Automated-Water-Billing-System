@@ -51,7 +51,6 @@ export default function loadRegister() {
                                 attributes: {
                                     name: "firstName",
                                     value: "James",
-                                    title: "First Name",
                                     placeholder: "First Name",
                                     maxlength: "255"
                                 }
@@ -61,7 +60,6 @@ export default function loadRegister() {
                                 flags: ["required"],
                                 attributes: {
                                     name: "middleName",
-                                    title: "Middle Name",
                                     placeholder: "Middle Name",
                                     value: "Panganoron",
                                     maxlength: "255",    
@@ -72,7 +70,6 @@ export default function loadRegister() {
                                 flags: ["required"],
                                 attributes: {
                                     name: "lastName",
-                                    title: "Last Name",
                                     placeholder: "Last Name",
                                     value: "Sabalo",
                                     maxlength: "255",    
@@ -84,7 +81,6 @@ export default function loadRegister() {
                                 attributes: {
                                     name: "birthDate",
                                     type: "date",
-                                    title: "BirthDate",
                                     placeholder: "BirthDate",
                                     value: "2001-08-20"
                                 }
@@ -95,7 +91,6 @@ export default function loadRegister() {
                                 attributes: {
                                     name: "age",
                                     type: "number",
-                                    title: "Age",
                                     placeholder: "Age",
                                     value: "18"
                                 }
@@ -121,7 +116,6 @@ export default function loadRegister() {
                                 attributes: {
                                     name: "relationshipStatus",
                                     selected: "Single",
-                                    title: "Relationship Status"
                                 },
                                 flags: ["required"]
                             }),
@@ -132,9 +126,8 @@ export default function loadRegister() {
                                 attributes: {
                                     name: "phoneNumber",
                                     type: "number",
-                                    title: "Phone Number",
                                     placeholder: "Phone Number",
-                                    value: "",
+                                    value: "9965739119",
                                     maxlength: "10"
                                 }
                             }),
@@ -144,7 +137,6 @@ export default function loadRegister() {
                                 attributes: {
                                     name: "email",
                                     type: "email",
-                                    title: "Email",
                                     placeholder: "Email",
                                     value: "sabalo99@gmail.com"
                                 }
@@ -155,7 +147,6 @@ export default function loadRegister() {
                                 attributes: {
                                     name: "password",
                                     type: "password",
-                                    title: "Password",
                                     placeholder: "Password",
                                     value: "AceBurgundy"
                                 }
