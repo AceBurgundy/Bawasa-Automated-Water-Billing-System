@@ -70,11 +70,11 @@ class Field {
      * @returns {string} - A string containing the label and error message HTML.
      */
     renderLabelAndError() {
-        const { title } = this.attributes;
-        const label = title ? `<label id="${this.dashedName}-field__info__label" class="form-field__info__label">${title}</label>` : '';
+        const { label } = this.attributes;
+        const title = label ? `<label id="${this.dashedName}-field__info__label" class="form-field__info__label">${label}</label>` : '';
         const error = `<p id="${this.dashedName}-field__info__error" class="form-field__info__error"></p>`;
         
-        return `${label} ${error}`;
+        return `${title} ${error}`;
     }
 
     /**

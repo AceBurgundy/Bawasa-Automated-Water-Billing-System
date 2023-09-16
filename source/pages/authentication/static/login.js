@@ -34,7 +34,7 @@ export default async function loadLogin() {
                             flags: ["required"],
                             attributes: {
                                 name: "email",
-                                title: "Email",
+                                label: "Email",
                                 value: "samadriansabalo99@gmail.com",
                                 maxlength: "255",
                             }
@@ -44,7 +44,7 @@ export default async function loadLogin() {
                             flags: ["required"],
                             attributes: {
                                 name: "password",
-                                title: "Password",
+                                label: "Password",
                                 type: "password",
                                 value: "Adrian2001.",
                                 maxlength: "255",    

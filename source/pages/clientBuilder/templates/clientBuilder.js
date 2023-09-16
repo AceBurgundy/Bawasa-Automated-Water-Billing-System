@@ -75,7 +75,7 @@ export function getTemplate(forEdit, clientData) {
 
                                                             new Input(false, [], {
                                                                 attributes: {
-                                                                    title: "First Name",
+                                                                    label: "First Name",
                                                                     name: "firstName",
                                                                     value: `${forEdit ? clientData?.firstName : 'Sam'}`
                                                                 },
@@ -84,7 +84,7 @@ export function getTemplate(forEdit, clientData) {
 
                                                             new Input(false, [], {
                                                                 attributes: {
-                                                                    title: "Middle Name",
+                                                                    label: "Middle Name",
                                                                     name: "middleName",
                                                                     value: `${forEdit ? clientData?.middleName : 'Adrian'}`
                                                                 },
@@ -93,7 +93,7 @@ export function getTemplate(forEdit, clientData) {
 
                                                             new Input(false, [], {
                                                                 attributes: {
-                                                                    title: "Last Name",
+                                                                    label: "Last Name",
                                                                     name: "lastName",
                                                                     value: `${forEdit ? clientData?.lastName : 'Panganoron'}`
                                                                 },
@@ -102,7 +102,7 @@ export function getTemplate(forEdit, clientData) {
 
                                                             new Input(false, [], {
                                                                 attributes: {
-                                                                    title: "Extension",
+                                                                    label: "Extension",
                                                                     name: "extension",
                                                                     value: `${forEdit ? clientData?.extension : 'Sabalo'}`
                                                                 },
@@ -130,7 +130,7 @@ export function getTemplate(forEdit, clientData) {
                                                     ], {
                                                         options: window.userRelationshipTypes,
                                                         attributes: {
-                                                            title: "Relationship Status",
+                                                            label: "Relationship Status",
                                                             name: "relationshipStatus",
                                                             selected: clientData?.relationshipStatus,
                                                         },
@@ -157,7 +157,7 @@ export function getTemplate(forEdit, clientData) {
                                                             attributes: {
                                                                 name: "birthDate",
                                                                 type: "date",
-                                                                title: "BirthDate",
+                                                                label: "BirthDate",
                                                                 value: `${forEdit ? clientData?.birthDate : ''}`
                                                             }
                                                         }),
@@ -167,7 +167,7 @@ export function getTemplate(forEdit, clientData) {
                                                             attributes: {
                                                                 name: "age",
                                                                 type: "number",
-                                                                title: "Age",
+                                                                label: "Age",
                                                                 value: `${forEdit ? clientData?.birthDate : ''}`
                                                             }
                                                         }),
@@ -177,7 +177,7 @@ export function getTemplate(forEdit, clientData) {
                                                             attributes: {
                                                                 name: "email",
                                                                 type: "email",
-                                                                title: "Email",
+                                                                label: "Email",
                                                                 value: "sabalo99@gmail.com",
                                                                 minLength: 5
                                                             }
@@ -187,7 +187,7 @@ export function getTemplate(forEdit, clientData) {
                                                             flags: ["required"],
                                                             attributes: {
                                                                 name: "occupation",
-                                                                title: "Occupation",
+                                                                label: "Occupation",
                                                                 value: `${forEdit ? clientData?.occupation : 'Software Engineer'}`,
                                                                 minLength: 5,
                                                                 maxLength: 100
@@ -198,7 +198,7 @@ export function getTemplate(forEdit, clientData) {
                                                             flags: ["required"],
                                                             attributes: {
                                                                 name: "meterNumber",
-                                                                title: "Meter Number",
+                                                                label: "Meter Number",
                                                                 value: `${forEdit ? clientData?.meterNumber : 'dsgds3125'}`
                                                             }
                                                         }),
@@ -209,7 +209,7 @@ export function getTemplate(forEdit, clientData) {
                                                             attributes: {
                                                                 name: "phoneNumber",
                                                                 type: "number",
-                                                                title: "Phone Number",
+                                                                label: "Phone Number",
                                                                 value: `${forEdit ? clientData?.phoneNumbers[0]?.phoneNumber : '9965739119'}`,
                                                                 maxlength: "10"
                                                             }
@@ -259,7 +259,7 @@ export function getTemplate(forEdit, clientData) {
                                                         flags: ["required"],
                                                         attributes: {
                                                             name: "presentAddressStreet",
-                                                            title: "Street",
+                                                            label: "Street",
                                                             value: `${forEdit ? clientData?.presentAddress?.street : 'Yumang'}`,
                                                             maxlength: 50,
                                                             minLength: 5
@@ -270,7 +270,7 @@ export function getTemplate(forEdit, clientData) {
                                                         flags: ["required"],
                                                         attributes: {
                                                             name: "presentAddressSubdivision",
-                                                            title: "Subdivision",
+                                                            label: "Subdivision",
                                                             value: `${forEdit ? clientData?.presentAddress?.subdivision : 'Pineda'}`,
                                                             maxlength: 50,
                                                             minLength: 5
@@ -281,7 +281,7 @@ export function getTemplate(forEdit, clientData) {
                                                         flags: ["required"],
                                                         attributes: {
                                                             name: "presentAddressBarangay",
-                                                            title: "Barangay",
+                                                            label: "Barangay",
                                                             value: `${forEdit ? clientData?.presentAddress?.barangay : 'City Heights'}`,
                                                             maxlength: 50,
                                                             minLength: 5
@@ -292,7 +292,7 @@ export function getTemplate(forEdit, clientData) {
                                                         flags: ["required"],
                                                         attributes: {
                                                             name: "presentAddressCity",
-                                                            title: "City",
+                                                            label: "City",
                                                             value: `${forEdit ? clientData?.presentAddress?.city : 'General Santos City'}`,
                                                             maxlength: 50,
                                                             minLength: 5
@@ -303,7 +303,7 @@ export function getTemplate(forEdit, clientData) {
                                                         flags: ["required"],
                                                         attributes: {
                                                             name: "presentAddressProvince",
-                                                            title: "Province",
+                                                            label: "Province",
                                                             value: `${forEdit ? clientData?.presentAddress?.province : 'South Cotabato'}`,
                                                             maxlength: 50,
                                                             minLength: 10
@@ -314,7 +314,7 @@ export function getTemplate(forEdit, clientData) {
                                                         flags: ["required"],
                                                         attributes: {
                                                             name: "presentAddressPostalCode",
-                                                            title: "Postal Code",
+                                                            label: "Postal Code",
                                                             type: "number",
                                                             value: `${forEdit ? clientData?.presentAddress?.postalCode : 9500}`,
                                                             maxlength: 4,
@@ -326,7 +326,7 @@ export function getTemplate(forEdit, clientData) {
                                                         flags: ["required"],
                                                         attributes: {
                                                             name: "presentAddressDetails",
-                                                            title: "Details",
+                                                            label: "Details",
                                                             value: `${forEdit ? clientData?.presentAddress?.details : "Black gate, ladder style"}`,
                                                             maxLength: 255, 
                                                             minLength: 20
@@ -355,7 +355,7 @@ export function getTemplate(forEdit, clientData) {
                                                     flags: ["required"],
                                                     attributes: {
                                                         name: "mainAddressStreet",
-                                                        title: "Street",
+                                                        label: "Street",
                                                         value: `${forEdit ? clientData?.mainAddress?.street : 'Yumang'}`,
                                                         maxlength: 50,
                                                         minLength: 5
@@ -366,7 +366,7 @@ export function getTemplate(forEdit, clientData) {
                                                     flags: ["required"],
                                                     attributes: {
                                                         name: "mainAddressSubdivision",
-                                                        title: "Subdivision",
+                                                        label: "Subdivision",
                                                         value: `${forEdit ? clientData?.mainAddress?.subdivision : 'Pineda'}`,
                                                         maxlength: 50,
                                                         minLength: 5
@@ -377,7 +377,7 @@ export function getTemplate(forEdit, clientData) {
                                                     flags: ["required"],
                                                     attributes: {
                                                         name: "mainAddressBarangay",
-                                                        title: "Barangay",
+                                                        label: "Barangay",
                                                         value: `${forEdit ? clientData?.mainAddress?.barangay : 'City Heights'}`,
                                                         maxlength: 50,
                                                         minLength: 5
@@ -388,7 +388,7 @@ export function getTemplate(forEdit, clientData) {
                                                     flags: ["required"],
                                                     attributes: {
                                                         name: "mainAddressCity",
-                                                        title: "City",
+                                                        label: "City",
                                                         value: `${forEdit ? clientData?.mainAddress?.city : 'General Santos City'}`,
                                                         maxlength: 50,
                                                         minLength: 5
@@ -399,7 +399,7 @@ export function getTemplate(forEdit, clientData) {
                                                     flags: ["required"],
                                                     attributes: {
                                                         name: "mainAddressProvince",
-                                                        title: "Province",
+                                                        label: "Province",
                                                         value: `${forEdit ? clientData?.mainAddress?.province : 'South Cotabato'}`,
                                                         maxlength: 50,
                                                         minLength: 10
@@ -410,7 +410,7 @@ export function getTemplate(forEdit, clientData) {
                                                     flags: ["required"],
                                                     attributes: {
                                                         name: "mainAddressPostalCode",
-                                                        title: "Postal Code",
+                                                        label: "Postal Code",
                                                         type: "number",
                                                         value: `${forEdit ? clientData?.mainAddress?.postalCode : 9500}`,
                                                         maxlength: 4,
@@ -422,7 +422,7 @@ export function getTemplate(forEdit, clientData) {
                                                     flags: ["required"],
                                                     attributes: {
                                                         name: "mainAddressDetails",
-                                                        title: "Details",
+                                                        label: "Details",
                                                         value: `${forEdit ? clientData?.mainAddress?.details : "Black gate, ladder style"}`,
                                                         maxLength: 255, 
                                                         minLength: 20
