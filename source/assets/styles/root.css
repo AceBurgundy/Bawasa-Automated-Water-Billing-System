@@ -1,4 +1,5 @@
 @import url("./fonts.css");
+@import url("./field.css");
 
 :root.dark {
     --text: #e6fbff;
@@ -135,28 +136,18 @@ svg {
     background-color: var(--borderlessInputBackground) !important;
 }
 
-input[type="text"],
-input[type="date"],
-input[type="number"],
-input[type="email"],
-input[type="password"],
-.number,
-select,
-.input-style {
-    padding: 0.7rem;
-    border-radius: 5px;
-    border: 1px solid var(--gray);
-    background-color: inherit;
-    height: 47px;
-    color: var(--text);
-}
-
-.input-style > input {
-    height: 1rem;
-}
-
 .hidden {
     display: none;
+}
+
+.number-input {
+    padding: 0 0.5rem !important;
+    margin: 0 !important;
+    height: fit-content !important;
+    width: 100% !important;
+    border: none !important;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
 }
 
 ::-webkit-scrollbar {
