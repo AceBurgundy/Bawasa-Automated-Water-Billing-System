@@ -8,7 +8,7 @@ import { showData } from "../../../assets/scripts/helper.js"
  */
 export const reconnectClientForm = client => {
 
-    const billAmount = showData(client.Client_Bills[0].billAmount)
+    const billAmount = showData(client.Bills[0].billAmount)
 
     return `
         <form id="reconnect-form">
