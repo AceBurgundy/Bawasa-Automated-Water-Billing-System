@@ -1,4 +1,7 @@
 const Store = require("electron-store")
+
+const UserPhoneNumber = require("../../models/UserPhoneNumber")
+const UserAddress = require("../../models/UserAddress")
 const User = require("../../models/User")
 
 const SESSION_KEY = "user_session"
@@ -27,7 +30,35 @@ class SessionManager {
 
         try {
 
-            const user = await User.findOne({ where: { accessKey: accessKey } })
+            const user = await User.findOne({ 
+                where: { 
+                    accessKey: accessKey 
+                },
+                attributes: {
+                    exclude: [
+                        "password",
+                        "updatedAt",
+                    ]
+                },
+                include: [
+                    {
+                        model: UserPhoneNumber,
+                        as: 'phoneNumbers',
+                        order: [
+                            ['createdAt', 'DESC']
+                        ],
+                        limit: 1,
+                    },
+                    { 
+                        model: UserAddress, 
+                        as: "mainAddress"
+                    },
+                    { 
+                        model: UserAddress, 
+                        as: "presentAddress"
+                    },
+                ],
+            })
             
             if (user) {
                 return user.toJSON()
