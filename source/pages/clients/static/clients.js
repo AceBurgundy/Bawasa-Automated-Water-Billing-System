@@ -1,14 +1,22 @@
 // @collapse
 
-import { makeToastNotification, transition, tryCatchWrapper } from "../../../assets/scripts/helper.js"
 import { renderClientBuilder } from "../../clientBuilder/static/clientBuilder.js"
 import { reconnectClientForm } from "../templates/reconnectClientForm.js"
 import { renderBillingSection } from "../../billing/static/billing.js"
+import { renderProfile } from "../../profile/static/profile.js"
 import loadLogin from "../../authentication/static/login.js"
 import { clientTable } from "../templates/clients.js"
 
-const elementId = tag => document.getElementById(tag)
-const dialogElement = document.querySelector("dialog")
+import { 
+    makeToastNotification, 
+    transition, 
+    tryCatchWrapper,
+	getById,
+	queryElement,
+	queryElements
+} from "../../../assets/scripts/helper.js"
+
+const dialogElement = queryElement("dialog")
 
 /**
  * Renders the client section, including client data table, options, and event handlers.
@@ -31,13 +39,13 @@ export async function renderClientSection() {
         }
     })
     
-    elementId("container").innerHTML += clientTable(user, clients, responseMessage)
+    getById("container").innerHTML += clientTable(user, clients, responseMessage)
 
-    setTimeout(() => {elementId("section-type-container").classList.add("active")}, 500)
+    setTimeout(() => {getById("section-type-container").classList.add("active")}, 500)
 
     const rowOptionsToggleList = {}
 
-    document.querySelectorAll(".table-info__options").forEach(option => {
+    queryElements(".table-info__options").forEach(option => {
         rowOptionsToggleList[option.getAttribute("data-client-id")] = option.classList
     })
 
@@ -50,13 +58,17 @@ export async function renderClientSection() {
             transition(renderBillingSection)
         }
 
+        if (elementId === "profile") {
+            transition(renderProfile)
+        }
+
         if (elementId === "new-connection") {
             transition(renderClientBuilder)
         }
 
         if (elementId === "client-options-toggle") {
 
-            const optionsList = elementId("client-options-toggle-options-list")
+            const optionsList = getById("client-options-toggle-options-list")
 
             if (optionsList.classList.contains("active")) {
                 optionsList.classList.remove("active")
@@ -98,9 +110,11 @@ export async function renderClientSection() {
      */
     async function renderReconnectForm(event) {
 
-        const rowRootParent = event.target.parentElement.parentElement.parentElement
+        const { target } = event
+        
+        const rowRootParent = target.parentElement.parentElement.parentElement
 
-        const clientId = event.target.parentElement.getAttribute("data-client-id")
+        const clientId = target.parentElement.getAttribute("data-client-id")
         if (!clientId) return makeToastNotification("Client id not found")
 
         if (rowRootParent.classList.contains("table-info")) {
@@ -148,8 +162,8 @@ export async function renderClientSection() {
 
         event.preventDefault()
         const clientId = event.target.dataset.clientId
-        const reconnectFormInput = elementId("reconnect-form-input-box-input")
-        const errorMessage = elementId("reconnect-form-input-box-header-error")
+        const reconnectFormInput = getById("reconnect-form-input-box-input")
+        const errorMessage = getById("reconnect-form-input-box-header-error")
         const expectedPayment = reconnectFormInput.dataset.total
         const paidAmount = reconnectFormInput.value
 
@@ -167,7 +181,7 @@ export async function renderClientSection() {
 
         closeDialog(event)
         setTimeout(() => makeToastNotification(response.toast[0]), 200)
-        const rowRootParent = elementId(`client-row-${clientId}`)
+        const rowRootParent = getById(`client-row-${clientId}`)
         rowRootParent.children[6].firstElementChild.textContent = window.connectionStatusTypes.Connected
         rowRootParent.removeAttribute(`id`)
         rowRootParent.querySelector(".table-info__options-item.reconnect").remove()
