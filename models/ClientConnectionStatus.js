@@ -1,6 +1,7 @@
-const validations = require("../constants")
-const { db } = require("../sequelize_init")
+const { connectionStatusOptions } = require("../source/utilities/constants")
+const { db } = require("../source/utilities/sequelize")
 const { DataTypes } = require('sequelize')
+
 const Client = require("./Client")
 
 const ClientConnectionStatus = db.define(
@@ -40,7 +41,7 @@ const ClientConnectionStatus = db.define(
                     msg: "Connection status cannot be left blank"
                 },
                 isIn: {
-                    args: validations.connectionStatusOptions,
+                    args: connectionStatusOptions,
                     msg: "Invalid connection status"
                 }
             }
@@ -48,8 +49,8 @@ const ClientConnectionStatus = db.define(
     }
 )
 
-ClientConnectionStatus.belongsTo(Client, { foreignKey: "clientId" })
-Client.hasMany(ClientConnectionStatus, { foreignKey: "clientId" })
+ClientConnectionStatus.belongsTo(Client, { foreignKey: "clientId", as: "connectionStatuses" })
+Client.hasMany(ClientConnectionStatus, { foreignKey: "clientId", as: "connectionStatuses" })
 
 ClientConnectionStatus.sync()
     .then(() => {
