@@ -2,7 +2,7 @@ import "../../../utilities/constants.js";
 
 export function getTemplate(forEdit, clientData) { 
     
-const template = `
+    return `
 
     <section id="section-type-container" class="page client">
 
@@ -251,7 +251,7 @@ const template = `
                                                         required
                                                         id="client-register-phone-number"
                                                         placeholder="12-345-6789"
-                                                        value="${forEdit ? clientData?.Client_Phone_Numbers[0]?.phoneNumber : ''}"
+                                                        value="${forEdit ? clientData?.phoneNumbers[0]?.phoneNumber : ''}"
                                                         maxlength="10">
 
                                                 </div>
@@ -568,5 +568,4 @@ const template = `
 
     </section>`;
 
-    return template
 }
