@@ -1,13 +1,23 @@
-import { makeToastNotification, transition } from "../../../assets/scripts/helper.js";
-import { renderBillingSection } from "../../billing/static/billing.js";
-import { loadRegister } from "./register.js"
+import { renderBillingSection } from "../../billing/static/billing.js"
+import { Input } from "../../../assets/scripts/classes/Input.js"
+import { renderProfile } from "../../profile/static/profile.js"
 import "../../../utilities/validations.js"
+import loadRegister from "./register.js"
+
+import {
+    makeToastNotification,
+    transition,
+    getById,
+    queryElements,
+    getFormData,
+} from "../../../assets/scripts/helper.js"
+
+const { isEmpty, isEmail, isOverThan } = window
 
 /**
  * Handles user login
  */
 export default async function loadLogin() {
-
     const template = `
 
     <div id="login" class="page">
@@ -17,27 +27,36 @@ export default async function loadLogin() {
             <p id="login-form-title" class="authentication-form__title">Welcome</p>
         
             <div class="authentication-form__inputs">
-                <input 
-                    type="email"
-                    name="email"
-                    id="login-form-email" 
-                    required
-                    placeholder="Email"
-                    value="samadriansabalo99@gmail.com"
-                    maxlength="255">
 
-                <input 
-                    type="password" 
-                    name="password"
-                    id="login-form-password" 
-                    required
-                    placeholder="Password"
-                    value="Adrian2001."
-                    maxlength="255">
+                ${
+                    [
+                        new Input(false, [ isEmail, [isOverThan, 0, 255]], {
+                            flags: ["required"],
+                            attributes: {
+                                name: "email",
+                                title: "Email",
+                                value: "samadriansabalo99@gmail.com",
+                                maxlength: "255",
+                            }
+                        }),
+
+                        new Input(false, [isEmpty], {
+                            flags: ["required"],
+                            attributes: {
+                                name: "password",
+                                title: "Password",
+                                type: "password",
+                                value: "Adrian2001.",
+                                maxlength: "255",    
+                            }
+                        }),
+                    
+                    ].join("\n")
+            
+                }  
+
             </div>
-        
-            <!-- <div class="authentication-form__input-box"></div> -->
-        
+                
             <div id="login-form-bottom" class="authentication-form__bottom">
                 <p class="authentication-form__bottom__tag">Login</p>
                 <button id="login-button" class="authentication-form__submit">
@@ -52,71 +71,55 @@ export default async function loadLogin() {
         <p id="to-register-prompt" class="bottom-prompt">
             Don't have an account yet? Register and get verified
         </p>
-    `;
+    `
 
-    document.getElementById("container").innerHTML += template;
+    getById("container").innerHTML += template
 
     setTimeout(() => {
-        document.getElementById("login").classList.add("active");
-    }, 500);
+        getById("login").classList.add("active")
+    }, 500)
 
     window.onclick = async (event) => {
-
-        const elementId = event.target.getAttribute("id");
+        const elementId = event.target.getAttribute("id")
 
         if (elementId === "to-register-prompt") {
-            transition(loadRegister);
+            transition(loadRegister)
         }
 
         if (elementId === "login-button") {
+            
+            event.preventDefault()
 
-            event.preventDefault();
+            const form = getById("login-form")
+            const formData = getFormData(form)
+            const invalidElements = queryElements("invalid")
 
-            const formData = new FormData(document.getElementById("login-form"));
+            if (invalidElements > 0)
+                return makeToastNotification("Fix errors first")
 
-            let errors = 0;
+            return
+            const response = await window.ipcRenderer.invoke("login", formData)
 
-            const validationMethods = {
+            console.log(response);
 
-                email: [
-                    [window.isEmpty, "Email"],
-                    [window.isEmail, "Email"],
-                    [window.isOverThan, 10, 255, "Email"]
-                ],
+            if (response.status === "success") {
+                transition(renderBillingSection);
+            } else {
+            
+                if (response.hasOwnProperty("fieldErrors")) {
 
-                password: [
-                    [window.isEmpty, "Password"],
-                    [window.isOverThan, 10, 255, "Password"]
-                ]
-                
-            }
+                    const { fieldErrors } = response
 
-            formData.forEach((dirtyValue, key) => {
+                    const fieldNames = Object.keys(fieldErrors)
 
-                const value = dirtyValue.trim()
+                    fieldNames.forEach(name => {
+                        getById(`${name}-field__info__error`).textContent = fieldErrors[name]
+                    })
 
-                if (!validationMethods.hasOwnProperty(key)) {
-                    console.error(`Validation methods for key '${key}' not found.`)
-                    return
-                }    
-                
-                validationMethods[key].forEach(([validationMethod, ...args]) => {
-                    const [validationErrors, validationMessage] = validationMethod(value, ...args)
-                    errors += validationErrors
-                    validationMessage.length > 0 && validationMessage.forEach((message) => makeToastNotification(message))
-                })
-
-            })
-
-            if (errors === 0) {
-                const response = await window.ipcRenderer.invoke("login", Object.fromEntries(formData.entries()));
-
-                if (response.status === "success") {
-                    transition(renderBillingSection);
                 } else {
-                    response.message.forEach(message => { makeToastNotification(message) })
+                    makeToastNotification(response.toast)
                 }
             }
         }
-    };
+    }
 }
