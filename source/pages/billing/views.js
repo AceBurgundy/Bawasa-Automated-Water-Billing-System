@@ -32,10 +32,12 @@ ipcMain.handle("bills", async (event, args) => {
                 include: [
                     {
                         model: ClientBill,
+                        as: "Bills",
                         include: [PartialPayment]
                     },
                     {
                         model: ClientConnectionStatus,
+                        as: "connectionStatuses",
                         attributes: ["status"],
                         separate: true,
                         order: [['createdAt', 'DESC']],
@@ -46,7 +48,7 @@ ipcMain.handle("bills", async (event, args) => {
                     [
                         {
                             model: ClientBill,
-                            as: "Client_Bills"
+                            as: "Bills"
                         }, 
                         'createdAt', 'DESC'
                     ]
@@ -106,7 +108,7 @@ ipcMain.handle("get-bill", async (event, args) => {
                     [
                         {
                             model: ClientBill,
-                            as: "Client_Bills"
+                            as: "Bills"
                         }, 
                         'createdAt', 'DESC'
                     ]
@@ -179,8 +181,8 @@ ipcMain.handle("new-bill", async (event, args) => {
      * return if the client doesn't have any connection status records yet or the latest connection status the client (if they have any) is not "connected" 
      * which indicates that the client may currently be "due for disconnection" or is "disconnected"
      */
-    if (client.Client_Connection_Statuses.length > 0) {
-        if (client.Client_Connection_Statuses[0].status !== connectionStatusTypes.Connected) {
+    if (client.connectionStatuses.length > 0) {
+        if (client.connectionStatuses[0].status !== connectionStatusTypes.Connected) {
             return response.failed().addToast(`Set the clients status to "Connected" first`).getResponse()
         }
     }
@@ -287,12 +289,12 @@ async function getClientWithBills(clientId) {
             include: [
                 { 
                     model: ClientBill, 
-                    as: "Client_Bills",
+                    as: "Bills",
                     order: [ [ 'createdAt', 'DESC' ]]
                 },
                 { 
                     model: ClientConnectionStatus, 
-                    as: "Client_Connection_Statuses",
+                    as: "connectionStatuses",
                     order: [ [ 'createdAt', 'DESC' ]]
                 }
             ]
