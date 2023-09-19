@@ -713,6 +713,12 @@ function checkMissingFields(formData) {
  * @returns {Promise<void>} - A Promise that resolves after all files are saved and moved.
  */
 async function saveFiles(files, clientId, manager) {
+
+	const response = new Response()
+
+	if (!clientId) return response.failed().addToast("Client Id is needed to move the files").getResponse()
+	if (!files) return response.failed().addToast("No files to be saved").getResponse()
+
     const moveFilePromises = files.map(async (file) => {
         await ClientFile.create(
             {
@@ -724,10 +730,13 @@ async function saveFiles(files, clientId, manager) {
 
         const sourceFilePath = file.path;
         const destinationFilePath = path.resolve(__dirname, '../../assets/files', file.name);
-        await fs.move(sourceFilePath, destinationFilePath);
-    });
+		tryCatchWrapper(async () => {
+			await fs.move(sourceFilePath, destinationFilePath);
+		})
+	});
 
-    await Promise.all(moveFilePromises);
+	tryCatchWrapper(async () => {
+		await Promise.all(moveFilePromises);
 		return response.success()
 	})
 
