@@ -728,4 +728,64 @@ async function saveFiles(files, clientId, manager) {
     });
 
     await Promise.all(moveFilePromises);
+		return response.success()
+	})
+
+}
+
+/**
+ * Deletes a client and their associated files, if any.
+ * If the client's one-to-many associations have cascade set to true on delete,
+ * this function will also delete their records on that data.
+ *
+ * @param {number} clientId - The unique identifier of the client to delete.
+ * @returns {Promise<Response>} A Promise that resolves with a Response object
+ * representing the result of the delete operation. The Response object can be
+ * used to check the success or failure of the operation.
+ *
+ * @async
+ * @example
+ * const clientId = 123;
+ * const response = await deleteClient(clientId);
+ * if (response.status === "success") {
+ *   console.log('Client deleted successfully.');
+ * } else {
+ *   console.error('Failed to delete client:', response.getError());
+ * }
+ */
+async function deleteClient(clientId, saveData = false) {
+
+	const response = new Response()
+
+	const client = Client.findByPk(clientId, {
+		include: "clientFiles"
+	})
+
+	if (!client) return response.failed().addToast("Failed to delete client record").getResponse()
+
+	if (client.clientFiles.length > 0) {
+
+        client.clientFiles.forEach(async file => {
+
+            const filePath = path.join(path.resolve(__dirname, "../../assets/files/"), file.name )
+
+            tryCatchWrapper(async () => {
+				const fileExists = await fs.pathExists(filePath)
+
+                if (fileExists) {
+                    await fs.remove(filePath)
+                } else {
+                    console.log(`File ${file.name} does cannot be found`)
+                }
+			})
+        })
+    }
+
+	try {
+        await client.destroy()
+        return response.success().addToast("Client deleted succesfully")
+    } catch (error) {
+        return response.failed().addToast("Failed to delete client")
+    }
+	  
 }
