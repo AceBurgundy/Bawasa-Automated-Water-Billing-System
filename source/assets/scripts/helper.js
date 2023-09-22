@@ -64,6 +64,7 @@ export function makeToastNotification(message) {
  */
 export function showData(data, placeholder = "") {
     if (data !== null && data !== undefined) {
+        if (typeof date === 'object' && date instanceof Date) return formatDate(data)
         return data
     } else {
         return placeholder
@@ -231,4 +232,19 @@ export const clearAndHideDialog = () => {
     const dialog = queryElement("dialog")
     dialog.innerHTML = ""
     dialog.close()
+}
+
+/**
+ * Generates a unique input element id attribute value
+ * 
+ * @returns the new input element id
+ */
+export const generateUniqueId = (name) => {
+    const randomNumber = Math.floor(Math.random() * 100) + 1;
+    const id = [randomNumber, name].join("-")
+
+    return document.body.contains(getById(id)) ? 
+        generateUniqueId()
+    :   
+        id
 }
