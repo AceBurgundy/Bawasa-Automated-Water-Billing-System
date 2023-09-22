@@ -211,8 +211,17 @@ export const closeDialog = () => {
 /**
  * FIlls dialog innerHTML
  */
-export const FillDialog = (template) => {
+export const fillDialog = (template) => {
     queryElement("dialog").innerHTML = template  
+}
+
+/**
+ * FIlls dialog innerHTML
+ */
+export const fillAndShowDialog = (template) => {
+    const dialog = queryElement("dialog")
+    dialog.innerHTML = template
+    dialog.showModal()
 }
 
 /**
