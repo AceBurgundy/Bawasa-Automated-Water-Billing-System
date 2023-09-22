@@ -1,3 +1,4 @@
+
 const { db } = require("../source/utilities/sequelize")
 const { DataTypes } = require('sequelize')
 
@@ -9,18 +10,25 @@ const UserAddress = db.define(
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: true
+            autoIncrement: true,
         },
 
-        city: {
-            type: DataTypes.STRING(100),
-            allowNull: false,
+        street: {
+            type: DataTypes.STRING(50),
             validate: {
-                notNull: {
-                    msg: "City is required"
-                },
-                notEmpty: {
-                    msg: "Cannot be left blank"
+                is: {
+                    args: /^[A-Za-z\s0-9.]+$/,
+                    msg: "Street can only contain letters numbers and spaces"
+                }
+            }
+        },
+
+        subdivision: {
+            type: DataTypes.STRING(50),
+            validate: {
+                is: {
+                    args: /^[A-Za-z\s0-9.]+$/,
+                    msg: "Subdivision can only contain letters numbers and spaces"
                 }
             }
         },
@@ -29,6 +37,10 @@ const UserAddress = db.define(
             type: DataTypes.STRING(50),
             allowNull: false,
             validate: {
+                is: {
+                    args: /^[A-Za-z\s0-9.]+$/,
+                    msg: "Barangay can only contain letters numbers and spaces"
+                },
                 notNull: {
                     msg: "Barangay is required"
                 },
@@ -38,18 +50,52 @@ const UserAddress = db.define(
             }
         },
 
-        postalCode: {
-            type: DataTypes.STRING(10),
+        city: {
+            type: DataTypes.STRING(100),
             allowNull: false,
             validate: {
+                is: {
+                    args: /^[A-Za-z\s0-9.]+$/,
+                    msg: "City can only contain letters numbers and spaces"
+                },
+                notNull: {
+                    msg: "City is required"
+                },
+                notEmpty: {
+                    msg: "City cannot be left blank"
+                }
+            }
+        },
+
+        province: {
+            type: DataTypes.STRING(50),
+            allowNull: false,
+            validate: {
+                is: {
+                    args: /^[A-Za-z\s0-9.]+$/,
+                    msg: "Province can only contain letters numbers and spaces"
+                },
+                notNull: {
+                    msg: "Province is required"
+                },
+                notEmpty: {
+                    msg: "Province cannot be left blank"
+                }
+            }
+        },
+
+        postalCode: {
+            type: DataTypes.STRING(4),
+            allowNull: false,
+            validate: {
+                isAlphanumeric: {
+                    msg: "Postal Code can only contain letters and numbers"
+                },
                 notNull: {
                     msg: "Postal Code is required"
                 },
-                isNumeric: {
-                    msg: "Must only contain numbers"
-                },
                 notEmpty: {
-                    msg: "Postal code cannot be left blank"
+                    msg: "Postal Code cannot be left blank"
                 }
             }
         },
@@ -62,7 +108,7 @@ const UserAddress = db.define(
                     msg: "Details is required"
                 },
                 notEmpty: {
-                    msg: "Datails cannot be left blank"
+                    msg: "Address details cannot be left blank"
                 }
             }
         }
