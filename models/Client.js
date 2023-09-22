@@ -195,12 +195,14 @@ const Client = db.define(
 
 Client.hasOne(ClientAddress, { 
     foreignKey: "mainAddressId", 
-    as: "mainAddress"
+    as: "mainAddress",
+    onDelete: 'CASCADE'
 })
 
 Client.hasOne(ClientAddress, { 
     foreignKey: "presentAddressId", 
-    as: "presentAddress"
+    as: "presentAddress",
+    onDelete: 'CASCADE'
 })
 
 ClientAddress.belongsTo(Client, {

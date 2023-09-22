@@ -39,10 +39,13 @@ const ClientFile = db.define(
 
 ClientFile.belongsTo(Client, {
     foreignKey: 'clientId',
+    as: "clientFiles",
+    onDelete: 'CASCADE'
 })
 
 Client.hasMany(ClientFile, {
     foreignKey: 'clientId',
+    as: "clientFiles"
 })
 
 ClientFile.sync()

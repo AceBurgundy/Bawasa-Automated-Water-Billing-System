@@ -43,8 +43,16 @@ const PartialPayment = db.define(
     }
 )
 
-PartialPayment.belongsTo(ClientBill, { foreignKey: "clientBillId" })
-ClientBill.hasMany(PartialPayment, { foreignKey: "clientBillId" })
+PartialPayment.belongsTo(ClientBill, { 
+    foreignKey: "clientBillId",
+    onDelete: 'CASCADE',
+    as: "partialPayments"
+})
+
+ClientBill.hasMany(PartialPayment, { 
+    foreignKey: "clientBillId",
+    as: "partialPayments"
+})
 
 PartialPayment.sync()
     .then(() => {

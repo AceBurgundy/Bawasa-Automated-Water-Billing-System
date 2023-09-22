@@ -49,8 +49,16 @@ const ClientConnectionStatus = db.define(
     }
 )
 
-ClientConnectionStatus.belongsTo(Client, { foreignKey: "clientId", as: "connectionStatuses" })
-Client.hasMany(ClientConnectionStatus, { foreignKey: "clientId", as: "connectionStatuses" })
+ClientConnectionStatus.belongsTo(Client, { 
+    foreignKey: "clientId", 
+    as: "connectionStatuses",
+    onDelete: 'CASCADE'
+})
+
+Client.hasMany(ClientConnectionStatus, { 
+    foreignKey: "clientId", 
+    as: "connectionStatuses" 
+})
 
 ClientConnectionStatus.sync()
     .then(() => {

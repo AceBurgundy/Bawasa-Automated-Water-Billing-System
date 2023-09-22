@@ -144,8 +144,17 @@ const ClientBill = db.define(
     }
 )
 
-ClientBill.belongsTo(Client, { foreignKey: "clientId", as: "Bills" })
-Client.hasMany(ClientBill, { foreignKey: "clientId", as: "Bills" })
+ClientBill.belongsTo(Client, { 
+    foreignKey: "clientId", 
+    as: "Bills",
+    onDelete: 'CASCADE'
+})
+
+Client.hasMany(ClientBill, { 
+    foreignKey: "clientId", 
+    as: "Bills"
+})
+
 
 ClientBill.sync()
     .then(() => {

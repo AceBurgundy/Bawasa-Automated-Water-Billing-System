@@ -1,3 +1,5 @@
+// @collapse
+
 const { relationshipOptions } = require("../source/utilities/constants")
 const { db } = require("../source/utilities/sequelize")
 const { DataTypes } = require('sequelize');

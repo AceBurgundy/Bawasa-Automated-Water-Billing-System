@@ -44,7 +44,8 @@ const ClientPhoneNumber = db.define(
 
 ClientPhoneNumber.belongsTo(Client, {
     foreignKey: 'clientId',
-    as: "phoneNumbers"
+    as: "phoneNumbers",
+    onDelete: 'CASCADE'
 })
 
 Client.hasMany(ClientPhoneNumber, {
