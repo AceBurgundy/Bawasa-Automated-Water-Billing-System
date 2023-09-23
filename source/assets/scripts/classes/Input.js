@@ -5,12 +5,11 @@ import { Field } from "./Field.js"
  * This class is used to create HTML input fields with various attributes and options.
  * @extends Field
  * @constructor
- * @param {boolean} forEdit - Indicates whether the input field is for editing.
  * @param {object} validations - The validation rules to apply to the input field.
  * @param {object} props - Additional properties for configuring the input field.
  * @throws {Error} Throws an error if invalid properties are provided.
  * @example
- * new Input(true, { required: true, maxLength: 50 }, {
+ * new Input([], {
  *   attributes: {
  *     name: 'username',
  *     type: 'text',
@@ -20,15 +19,14 @@ import { Field } from "./Field.js"
  *   flags: ["required", "readonly"]
  * });
  */
-class Input extends Field {
+export default class Input extends Field {
     /**
      * Creates an instance of Input.
-     * @param {boolean} forEdit - Indicates if the input is for editing.
      * @param {object} validations - Object containing validation rules.
      * @param {object} props - Additional properties for the input.
      */
-    constructor(forEdit, validations, props) {
-        super(forEdit, validations, props)
+    constructor(validations, props) {
+        super(validations, props)
     }
 
     /**
@@ -44,21 +42,23 @@ class Input extends Field {
      * @returns {string} The HTML representation of the input field.
      */
     renderField() {
+
         const { name } = this.attributes
         const inputAttributes = this.cleanAttributes(this.attributes)
-        const inputClasses = this.cleanClasses(this.classes)
+        const cleanClasses = this.cleanClasses(this.classes)
+        const isPhoneNumberFieldAndReadOnly = this.classes.includes("input-readonly") && this.classes.includes("number-input") 
 
         return `
             ${
                 this.classes.includes("number-input") ? ` 
-                    <div class="input-style">
+                    <div class="input-style ${isPhoneNumberFieldAndReadOnly ? "input-readonly" : ''}">
                         <div class="country-code">
                             +63
                         </div>
-                        <input id="${this.dashedName}-field__input" name="${name}" class="form-field__input number-input ${inputClasses}" ${inputAttributes} ${this.flags}>
+                        <input id="${this.id}" name="${name}" class="form-field__input number-input ${cleanClasses}" ${inputAttributes} ${this.flags}>
                     </div> `
                 : `
-                    <input id="${this.dashedName}-field__input" name="${name}" class="form-field__input ${inputClasses}" ${inputAttributes} ${this.flags}>
+                    <input id="${this.id}" name="${name}" class="form-field__input ${this.classes}" ${inputAttributes} ${this.flags}>
                 `
             }
         `
@@ -70,9 +70,7 @@ class Input extends Field {
      * @returns {string} The cleaned and formatted classes as a string.
      */
     cleanClasses(classes) {
-        if (this.forEdit) classes.push("input-readonly")
-        return classes.join(" ")
+        return classes.length > 0 ? classes.join(" ") : ""
     }
-}
 
-export { Input }
+}
