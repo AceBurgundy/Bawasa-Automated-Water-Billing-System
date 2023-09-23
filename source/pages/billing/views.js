@@ -1,4 +1,5 @@
-// @collapse
+
+
 
 const { connectionStatusTypes } = require("../../utilities/constants")
 const tryCatchWrapper = require("../../utilities/helpers")
@@ -21,45 +22,52 @@ const Client = require("../../../models/Client")
  * @param {any} args - Arguments for the handler.
  * @returns {Promise<Object>} - A promise that resolves to the handler response.
  */
-ipcMain.handle("bills", async (event, args) => {
+ipcMain.handle("accounts", async (event, args) => {
 
     const response = new Response()
 
 	return tryCatchWrapper(async () => {
 
-		const bills = await tryCatchWrapper(async () => {
+        const accounts = await tryCatchWrapper(async () => {
             return await Client.findAll({
                 include: [
                     {
                         model: ClientBill,
                         as: "Bills",
-                        include: [PartialPayment]
+                        include: [
+                            {
+                                model: PartialPayment,
+                                as: "partialPayments"
+                            },
+                        ],
                     },
                     {
                         model: ClientConnectionStatus,
                         as: "connectionStatuses",
                         attributes: ["status"],
                         separate: true,
-                        order: [['createdAt', 'DESC']],
+                        order: [["createdAt", "DESC"]],
                         limit: 1
-                    }
+                    },
                 ],
                 order: [
                     [
                         {
                             model: ClientBill,
                             as: "Bills"
-                        }, 
-                        'createdAt', 'DESC'
-                    ]
+                        },
+                        "createdAt",
+                        "DESC"
+                    ],
                 ]
             })
         })
+        
 
-        if (bills.length > 0) {
-            return response.success().addObject("data", JSON.stringify(bills)).getResponse()
+        if (accounts.length > 0) {
+            return response.success().addObject("data", JSON.stringify(accounts)).getResponse()
         } else {
-            return response.failed().addObject("message", "No bills yet").getResponse()
+            return response.failed().addObject("message", "No accounts yet").getResponse()
         }
 
 	})
@@ -94,10 +102,17 @@ ipcMain.handle("get-bill", async (event, args) => {
                 include: [
                     {
                         model: ClientBill,
-                        include: [PartialPayment]
+                        as: "Bills",
+                        include: [
+                            { 
+                                model: PartialPayment,
+                                as: "partialPayments"
+                            }
+                        ]
                     },
                     {
                         model: ClientConnectionStatus,
+                        as: "connectionStatuses",
                         attributes: ["status"],
                         separate: true,
                         order: [['createdAt', 'DESC']],
@@ -146,9 +161,6 @@ ipcMain.handle("print-bill", async (event, args) => {
     if (!clientBill) {
         return response.failed().addObject("message", "Cannot find clients bill").getResponse()
     }
-
-    console.log(clientBill)
-
 })
 
 /**
@@ -374,14 +386,14 @@ function updateBillWithSecondReading(bill, monthlyReading, previousBillExcess, r
 		bill.consumption = parseFloat(monthlyReading).toFixed(2) - bill.firstReading
 		bill.billAmount = previousBillExcess !== null ? (bill.consumption * 5) - previousBillExcess : bill.consumption * 5
 		const currentDate = new Date()
-		// const twoWeeksFromNow = new Date(currentDate.getTime() + (14 * 24 * 60 * 60 * 1000))
-        bill.dueDate = currentDate
+		const twoWeeksFromNow = new Date(currentDate.getTime() + (14 * 24 * 60 * 60 * 1000))
+        bill.dueDate = twoWeeksFromNow
 	
-		// const fiveDaysFromDisconnectionDate = new Date(currentDate.getTime() + (19 * 24 * 60 * 60 * 1000))
-		// bill.disconnectionDate = fiveDaysFromDisconnectionDate
+		const fiveDaysFromDisconnectionDate = new Date(twoWeeksFromNow.getTime() + (5 * 24 * 60 * 60 * 1000))
+		bill.disconnectionDate = fiveDaysFromDisconnectionDate
 	
-        const oneDayFromNow = new Date(currentDate.getTime() + (1 * 24 * 60 * 60 * 1000)) // Add 1 day (24 hours)
-        bill.disconnectionDate = oneDayFromNow // Set disconnection date to tomorrow
+        // const oneDayFromNow = new Date(currentDate.getTime() + (1 * 24 * 60 * 60 * 1000)) // Add 1 day (24 hours)
+        // bill.disconnectionDate = oneDayFromNow // Set disconnection date to tomorrow
 
 		bill.save()
 		return response.success().addToast(previousBillExcess !== null ? `Client bill updated with ${previousBillExcess} deduction from previous payment` : "Client bill updated").getResponse()
@@ -538,8 +550,6 @@ async function handleUnpaidBill(bill, billJSON, paymentAmount, clientId, respons
 
         if (clientRecentStatus.status !== connectionStatusTypes.Connected) {
             const reconnected = await reconnectClient(clientId, clientRecentStatus.status)
-
-            console.log(clientRecentStatus, reconnected)
             responseMessage = reconnected && "Bill paid and client reconnected"
         }
 
