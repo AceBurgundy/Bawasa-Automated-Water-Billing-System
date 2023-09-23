@@ -20,7 +20,7 @@
     border-bottom: var(--borderDefaultGray);
 }
 
-#table-data-headers.billing, .table-info.billing {
+#table-data-headers.account, .table-info.account {
     grid-template-columns: 6% 12% 6% 6% 6% 7% 6% 8% 6% 5% 5% 6% 7% 10% 4%;
 }
 

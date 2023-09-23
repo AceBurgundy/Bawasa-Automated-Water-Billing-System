@@ -1,3 +1,5 @@
+@import url("./image-capture.css");
+
 .form-field__info__error {
     font-size: 0.7rem;
     color: red;
@@ -5,8 +7,8 @@
 
 /* Apply styles to all input elements except submit and reset */
 input:not([type="submit"]):not([type="reset"]),
-.number,
 select,
+.number,
 .input-style {
     padding: 0.7rem;
     border-radius: 5px;
@@ -40,10 +42,8 @@ select,
 }
 
 .input-readonly {
-    padding: 0 !important;
-    border-radius: 0px !important;
     border: none !important;
-    height: fit-content !important;
-    font-size: 1.1rem !important;
+    border-radius: 0px !important;
+    border-bottom: 1px solid var(--gray) !important;
     pointer-events: none;
 }

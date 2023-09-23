@@ -1,0 +1,59 @@
+.form-field.image-capture {
+    width: fit-content;
+    height: fit-content;
+    margin: 0 auto;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.form-field__canvas {
+    width: 20vw;
+    height: 20vw;
+    object-fit: contain;
+    position: relative;
+    pointer-events: none;
+    border: var(--borderDefaultGray);
+}
+
+.form-field__canvas {
+    z-index: 2;
+}
+
+.form-field__video {
+    width: 20vw;
+    height: 20vw;
+    position: absolute;
+    pointer-events: none;
+    border: var(--borderDefaultGray);
+    z-index: 1;
+}
+
+.form-field__options {
+    width: 100%;
+}
+
+.form-field__options__input {
+    display: none;
+    width: 100%;
+}
+
+.form-field__options__input::-webkit-file-upload-button {
+    visibility: hidden;
+    width: 0.1px;
+}
+
+.form-field__options__input::before {
+    content: 'Select Image';
+    display: inline-block;
+    background: var(--primary);
+    border-radius: 20px;
+    padding: 1px 1rem;
+    white-space: nowrap;
+    -webkit-user-select: none;
+    cursor: pointer;
+}
+
+.form-field__options__input:hover::before {
+    background: var(--lighterPrimary);
+}
