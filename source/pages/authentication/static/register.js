@@ -11,8 +11,8 @@ import {
     camelToDashed
 } from "../../../assets/scripts/helper.js"
 
-import { Select } from "../../../assets/scripts/classes/Select.js"
-import { Input } from "../../../assets/scripts/classes/Input.js"
+import Select from "../../../assets/scripts/classes/Select.js"
+import Input from "../../../assets/scripts/classes/Input.js"
 
 const { 
     isBirthDate, 
@@ -46,7 +46,7 @@ export default function loadRegister() {
                     ${
                         [
                             
-                            new Input(false, [isEmpty, [isOverThan, 2, 255]], {
+                            new Input([isEmpty, [isOverThan, 2, 255]], {
                                 flags: ["required"],
                                 attributes: {
                                     name: "firstName",
@@ -56,7 +56,7 @@ export default function loadRegister() {
                                 }
                             }),
 
-                            new Input(false, [isEmpty, [isOverThan, 2, 255]], {
+                            new Input([isEmpty, [isOverThan, 2, 255]], {
                                 flags: ["required"],
                                 attributes: {
                                     name: "middleName",
@@ -66,7 +66,7 @@ export default function loadRegister() {
                                 }
                             }),
 
-                            new Input(false, [isEmpty, [isOverThan, 2, 255]], {
+                            new Input([isEmpty, [isOverThan, 2, 255]], {
                                 flags: ["required"],
                                 attributes: {
                                     name: "lastName",
@@ -76,7 +76,7 @@ export default function loadRegister() {
                                 }
                             }),
 
-                            new Input(false, [isEmpty, isBirthDate], {
+                            new Input([isEmpty, isBirthDate], {
                                 flags: ["required"],
                                 attributes: {
                                     name: "birthDate",
@@ -86,7 +86,7 @@ export default function loadRegister() {
                                 }
                             }),
 
-                            new Input(false, [isEmpty, [isOverThan, 15, 70]], {
+                            new Input([isEmpty, [isOverThan, 15, 70]], {
                                 flags: ["required"],
                                 attributes: {
                                     name: "age",
@@ -107,7 +107,7 @@ export default function loadRegister() {
 
                         [
 
-                            new Select(false, [
+                            new Select([
                                 isEmpty,
                                 [isOverThan, shortestRelationshipOption, longestRelationshipOption],
                                 [notIn, [...Object.keys(window.userRelationshipTypes)]]
@@ -120,7 +120,7 @@ export default function loadRegister() {
                                 flags: ["required"]
                             }),
 
-                            new Input(false, [], {
+                            new Input([isValidPhoneNumber], {
                                 flags: ["required"],
                                 classes: ["number-input"],
                                 attributes: {
@@ -132,23 +132,23 @@ export default function loadRegister() {
                                 }
                             }),
 
-                            new Input(false, [isEmpty, isEmail, [isOverThan, 10, 255]], {
+                            new Input([isEmpty, isEmail, [isOverThan, 10, 255]], {
                                 flags: ["required"],
                                 attributes: {
                                     name: "email",
                                     type: "email",
                                     placeholder: "Email",
-                                    value: "sabalo99@gmail.com"
+                                    value: "samadriansabalo99@gmail.com"
                                 }
                             }),
 
-                            new Input(false, [isEmpty, [isOverThan, 10, 255]], {
+                            new Input([isEmpty, [isOverThan, 10, 255]], {
                                 flags: ["required"],
                                 attributes: {
                                     name: "password",
                                     type: "password",
                                     placeholder: "Password",
-                                    value: "AceBurgundy"
+                                    value: "Adrian2001."
                                 }
                             }),
 
@@ -194,9 +194,9 @@ export default function loadRegister() {
             const form = getById("register-form")
             const formData = getFormData(form)
 
-            const invalidElements = queryElements("invalid")
+            const invalidElements = queryElements(".invalid")
 
-            if (invalidElements > 0)
+            if (invalidElements.length > 0)
                 return makeToastNotification("Fix errors first")
 
             const response = await window.ipcRenderer.invoke("register", formData);
