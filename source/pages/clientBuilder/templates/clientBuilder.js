@@ -1,12 +1,26 @@
 
-import { Select } from "../../../assets/scripts/classes/Select.js";
-import { Input } from "../../../assets/scripts/classes/Input.js";
+import Select from "../../../assets/scripts/classes/Select.js";
+import Input from "../../../assets/scripts/classes/Input.js";
 import "../../../utilities/constants.js";
+import { getSampleForm } from "../static/randomFormFiller.js";
+import DocumentBoard from "../../../assets/scripts/classes/DocumentBoard.js";
 
 export function getTemplate(forEdit, clientData) { 
     
-    const longestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => b.length > a.length ? b : a).length
-    const shortestRelationshipOption = Object.values(window.userRelationshipTypes).reduce((a, b) => b.length < a.length ? b : a).length
+    const { 
+        isBirthDate, 
+        isEmail, 
+        isEmpty, 
+        isValidPhoneNumber, 
+        notIn,
+        isOverThan,
+        userRelationshipTypes
+    } = window
+    
+    const longestRelationshipOption = Object.values(userRelationshipTypes).reduce((a, b) => b.length > a.length ? b : a).length
+    const shortestRelationshipOption = Object.values(userRelationshipTypes).reduce((a, b) => b.length < a.length ? b : a).length
+
+    const formSample = getSampleForm()
 
     return `
 
@@ -63,7 +77,6 @@ export function getTemplate(forEdit, clientData) {
 
                                 <div class="content__form-box__group__left">
 
-
                                         <div class="content__form-box__input-box">
 
                                             <p>Full Name</p>
@@ -73,38 +86,38 @@ export function getTemplate(forEdit, clientData) {
                                                     ${
                                                         [
 
-                                                            new Input(false, [], {
+                                                            new Input([isEmpty, [isOverThan, 2, 255]], {
                                                                 attributes: {
                                                                     label: "First Name",
                                                                     name: "firstName",
-                                                                    value: `${forEdit ? clientData?.firstName : 'Sam'}`
+                                                                    value: `${forEdit ? clientData?.firstName : formSample.firstName }`
                                                                 },
                                                                 flags: ["required"]
                                                             }),
 
-                                                            new Input(false, [], {
+                                                            new Input([isEmpty, [isOverThan, 2, 255]], {
                                                                 attributes: {
                                                                     label: "Middle Name",
                                                                     name: "middleName",
-                                                                    value: `${forEdit ? clientData?.middleName : 'Adrian'}`
+                                                                    value: `${forEdit ? clientData?.middleName : formSample.middleName }`
                                                                 },
                                                                 flags: ["required"]
                                                             }),
 
-                                                            new Input(false, [], {
+                                                            new Input([isEmpty, [isOverThan, 2, 255]], {
                                                                 attributes: {
                                                                     label: "Last Name",
                                                                     name: "lastName",
-                                                                    value: `${forEdit ? clientData?.lastName : 'Panganoron'}`
+                                                                    value: `${forEdit ? clientData?.lastName : formSample.lastName }`
                                                                 },
                                                                 flags: ["required"]
                                                             }),
 
-                                                            new Input(false, [], {
+                                                            new Input([isEmpty, [isOverThan, 2, 255]], {
                                                                 attributes: {
                                                                     label: "Extension",
                                                                     name: "extension",
-                                                                    value: `${forEdit ? clientData?.extension : 'Sabalo'}`
+                                                                    value: `${forEdit ? clientData?.extension : formSample.extension }`
                                                                 },
                                                                 flags: ["required"]
                                                             })
@@ -123,16 +136,16 @@ export function getTemplate(forEdit, clientData) {
                                             <div class="content__form-box__input-box__inputs">
 
                                                 ${
-                                                    new Select(false, [
+                                                    new Select([
                                                         isEmpty,
                                                         [isOverThan, shortestRelationshipOption, longestRelationshipOption],
-                                                        [notIn, [...Object.keys(window.userRelationshipTypes)]]
+                                                        [notIn, [...Object.keys(userRelationshipTypes)]]
                                                     ], {
-                                                        options: window.userRelationshipTypes,
+                                                        options: userRelationshipTypes,
                                                         attributes: {
                                                             label: "Relationship Status",
                                                             name: "relationshipStatus",
-                                                            selected: clientData?.relationshipStatus,
+                                                            selected: forEdit ? clientData?.relationshipStatus : formSample.relationshipStatus,
                                                         },
                                                         classes: ["input-style"],
                                                         flags: ["Required"]
@@ -152,65 +165,65 @@ export function getTemplate(forEdit, clientData) {
                                                     
                                                     [
 
-                                                        new Input(false, [isEmpty, isBirthDate], {
+                                                        new Input([isEmpty, isBirthDate], {
                                                             flags: ["required"],
                                                             attributes: {
                                                                 name: "birthDate",
                                                                 type: "date",
                                                                 label: "BirthDate",
-                                                                value: `${forEdit ? clientData?.birthDate : ''}`
+                                                                value: `${forEdit ? clientData?.birthDate : formSample.birthDate }`
                                                             }
                                                         }),
 
-                                                        new Input(false, [isEmpty, [isOverThan, 15, 70]], {
+                                                        new Input([isEmpty, [isOverThan, 15, 70]], {
                                                             flags: ["required"],
                                                             attributes: {
                                                                 name: "age",
                                                                 type: "number",
                                                                 label: "Age",
-                                                                value: `${forEdit ? clientData?.birthDate : ''}`
+                                                                value: `${forEdit ? clientData?.age : formSample.age }`
                                                             }
                                                         }),
                             
-                                                        new Input(false, [isEmpty, isEmail, [isOverThan, 10, 255]], {
+                                                        new Input([isEmpty, isEmail, [isOverThan, 10, 255]], {
                                                             flags: ["required"],
                                                             attributes: {
                                                                 name: "email",
                                                                 type: "email",
                                                                 label: "Email",
-                                                                value: "sabalo99@gmail.com",
+                                                                value: `${forEdit ? clientData?.email : formSample.email }`,
                                                                 minLength: 5
                                                             }
                                                         }),
 
-                                                        new Input(false, [isEmpty, isEmail, [isOverThan, 10, 255]], {
+                                                        new Input([isEmpty, [isOverThan, 2, 255]], {
                                                             flags: ["required"],
                                                             attributes: {
                                                                 name: "occupation",
                                                                 label: "Occupation",
-                                                                value: `${forEdit ? clientData?.occupation : 'Software Engineer'}`,
-                                                                minLength: 5,
+                                                                value: `${forEdit ? clientData?.occupation : formSample.occupation }`,
+                                                                minLength: 2,
                                                                 maxLength: 100
                                                             }
                                                         }),
 
-                                                        new Input(false, [isEmpty, isEmail, [isOverThan, 10, 255]], {
+                                                        new Input([], {
                                                             flags: ["required"],
                                                             attributes: {
                                                                 name: "meterNumber",
                                                                 label: "Meter Number",
-                                                                value: `${forEdit ? clientData?.meterNumber : 'dsgds3125'}`
+                                                                value: `${forEdit ? clientData?.meterNumber : formSample.meterNumber }`
                                                             }
                                                         }),
 
-                                                        new Input(false, [], {
+                                                        new Input([isEmpty, isValidPhoneNumber], {
                                                             flags: ["required"],
                                                             classes: ["number-input"],
                                                             attributes: {
                                                                 name: "phoneNumber",
                                                                 type: "number",
                                                                 label: "Phone Number",
-                                                                value: `${forEdit ? clientData?.phoneNumbers[0]?.phoneNumber : '9965739119'}`,
+                                                                value: `${forEdit ? clientData?.phoneNumbers[0]?.phoneNumber : formSample.phoneNumber }`,
                                                                 maxlength: "10"
                                                             }
                                                         }),
@@ -223,18 +236,6 @@ export function getTemplate(forEdit, clientData) {
                                         </div>
                                         
                                     
-                                </div>
-
-                                <div id="client-form-image-box">
-                                    <video id="client-form-video" autoplay playsinline></video>
-                                    <canvas id="client-form-image-template"></canvas>
-                                
-                                    <div id="client-form-image-box-options">
-                                        <input type="file" accept="image/*" id="client-form-image">
-                                        <button id="client-form-image-capture" class="button-primary take-image">
-                                            Take Image
-                                        </button>
-                                    </div>
                                 </div>
 
                             </div>
@@ -255,79 +256,77 @@ export function getTemplate(forEdit, clientData) {
                                                 
                                                 [
 
-                                                    new Input(false, [], {
-                                                        flags: ["required"],
+                                                    new Input([isEmpty, [isOverThan, 5, 255]], {
                                                         attributes: {
                                                             name: "presentAddressStreet",
                                                             label: "Street",
-                                                            value: `${forEdit ? clientData?.presentAddress?.street : 'Yumang'}`,
-                                                            maxlength: 50,
+                                                            value: `${forEdit ? clientData?.presentAddress?.street : formSample.presentAddressStreet }`,
+                                                            maxLength: 255, 
                                                             minLength: 5
                                                         }
                                                     }),
 
-                                                    new Input(false, [], {
-                                                        flags: ["required"],
+                                                    new Input([isEmpty, [isOverThan, 5, 255]], {
                                                         attributes: {
                                                             name: "presentAddressSubdivision",
                                                             label: "Subdivision",
-                                                            value: `${forEdit ? clientData?.presentAddress?.subdivision : 'Pineda'}`,
-                                                            maxlength: 50,
+                                                            value: `${forEdit ? clientData?.presentAddress?.subdivision : formSample.presentAddressSubdivision }`,
+                                                            maxLength: 255, 
                                                             minLength: 5
                                                         }
                                                     }),
 
-                                                    new Input(false, [], {
+                                                    new Input([isEmpty, [isOverThan, 5, 255]], {
                                                         flags: ["required"],
                                                         attributes: {
                                                             name: "presentAddressBarangay",
                                                             label: "Barangay",
-                                                            value: `${forEdit ? clientData?.presentAddress?.barangay : 'City Heights'}`,
-                                                            maxlength: 50,
+                                                            value: `${forEdit ? clientData?.presentAddress?.barangay : formSample.presentAddressBarangay }`,
+                                                            maxLength: 255, 
                                                             minLength: 5
                                                         }
                                                     }),
 
-                                                    new Input(false, [], {
+                                                    new Input([isEmpty, [isOverThan, 5, 255]], {
                                                         flags: ["required"],
                                                         attributes: {
                                                             name: "presentAddressCity",
                                                             label: "City",
-                                                            value: `${forEdit ? clientData?.presentAddress?.city : 'General Santos City'}`,
-                                                            maxlength: 50,
+                                                            value: `${forEdit ? clientData?.presentAddress?.city : formSample.presentAddressCity }`,
+                                                            maxLength: 255, 
                                                             minLength: 5
                                                         }
                                                     }),
 
-                                                    new Input(false, [], {
+                                                    new Input([isEmpty, [isOverThan, 5, 255]], {
                                                         flags: ["required"],
                                                         attributes: {
                                                             name: "presentAddressProvince",
                                                             label: "Province",
-                                                            value: `${forEdit ? clientData?.presentAddress?.province : 'South Cotabato'}`,
-                                                            maxlength: 50,
+                                                            value: `${forEdit ? clientData?.presentAddress?.province : formSample.presentAddressProvince }`,
+                                                            maxLength: 255, 
                                                             minLength: 10
                                                         }
                                                     }),
 
-                                                    new Input(false, [], {
+                                                    new Input([isEmpty, [isOverThan, 4, 9999]], {
                                                         flags: ["required"],
                                                         attributes: {
                                                             name: "presentAddressPostalCode",
                                                             label: "Postal Code",
                                                             type: "number",
-                                                            value: `${forEdit ? clientData?.presentAddress?.postalCode : 9500}`,
+                                                            value: `${forEdit ? clientData?.presentAddress?.postalCode : formSample.postalCode }`,
                                                             maxlength: 4,
                                                             minLength: 4
                                                         }
                                                     }),
 
-                                                    new Input(false, [], {
+                                                    new Input([isEmpty, [isOverThan, 5, 255]], {
                                                         flags: ["required"],
                                                         attributes: {
                                                             name: "presentAddressDetails",
                                                             label: "Details",
-                                                            value: `${forEdit ? clientData?.presentAddress?.details : "Black gate, ladder style"}`,
+                                                            value: `${forEdit ? clientData?.presentAddress?.details : formSample.details }`,
                                                             maxLength: 255, 
                                                             minLength: 20
                                                         }
@@ -351,79 +350,77 @@ export function getTemplate(forEdit, clientData) {
                                                     
                                             [
 
-                                                new Input(false, [], {
-                                                    flags: ["required"],
+                                                new Input([isEmpty, [isOverThan, 5, 255]], {
                                                     attributes: {
                                                         name: "mainAddressStreet",
                                                         label: "Street",
-                                                        value: `${forEdit ? clientData?.mainAddress?.street : 'Yumang'}`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.street :  formSample.mainAddressStreet }`,
                                                         maxlength: 50,
                                                         minLength: 5
                                                     }
                                                 }),
 
-                                                new Input(false, [], {
-                                                    flags: ["required"],
+                                                new Input([isEmpty, [isOverThan, 5, 255]], {
                                                     attributes: {
                                                         name: "mainAddressSubdivision",
                                                         label: "Subdivision",
-                                                        value: `${forEdit ? clientData?.mainAddress?.subdivision : 'Pineda'}`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.subdivision :  formSample.mainAddressSubdivision }`,
                                                         maxlength: 50,
                                                         minLength: 5
                                                     }
                                                 }),
 
-                                                new Input(false, [], {
+                                                new Input([isEmpty, [isOverThan, 5, 255]], {
                                                     flags: ["required"],
                                                     attributes: {
                                                         name: "mainAddressBarangay",
                                                         label: "Barangay",
-                                                        value: `${forEdit ? clientData?.mainAddress?.barangay : 'City Heights'}`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.barangay : formSample.mainAddressBarangay }`,
                                                         maxlength: 50,
                                                         minLength: 5
                                                     }
                                                 }),
 
-                                                new Input(false, [], {
+                                                new Input([isEmpty, [isOverThan, 5, 255]], {
                                                     flags: ["required"],
                                                     attributes: {
                                                         name: "mainAddressCity",
                                                         label: "City",
-                                                        value: `${forEdit ? clientData?.mainAddress?.city : 'General Santos City'}`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.city : formSample.mainAddressCity }`,
                                                         maxlength: 50,
                                                         minLength: 5
                                                     }
                                                 }),
 
-                                                new Input(false, [], {
+                                                new Input([isEmpty, [isOverThan, 5, 255]], {
                                                     flags: ["required"],
                                                     attributes: {
                                                         name: "mainAddressProvince",
                                                         label: "Province",
-                                                        value: `${forEdit ? clientData?.mainAddress?.province : 'South Cotabato'}`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.province : formSample.mainAddressProvince }`,
                                                         maxlength: 50,
                                                         minLength: 10
                                                     }
                                                 }),
 
-                                                new Input(false, [], {
+                                                new Input([isEmpty, [isOverThan, 4, 9999]], {
                                                     flags: ["required"],
                                                     attributes: {
                                                         name: "mainAddressPostalCode",
                                                         label: "Postal Code",
                                                         type: "number",
-                                                        value: `${forEdit ? clientData?.mainAddress?.postalCode : 9500}`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.postalCode : formSample.postalCode }`,
                                                         maxlength: 4,
                                                         minLength: 4
                                                     }
                                                 }),
 
-                                                new Input(false, [], {
+                                                new Input([isEmpty, [isOverThan, 5, 255]], {
                                                     flags: ["required"],
                                                     attributes: {
                                                         name: "mainAddressDetails",
                                                         label: "Details",
-                                                        value: `${forEdit ? clientData?.mainAddress?.details : "Black gate, ladder style"}`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.details : formSample.details }`,
                                                         maxLength: 255, 
                                                         minLength: 20
                                                     }
@@ -437,32 +434,10 @@ export function getTemplate(forEdit, clientData) {
 
                                 </div>
                             
-
-                                <div class="content__form-box__input-box__inputs">
-
-                                    <div class="client-form-input-box__title">
-                                        <label>Client Documents</label>
-                                        <ul class="client-form-input-box__title__errors" data-error-key="clientFiles" >
-                                        </ul>
-                                    </div>
-                                    <label for="client-files-input" class="client-form-files__box">
-                                        <input 
-                                            type="file" 
-                                            id="client-files-input"
-                                            hidden
-                                            name="clientFiles"
-                                            multiple>
-                                            
-                                        <div id="client-form-files-box-message">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" id="upload"><path d="M8.71,7.71,11,5.41V15a1,1,0,0,0,2,0V5.41l2.29,2.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42l-4-4a1,1,0,0,0-.33-.21,1,1,0,0,0-.76,0,1,1,0,0,0-.33.21l-4,4A1,1,0,1,0,8.71,7.71ZM21,12a1,1,0,0,0-1,1v6a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V13a1,1,0,0,0-2,0v6a3,3,0,0,0,3,3H19a3,3,0,0,0,3-3V13A1,1,0,0,0,21,12Z"></path></svg>
-                                            <p>Drag and drop or click here to upload documents</p>
-                                            <p>Upload any files from desktop</p>
-                                        </div>
-                                    </label>
-
+                                <div class="content__form-box__input-box files">
                                 </div>
                         
-                            <div class="content__form-box__ last">                            
+                            <div class="content__form-box__input last">                            
                                 <button class="button-primary" id="client-register-submit-button">
                                     ${forEdit ? clientData && "Edit" : 'Create' }
                                 </button>
