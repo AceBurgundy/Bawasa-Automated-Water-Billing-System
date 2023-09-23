@@ -106,6 +106,8 @@ export function clientTable(user, clients, responseMessage) {
                             
                                 clients.map(client => {
 
+                                    console.log(client);
+
                                     const { fullName, birthDate, connectionStatuses, meterNumber, id, phoneNumbers } = client
 
                                     const address = [
@@ -145,24 +147,24 @@ export function clientTable(user, clients, responseMessage) {
                                             </div>
                                         </div>
                                         <div class="table-info__item">
-                                            <p>${fullName}</p>
+                                            <p>${ showData(fullName) }</p>
                                         </div>
                                         <div class="table-info__item">
                                             <p>
-                                                ${address}
+                                                ${ showData(address) }
                                             </p>
                                         </div>
                                         <div class="table-info__item">
-                                            <p>+63${showData(phoneNumbers[0].phoneNumber)}</p>
+                                            <p>+63${showData(phoneNumbers[0]?.phoneNumber, "XXXXXXXXXX")}</p>
                                         </div>
                                         <div class="table-info__item">
-                                            <p>${formatDate(birthDate)}</p>
+                                            <p>${showData(birthDate)}</p>
                                         </div>
                                         <div class="table-info__item">
-                                            <p>${meterNumber}</p>
+                                            <p>${ showData(meterNumber) }</p>
                                         </div>
                                         <div class="table-info__item">
-                                            <p>${connectionStatus}</p>
+                                            <p>${ showData(connectionStatus) }</p>
                                         </div>
                                         <div class="table-info__item table-menu" data-client-id="${id}">
                                             <div class="icon-box">
