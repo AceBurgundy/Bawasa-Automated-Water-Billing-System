@@ -1,4 +1,5 @@
 import { billingTableRow } from "./billingTableRow.js";
+import BillingRow from "./classes/BillingRow.js";
 
 /**
  * Generate a billing table HTML based on the provided billing data.
@@ -9,7 +10,7 @@ import { billingTableRow } from "./billingTableRow.js";
  * @returns {string} - Generated HTML for the billing table.
  */
 export default function billingTable(bills, user, responseMessage) {
-        
+            
     return `
         <section id="section-type-container" class="page">
 
@@ -121,7 +122,7 @@ export default function billingTable(bills, user, responseMessage) {
                             <p>Billing</p>
                         </div>
 
-                        <div id="table-data-headers" class="billing">
+                        <div id="table-data-headers" class="account">
                             <div class="table-data-headers__item">
                                 <p>Account #</p>
                             </div>
@@ -171,7 +172,7 @@ export default function billingTable(bills, user, responseMessage) {
                         <div id="table-data-row">
                             ${
                                 responseMessage !== null ? `<p style="margin: 1rem">${responseMessage}</p>` :
-                                    bills.map((billing, index) => billingTableRow(billing, index)).join("")
+                                    bills.map((billing, index) => new BillingRow(billing, index)).join("")
                             }
                         </div>
                 </div>
