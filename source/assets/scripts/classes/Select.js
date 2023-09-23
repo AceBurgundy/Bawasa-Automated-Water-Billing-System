@@ -5,13 +5,12 @@ import { Field } from "./Field.js"
  * This class is used to create HTML select input fields with various options.
  * @extends Field
  * @constructor
- * @param {boolean} forEdit - Indicates whether the field is for editing.
  * @param {object} validations - The validations to apply to the field.
  * @param {object} props - The properties of the Select field.
  * @throws {Error} Throws an error if invalid properties are provided.
- * 
+ *
  * @example
- * new Select(false, {}, {
+ * new Select({}, {
  *   attributes: {
  *     name: 'mySelect',
  *     placeholder: 'Choose an option',
@@ -24,16 +23,14 @@ import { Field } from "./Field.js"
  *   flags: ["required", "readonly"]
  * })
  */
-class Select extends Field {
-
+export default class Select extends Field {
     /**
      * Create a Select field.
-     * @param {boolean} forEdit - Indicates if the field is for editing.
      * @param {object} validations - The validations to apply.
      * @param {object} props - The field's properties.
      */
-    constructor(forEdit, validations, props) {
-        super(forEdit, validations, props)
+    constructor(validations, props) {
+        super(validations, props)
     }
 
     /**
@@ -62,15 +59,15 @@ class Select extends Field {
 
         const { options } = this.props
 
-        const selectAttributes = this.cleanAttributes(this.attributes)
-        const selectClasses = this.cleanClasses(this.classes)
+        const selectAttributes = this.cleanAttributes(this.attributes)        
+        const cleanClasses = this.cleanClasses(this.classes)
 
         return `
-            <select id="${this.dashedName}-field__input" name="${name}" class="input-style form-field__input ${selectClasses}" ${selectAttributes} ${this.flags}>
+            <select id="${this.id}" name="${name}" class="input-style form-field__input ${cleanClasses}" ${selectAttributes} ${this.flags}>
             <option disabled selected>
-                    ${ placeholder !== undefined ? placeholder : "Select" }
-                </option>
-                ${ this.renderOptions(options) }
+                    ${placeholder !== undefined ? placeholder : "Select"}
+            </option>
+                ${this.renderOptions(options)}
             </select>
         `
     }
@@ -80,7 +77,6 @@ class Select extends Field {
      * @returns {EvaluationResult} The evaluation result.
      */
     evaluateProps() {
-
         /**
          * Error message.
          * @param {string} error - The error message.
@@ -135,15 +131,13 @@ class Select extends Field {
     }
 
     /**
-     * Clean the class names.
-     * @param {string[]} classes - The class names.
-     * @returns {string} The cleaned class names.
+     * Cleans and formats the input classes.
+     * @param {string[]} classes - An array of classes to clean and format.
+     * @returns {string} The cleaned and formatted classes as a string.
      */
     cleanClasses(classes) {
-        if (this.forEdit) classes.push("input-readonly")
-        return classes.join(" ")
+        return classes.length > 0 ? classes.join(" ") : ""
     }
 
 }
 
-export { Select }
