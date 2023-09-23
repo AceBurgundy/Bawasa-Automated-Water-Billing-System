@@ -1,6 +1,6 @@
 import { renderBillingSection } from "../../billing/static/billing.js"
-import { Input } from "../../../assets/scripts/classes/Input.js"
 import { renderProfile } from "../../profile/static/profile.js"
+import Input from "../../../assets/scripts/classes/Input.js"
 import "../../../utilities/validations.js"
 import loadRegister from "./register.js"
 
@@ -11,6 +11,8 @@ import {
     queryElements,
     getFormData,
 } from "../../../assets/scripts/helper.js"
+
+import { renderClientBuilder } from "../../clientBuilder/static/clientBuilder.js"
 
 const { isEmpty, isEmail, isOverThan } = window
 
@@ -30,7 +32,7 @@ export default async function loadLogin() {
 
                 ${
                     [
-                        new Input(false, [ isEmail, [isOverThan, 0, 255]], {
+                        new Input([ isEmail, [isOverThan, 0, 255]], {
                             flags: ["required"],
                             attributes: {
                                 name: "email",
@@ -40,7 +42,7 @@ export default async function loadLogin() {
                             }
                         }),
 
-                        new Input(false, [isEmpty], {
+                        new Input([isEmpty], {
                             flags: ["required"],
                             attributes: {
                                 name: "password",
@@ -92,20 +94,18 @@ export default async function loadLogin() {
 
             const form = getById("login-form")
             const formData = getFormData(form)
-            const invalidElements = queryElements("invalid")
+            const invalidElements = queryElements(".invalid")
 
-            if (invalidElements > 0)
+            if (invalidElements.length > 0)
                 return makeToastNotification("Fix errors first")
 
             const response = await window.ipcRenderer.invoke("login", formData)
-
-            console.log(response);
 
             if (response.status === "success") {
                 transition(renderBillingSection);
             } else {
             
-                if (response.hasOwnProperty("fieldErrors")) {
+                if ("fieldErrors" in response && Object.keys(response.fieldErrors).length > 0) {
 
                     const { fieldErrors } = response
 
@@ -116,7 +116,7 @@ export default async function loadLogin() {
                     })
 
                 } else {
-                    makeToastNotification(response.toast)
+                    makeToastNotification(response.toast[0])
                 }
             }
         }
