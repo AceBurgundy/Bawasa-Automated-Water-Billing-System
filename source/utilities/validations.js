@@ -13,7 +13,7 @@ const userRelationshipTypes = {
 const isEmpty = value => {
 
     if (value === null) return { passed: false, message: `${isEmpty.name} validation cannot work without a value`}
-
+    
     return value === "" ?
         { passed: false, message: "Cannot be empty" }
     :
@@ -168,9 +168,9 @@ function validateFormData(formData) {
 
         age: [[isEmpty], [isOverThan, 15, 70]],
 
-        email: [[isEmpty], [isEmail], [isOverThan, 10, 255]],
+        email: [[isEmpty], [isEmail], [isOverThan, 5, 255]],
 
-        occupation: [[isEmpty], [isOverThan, 5, 255]],
+        occupation: [[isEmpty], [isOverThan, 2, 255]],
 
         phoneNumber: [[isEmpty], [isValidPhoneNumber]],
 
