@@ -9,8 +9,8 @@ import { showData, formatDate } from "../../../assets/scripts/helper.js";
  */
 export function billingTableRow(billing, index) {
 
-    const clientHasBills = billing.Bills.length > 0 
-    const billData = billing.Bills.length > 0 ? billing.Bills[0] : {};
+    const clientHasBills = billing.bills.length > 0 
+    const billData = billing.bills.length > 0 ? billing.bills[0] : {};
     
     const { 
         firstReading, 
@@ -61,7 +61,7 @@ export function billingTableRow(billing, index) {
     
     return `
 
-        <div class="table-info billing" data-client-index="${index}" data-client-id="${billing.id}" data-account-number="${billing.accountNumber}" data-meter-number="${billing.meterNumber}" data-full-name="${billing.fullName}">
+        <div class="table-info account" data-client-index="${index}" data-client-id="${billing.id}" data-account-number="${billing.accountNumber}" data-meter-number="${billing.meterNumber}" data-full-name="${billing.fullName}">
 
             <div class="table-info__options" data-client-id="${billing.id}">
                 ${
@@ -98,7 +98,7 @@ export function billingTableRow(billing, index) {
                 <p>${showData(billAmount)}</p>
             </div>
             <div class="table-info__item">
-                <p>${showData(formatDate(dueDate))}</p>
+                <p>${showData(dueDate)}</p>
             </div>
             <div class="table-info__item">
                 <p>${showData(paymentStatus)}</p>
@@ -116,7 +116,7 @@ export function billingTableRow(billing, index) {
                 <p>${showData(paymentAmount, "0.0")}</p>
             </div>
             <div class="table-info__item">
-                <p>${showData(formatDate(disconnectionDate))}</p>
+                <p>${showData(disconnectionDate)}</p>
             </div>
             <div class="table-info__item table-menu" data-client-id="${billing.id}" data-client-disconnected="${clientDisconnected}">
                 <div class="icon-box">
