@@ -10,6 +10,7 @@ const User = require("../../../models/User")
 const {
     validateFormData,
 } = require("../../utilities/validations")
+const { log } = require("console")
 
 ipcMain.handle("login", async (event, formData) => {
 
@@ -27,9 +28,7 @@ ipcMain.handle("login", async (event, formData) => {
 
     const keysArray = Object.keys(formData)
 
-    const missingElements = Object.keys(fields).filter(
-        field => !keysArray.includes(field)
-    )
+    const missingElements = Object.keys(fields).filter( field => !keysArray.includes(field))
 
     if (missingElements.length > 0) {
         return response
@@ -52,7 +51,7 @@ ipcMain.handle("login", async (event, formData) => {
 
     try {
         const user = await User.findOne({ where: { email: formData.email } })
-
+        
         const userJSON = user ? user.toJSON() : null
 
         if (!userJSON) {
