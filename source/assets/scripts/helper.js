@@ -62,14 +62,7 @@ export function makeToastNotification(message) {
  * @param {String} placeholder - A placeholder that replaces the data if the data is null or undefined. Default: ""
  * @returns string
  */
-export function showData(data, placeholder = "") {
-    if (data !== null && data !== undefined) {
-        if (typeof date === 'object' && date instanceof Date) return formatDate(data)
-        return data
-    } else {
-        return placeholder
-    }
-}
+export const showData = (data, placeholder = "") => data ?? false ? data : placeholder
 
 /**
  *
@@ -77,11 +70,14 @@ export function showData(data, placeholder = "") {
  * @returns the formatted date in format "MMM DD, YYYY"
  */
 export function formatDate(date) {
-    return new Date(date).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-    })
+    
+    return date ?? false ? new Date(date).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        })    
+    : ''
+
 }
 
 /**
