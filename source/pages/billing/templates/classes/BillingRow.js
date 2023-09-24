@@ -168,19 +168,7 @@ export default class BillingRow {
             }
     
             if (exists(payBillButton)) {
-                payBillButton.onclick = event => {
-
-                    const parent = event.target.parentElement
-                    
-                    const paymentStatus = parent.getAttribute("data-payment-status")
-
-                    if (parent.getAttribute("data-client-has-accounts") === "false") 
-                        return makeToastNotification("Client has no accounts yet")
-
-                    if (paymentStatus === "paid" || paymentStatus === "overpaid") {
-                        return makeToastNotification("Client had already paid")
-                    }
-
+                payBillButton.onclick = () => {
                     new BillForm(this.rowId, "pay", this.account, this.clientHasPaid)
                 }
             }
