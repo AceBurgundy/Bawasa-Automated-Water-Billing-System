@@ -2,40 +2,68 @@ import { clearAndHideDialog, fillAndShowDialog, generateHTML, generateUniqueId, 
 import BillingRow from "./BillingRow.js";
 
 /**
- * Generates a new bill entry form template for a client's billing record.
+ * Generates a ${this.billType} bill entry form template for a client's billing record.
  *
  * @param {Object} formData - The form data containing client details and bills.
- * @param {boolean} forNewBill - Indicates whether the form is for a new bill entry.
- * @returns {string} - The HTML template for the new bill entry form.
+ * @param {boolean} forNewBill - Indicates whether the form is for a ${this.billType} bill entry.
+ * @returns {string} - The HTML template for the ${this.billType} bill entry form.
  */
-export default class NewBillForm {
+export default class BillForm {
 
-    constructor(rowId, formData, forNewBill) {
+    constructor(rowId, billType, formData, forNewBill) {
         
+        this.billType = billType
         this.formData = formData
         this.forNewBill = forNewBill
         this.rowId = rowId
-        this.clientId = formData.id ?? ''
 
         const latestBill = this.formData.Bills[0];
         this.billId = latestBill?.id
+        console.log(latestBill, this.billId);
+        
+        const { lastName, fullName, id } = formData
 
-        const readingWarning = (latestBill === undefined || this.forNewBill) ?
-            "This will be the client's new billing record" :
-            `Mr/Mrs ${formData?.lastName}'s previous reading is ${latestBill.firstReading}`;
+        this.clientId = id ?? ''
+
+        let readingWarning = null
+        let title = null
+        
+        if (billType === "new") {
+
+            title = `New Reading for Mr/Mrs ${showData(formData.fullName)}`
+
+            readingWarning = latestBill === undefined || this.forNewBill ?
+                "This will be the client's new billing record" 
+            :
+                `Mr/Mrs ${showData(lastName)}'s previous reading is ${showData(latestBill.firstReading)}`;
+        }
     
-        this.closeButtonId = generateUniqueId("new-bill-form-close")
-        this.submitButtonId = generateUniqueId("new-bill-form-submit")
-        this.dialogId = generateUniqueId("new-bill-box")
-        this.dialogErrorId = generateUniqueId("new-bill-form-input-box-header-error")
-        this.dialogInputId = generateUniqueId("new-bill-form-input-box-input")
+        if (billType === "pay") {
+
+            title = `Bills payment for Mr/Mrs ${showData(formData.fullName)}`
+            
+            readingWarning = latestBill.paymentStatus === "unpaid" ?
+                `Mr/Mrs ${showData(fullName)} current bill is ${showData(latestBill.billAmount)}`
+            
+            : latestBill.paymentStatus === "underpaid" ?
+                `Mr/Mrs ${showData(fullName)} remaining balance is ${showData(latestBill.remainingBalance)}`
+            
+            : ''
+        }
+    
+
+        this.closeButtonId = generateUniqueId(`${billType}-bill-form-close`)
+        this.submitButtonId = generateUniqueId(`${billType}-bill-form-submit`)
+        this.dialogId = generateUniqueId(`${billType}-bill-box`)
+        this.dialogErrorId = generateUniqueId(`${billType}-bill-form-input-box-header-error`)
+        this.dialogInputId = generateUniqueId(`${billType}-bill-form-input-box-input`)
 
         this.template = `
-                <form id="new-bill-form">
-                    <p id="new-bill-form-title">New Reading for Mr/Mrs ${showData(formData.fullName)}</p>
-                    <div id="new-bill-form__input-box">
-                        <p id="new-bill-form__input-box__warning">${readingWarning}</p>
-                            <div id="new-bill-form-input-box-header">
+                <form id="${billType}-bill-form">
+                    <p id="${billType}-bill-form-title">${title}</p>
+                    <div id="${billType}-bill-form__input-box">
+                        <p id="${billType}-bill-form__input-box__warning">${readingWarning}</p>
+                            <div id="${billType}-bill-form-input-box-header">
                             <label>Reading</label>
                         <p id="${this.dialogErrorId}"></p>
                         </div>
@@ -46,9 +74,11 @@ export default class NewBillForm {
                             value="12"
                             required>
                     </div>
-                    <div id="new-bill-form-buttons">
+                    <div id="${billType}-bill-form-buttons">
                         <button class="button-primary" id="${this.closeButtonId}">Cancel</button>
-                        <button class="button-primary" id="${this.submitButtonId}">Add</button>
+                        <button class="button-primary" id="${this.submitButtonId}">${
+                            billType === "new" ? "Add" : "Pay"
+                        }</button>
                     </div>
                 </form>
         `;
@@ -80,20 +110,24 @@ export default class NewBillForm {
 
         if (this.clientId, paymentAmount) {
             
-            const data = {
+            const newBillData = {
                     clientId: this.clientId,
                     monthlyReading: paymentAmount,
                     billId: this.billId ?? '',
                 }
 
-            const response = await window.ipcRenderer.invoke(`new-bill`, data)
-            console.log(response, response.billId);
+            const payBillData = {
+                amount: paymentAmount,
+                billId: this.billId
+            }
+
+            const response = await window.ipcRenderer.invoke(`${this.billType}-bill`, this.billType === "new" ? newBillData : payBillData)
+            
             if (response.status === "success") {
                 makeToastNotification(response.toast[0])
                 clearAndHideDialog()
 
                 const getResponse = await window.ipcRenderer.invoke("get-bill", { billId: response.billId ?? this.billId, clientId: this.clientId })
-                console.log(getResponse);
 
                 if (getResponse.status === "failed") {
                     getResponse.toast[0] && makeToastNotification(getResponse.toast[0])
@@ -102,11 +136,8 @@ export default class NewBillForm {
 
                 const updatedBill = JSON.parse(getResponse.data)
 
-                console.log(updatedBill);
-
                 const originalRow = getById(this.rowId)
 
-                console.log(new BillingRow(updatedBill));
                 originalRow.replaceWith(generateHTML(new BillingRow(updatedBill)))
                               
 
@@ -128,7 +159,8 @@ export default class NewBillForm {
             const exists = element => document.body.contains(element)
 
             if (exists(closeButton)) {
-                closeButton.onclick = () => {
+                closeButton.onclick = event => {
+                    event.preventDefault()
                     this.dialogElement.close()
                     this.dialogElement.innerHTML = ''
                 }
