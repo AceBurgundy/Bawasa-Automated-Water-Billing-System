@@ -2,7 +2,7 @@
 
 import { renderClientBuilder } from "../../clientBuilder/static/clientBuilder.js"
 import { reconnectClientForm } from "../templates/reconnectClientForm.js"
-import { renderBillingSection } from "../../billing/static/billing.js"
+import renderBillingSection from "../../billing/static/billing.js"
 import { renderProfile } from "../../profile/static/profile.js"
 import loadLogin from "../../authentication/static/login.js"
 import { clientTable } from "../templates/clients.js"

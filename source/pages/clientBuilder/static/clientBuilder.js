@@ -1,8 +1,8 @@
 
 import DocumentBoard from "../../../assets/scripts/classes/DocumentBoard.js"
 import InputCapture from "../../../assets/scripts/classes/InputCapture.js"
-import { renderBillingSection } from "../../billing/static/billing.js"
 import { renderClientSection } from "../../clients/static/clients.js"
+import renderBillingSection from "../../billing/static/billing.js"
 import { renderProfile } from "../../profile/static/profile.js"
 import { getTemplate } from "../templates/clientBuilder.js"
 import "../../../utilities/constants.js"

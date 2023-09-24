@@ -1,7 +1,6 @@
 
-import InputCapture from "../../../assets/scripts/classes/InputCapture.js"
-import { renderBillingSection } from "../../billing/static/billing.js"
 import { renderClientSection } from "../../clients/static/clients.js"
+import renderBillingSection from "../../billing/static/billing.js"
 import { getTemplate } from "../templates/profile.js"
 import "../../../utilities/constants.js"
 

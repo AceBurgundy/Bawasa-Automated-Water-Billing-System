@@ -1,4 +1,4 @@
-import { renderBillingSection } from "../../billing/static/billing.js"
+import renderBillingSection from "../../billing/static/billing.js"
 import { renderProfile } from "../../profile/static/profile.js"
 import Input from "../../../assets/scripts/classes/Input.js"
 import "../../../utilities/validations.js"
