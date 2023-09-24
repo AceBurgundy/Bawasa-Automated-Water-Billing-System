@@ -1,6 +1,6 @@
-// @collapse
+// collapse
 import { formatDate, generateUniqueId, getById, showData } from "../../../../assets/scripts/helper.js";
-import NewBillForm from "./NewBillForm.js";
+import BillForm from "./BillForm.js";
 
 export default class BillingRow {
 
@@ -163,13 +163,25 @@ export default class BillingRow {
     
             if (exists(newBillButton)) {
                 newBillButton.onclick = () => {
-                    new NewBillForm(this.rowId, this.account, this.clientHasPaid)
+                    new BillForm(this.rowId, "new", this.account, this.clientHasPaid)
                 }
             }
     
             if (exists(payBillButton)) {
-                payBillButton.onclick = () => {
-                    console.log("pay");
+                payBillButton.onclick = event => {
+
+                    const parent = event.target.parentElement
+                    
+                    const paymentStatus = parent.getAttribute("data-payment-status")
+
+                    if (parent.getAttribute("data-client-has-accounts") === "false") 
+                        return makeToastNotification("Client has no accounts yet")
+
+                    if (paymentStatus === "paid" || paymentStatus === "overpaid") {
+                        return makeToastNotification("Client had already paid")
+                    }
+
+                    new BillForm(this.rowId, "pay", this.account, this.clientHasPaid)
                 }
             }
     
