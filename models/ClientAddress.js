@@ -110,7 +110,25 @@ const ClientAddress = db.define(
                     msg: "Address details cannot be left blank"
                 }
             }
-        }
+        },
+
+        fullAddress: {
+            type: DataTypes.VIRTUAL,
+            get() {
+                return [ 
+                    this.details,
+                    this.subdivision ?? '',
+                    this.street ?? '',
+                    this.barangay,
+                    this.city,
+                    this.province,
+                    this.postalCode
+                ].join(" ")
+            },
+            set(value) {
+                throw new Error("Do not try to set the `fullName` value!")
+            },
+        },
     }
 )
 
