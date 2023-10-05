@@ -2,7 +2,7 @@
 
 
 const { connectionStatusTypes } = require("../../utilities/constants")
-const tryCatchWrapper = require("../../utilities/helpers")
+const { tryCatchWrapper, generateNextAccountOrBillNumber } = require("../../utilities/helpers")
 const Response = require("../../utilities/response")
 const { ipcMain } = require("electron")
 
@@ -256,6 +256,8 @@ ipcMain.handle("pay-bill", async (event, args) => {
 
     const paymentAmount = parseFloat(amount)
 
+    console.log(amount, billId);
+
     if (!paymentAmount) {
         return response.failed().addToast("Missing payment amount").getResponse()
     }
@@ -348,6 +350,7 @@ async function createNewBill(clientId, firstReading) {
     return await tryCatchWrapper(async () => {
         return await ClientBill.create({
             clientId: clientId,
+            billNumber: await generateNextAccountOrBillNumber(),
             firstReading: parseFloat(firstReading).toFixed(2)
         })
     })
@@ -415,7 +418,10 @@ async function getClientBillWithPartialPayments(billId) {
     return await tryCatchWrapper(async () => {
         return await ClientBill.findByPk(billId, {
             include: [
-                { model: PartialPayment }
+                { 
+                    model: PartialPayment,
+                    as: "partialPayments" 
+                }
             ]
         })
     })
@@ -428,7 +434,7 @@ async function getClientBillWithPartialPayments(billId) {
  * @returns {number} - The total amount of partial payments.
  */
 function calculateTotalPartialPayments(billJSON) {
-    return billJSON.Partial_Payments.reduce((total, partialPayment) => total + partialPayment.amountPaid, 0)
+    return billJSON.partialPayments.reduce((total, partialPayment) => total + partialPayment.amountPaid, 0)
 }
 
 /**
