@@ -14,6 +14,19 @@ const ClientBill = db.define(
             autoIncrement: true
         },
 
+        billNumber: {
+            type: DataTypes.STRING(7),
+            allowNull: false,
+            validate: {
+                notNull: {
+                    msg: "Account Number must be provided"
+                },
+                notEmpty: {
+                    msg: "Account Number cannot be left blank"
+                }
+            }
+        },
+
         clientId: {
             type: DataTypes.INTEGER,
             allowNull: false,
