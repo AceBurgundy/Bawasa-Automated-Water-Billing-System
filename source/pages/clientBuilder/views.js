@@ -1,7 +1,7 @@
 
+const { tryCatchWrapper, generateNextAccountOrBillNumber } = require("../../utilities/helpers")
 const { connectionStatusTypes } = require("../../utilities/constants")
 const { validateFormData } = require("../../utilities/validations")
-const tryCatchWrapper = require("../../utilities/helpers")
 const Response = require("../../utilities/response")
 const { db } = require("../../utilities/sequelize")
 const { ipcMain } = require("electron")
@@ -76,7 +76,7 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 		try {
 
 			const client = await Client.create({
-					accountNumber: await generateNextAccountNumber(),
+					accountNumber: await generateNextAccountOrBillNumber("Client"),
 					firstName: formData.firstName,
 					middleName: formData.middleName,
 					lastName: formData.lastName,
@@ -341,46 +341,6 @@ ipcMain.handle("get-client-profile-path", async (event, string) => {
 ipcMain.handle("get-file-profile-path", async (event, string) => {
 	return path.join(path.resolve(__dirname, '../../assets/images/icons/'), string)
 })
-
-/**
- * Generates the next account number based on the last client's account number.
- * @async
- * @function
- * @returns {Promise<string>} The generated account number.
- */
-const generateNextAccountNumber = async function () {
-
-    const lastClient = await Client.findOne({
-        order: [["createdAt", "DESC"]],
-    })
-
-    if (!lastClient) {
-        return "0000-AA"
-    }
-
-    let nextNumber = "0000"
-    let nextLetter = "AA"
-
-    const lastAccountNumber = lastClient.accountNumber
-    const lastNumberPart = parseInt(lastAccountNumber.slice(0, 4), 10)
-    const lastLetterPart = lastAccountNumber.slice(5)
-
-    if (lastNumberPart === 9999) {
-        nextNumber = "0000"
-
-        const lastLetterCharCode = lastLetterPart.charCodeAt(1)
-
-        lastLetterCharCode === 90
-            ? (nextLetter = "AA")
-            : (nextLetter =
-                  "A" + String.fromCharCode(lastLetterCharCode + 1))
-    } else {
-        nextNumber = String("0000" + (lastNumberPart + 1)).slice(-4)
-        nextLetter = lastLetterPart
-    }
-
-	return `${nextNumber}-${nextLetter}`
-}
 
 /**
  * Checks for duplicate client records based on provided form data.
