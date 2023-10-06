@@ -1,4 +1,13 @@
-import { clearAndHideDialog, fillAndShowDialog, generateHTML, generateUniqueId, getById, makeToastNotification, showData, showDialog } from "../../../../assets/scripts/helper.js";
+import { 
+    clearAndHideDialog, 
+    fillAndShowDialog, 
+    generateHTML, 
+    generateUniqueId, 
+    getById, 
+    makeToastNotification, 
+    showData 
+} from "../../../../assets/scripts/helper.js";
+
 import BillingRow from "./BillingRow.js";
 
 /**
@@ -10,7 +19,8 @@ import BillingRow from "./BillingRow.js";
  */
 export default class BillForm {
 
-    constructor(rowId, billType, formData, forNewBill) {
+    constructor(rowId, 
+        billType, formData, forNewBill) {
         
         this.billType = billType
         this.formData = formData

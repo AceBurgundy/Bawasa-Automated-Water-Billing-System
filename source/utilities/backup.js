@@ -1,6 +1,10 @@
 const { ipcMain, BrowserWindow, dialog } = require("electron")
 const { tryCatchWrapper, formatDate } = require("./helpers")
 const Response = require("./response")
+const ExcelJS = require('exceljs')
+const { log } = require("console")
+const fs = require("fs-extra")
+const path = require("path")
 
 const ClientPhoneNumber = require("../../models/ClientPhoneNumber")
 const UserPhoneNumber = require("../../models/UserPhoneNumber")
@@ -11,8 +15,6 @@ const ClientFile = require("../../models/ClientFile")
 const ClientBill = require("../../models/ClientBill")
 const Client = require("../../models/Client")
 const User = require("../../models/User")
-
-const { log } = require("console")
 
 const rowColor = backgroundColor => {
     return {
@@ -39,6 +41,15 @@ function newRow(worksheet, cellValues, backgroundColor, includeEmptyCells = true
             cell.border = thinCellBorder
         }
     })
+}
+
+const askDirectory = async () => {
+    const result = await dialog.showOpenDialog({
+        properties: ['openDirectory'],
+        title: 'Select Directory for XLSX File',
+    })
+
+    return !result.canceled && result.filePaths.length > 0 ? result.filePaths[0] : null
 }
 
 ipcMain.handle("full-user-data", async (event, args) => {
@@ -129,173 +140,167 @@ ipcMain.handle("backup-record", async (event, args) => {
     
     const { id } = args
 
-    const getClientResponse = await getClientData(id)
+    return new Promise( async(resolve, reject) => {
 
-    if (getClientResponse.status === "failed" || !getClientResponse.clientData) {
-        return response.failed().addToast(getClientResponse.toast[0]).getResponse()
-    }
-    
-    const clientData = getClientResponse.clientData
+        try {
 
-    const { 
-        fullName, 
-        age, 
-        relationshipStatus, 
-        accountNumber,
-        meterNumber,
-        birthDate,
-        email,
-        occupation
-    } = clientData
-    
-    const presentAddress = clientData.presentAddress ?? ''
-    const mainAddress = clientData.mainAddress ?? ''
-    const phoneNumber = clientData.phoneNumbers ? clientData.phoneNumbers[0].phoneNumber : ''
-    const bills = clientData.Bills
+            const getClientResponse = await getClientData(id)
 
-    const mainWindow = BrowserWindow.getFocusedWindow()
-
-    const ExcelJS = require('exceljs')
-
-    tryCatchWrapper(async () => {
-        const workbook = new ExcelJS.Workbook()
-        const worksheet = workbook.addWorksheet(`${fullName}'s Data`)
-    
-        worksheet.properties.defaultColWidth = 25.67
-        worksheet.properties.defaultRowHeight = 27.75
-    
-        worksheet.addRow([])
-        worksheet.addRow(["Client Details"])
-        worksheet.addRow([])
-
-        // Add data to the worksheet
-        worksheet.addRow([
-            "",
-            "Account Number",
-            "Meter Number",
-            "Full Name",
-            "Relationship Status",
-            "Birth Date",
-            "Age",
-            "Email",
-            "Occupation",
-            "Present Address",
-            "Main Address",
-            "Phone Numbers"
-        ])
-        
-        worksheet.addRow([
-            "",
-            accountNumber,
-            meterNumber,
-            fullName,
-            relationshipStatus,
-            formatDate(birthDate),
-            age,
-            email,
-            occupation,
-            presentAddress.fullAddress,
-            mainAddress.fullAddress,
-            phoneNumber ?? ''
-        ])
-        
-        // Additional data
-        if (bills) {
-            worksheet.addRow([])
-            worksheet.addRow(["Account History"])
-            worksheet.addRow([])
-
-            let currentIndex = 0
-
-            const rowColors = ['FFFFE0', 'FFFACD', 'FFE4B5', 'FFDAB9']
-            const colorIndex = currentIndex % rowColors.length
-            const currentColor = rowColors[colorIndex]
-
-            const clientBillHeaders = ["", "Bill Number", "First Reading", "Second Reading", "Consumption", "Bill Amount", "Payment Status", "Paid Amount", "Remaining Balance", "Excess", "Payment Date", "Penalty", "Due Date", "Disconnection Date" ]
-            newRow(worksheet, clientBillHeaders, currentColor)
-
-            bills.forEach((bill, index) => {
+            if (getClientResponse.status === "failed" || !getClientResponse.clientData) {
+                reject(response.failed().addToast(getClientResponse.toast[0]).getResponse())
+            }
             
-                currentIndex = index
-
-                const {
-                    billNumber,
-                    firstReading,
-                    secondReading,
-                    consumption,
-                    billAmount,
-                    paymentStatus,
-                    paymentAmount,
-                    remainingBalance,
-                    paymentExcess,
-                    penalty,
-                    dueDate,
-                    disconnectionDate,
-                    partialPayments
-                } = bill
-
-                billRow = [
-                    "",
-                    billNumber,
-                    firstReading ?? 0,
-                    secondReading ?? 0,
-                    consumption ?? 0,
-                    billAmount ?? 0,
-                    paymentStatus,
-                    paymentAmount ?? 0,
-                    remainingBalance ?? 0,
-                    paymentExcess ?? 0,
-                    penalty ?? 0,
-                    formatDate(dueDate),
-                    formatDate(disconnectionDate),
-                    ""
-                ]
-
+            const clientData = getClientResponse.clientData
+        
+            const { 
+                fullName, 
+                age, 
+                relationshipStatus, 
+                accountNumber,
+                meterNumber,
+                birthDate,
+                email,
+                occupation
+            } = clientData
+            
+            const presentAddress = clientData.presentAddress ?? ''
+            const mainAddress = clientData.mainAddress ?? ''
+            const phoneNumber = clientData.phoneNumbers ? clientData.phoneNumbers[0].phoneNumber : ''
+            const bills = clientData.Bills
+            
+            const directoryPath = await askDirectory()
+                
+            if (!directoryPath) {
+                reject(response.failed().addToast("Directory selection canceled").getResponse())
+            }
+    
+            const workbook = new ExcelJS.Workbook()
+            
+            const worksheet = workbook.addWorksheet(`${fullName}'s Data`)
+        
+            worksheet.properties.defaultColWidth = 25.67
+            worksheet.properties.defaultRowHeight = 27.75
+        
+            worksheet.addRow([])
+            worksheet.addRow(["Client Details"])
+            worksheet.addRow([])
+    
+            worksheet.addRow([ "", "Account Number", "Meter Number", "Full Name", "Relationship Status", "Birth Date", "Age", "Email", "Occupation", "Present Address", "Main Address", "Phone Numbers" ])        
+            worksheet.addRow([ "", accountNumber, meterNumber, fullName, relationshipStatus, formatDate(birthDate), age, email, occupation, presentAddress.fullAddress, mainAddress.fullAddress, phoneNumber ?? '' ])
+            
+            // Additional data
+            if (bills) {
                 worksheet.addRow([])
-
-                newRow(worksheet, billRow, currentColor)
-
-                if (partialPayments.length > 0) {
-
+                worksheet.addRow(["Account History"])
+                worksheet.addRow([])
+    
+                let currentIndex = 0
+    
+                const rowColors = ['FFFFE0', 'FFFACD', 'FFE4B5', 'FFDAB9']
+                const colorIndex = currentIndex % rowColors.length
+                const currentColor = rowColors[colorIndex]
+    
+                const clientBillHeaders = ["", "Bill Number", "First Reading", "Second Reading", "Consumption", "Bill Amount", "Payment Status", "Paid Amount", "Remaining Balance", "Excess", "Payment Date", "Penalty", "Due Date", "Disconnection Date" ]
+                newRow(worksheet, clientBillHeaders, currentColor)
+    
+                bills.forEach((bill, index) => {
+                
+                    currentIndex = index
+    
+                    const { billNumber, firstReading, secondReading, consumption, billAmount, paymentStatus, paymentAmount, remainingBalance, paymentExcess, penalty, dueDate, disconnectionDate, partialPayments } = bill
+    
+                    billRow = [ "", billNumber, firstReading ?? 0, secondReading ?? 0, consumption ?? 0, billAmount ?? 0, paymentStatus, paymentAmount ?? 0, remainingBalance ?? 0, paymentExcess ?? 0, penalty ?? 0, formatDate(dueDate), formatDate(disconnectionDate), "" ]
+    
                     worksheet.addRow([])
-
-                    const partialPaymentHeaders = ['', '', '', '', '', 'Partial Payments', 'Amount Paid', 'Payment Date']
-                    newRow(worksheet, partialPaymentHeaders, currentColor, false)
-                                    
-                    // Add partial payment data rows with background color
-                    partialPayments.forEach(partialPayment => {
-                        const { amountPaid, paymentDate } = partialPayment
-                        const rowValues = ['', '', '', '', '', '', amountPaid, paymentDate ? formatDate(paymentDate) : '']
-                        newRow(worksheet, rowValues, currentColor, false)
-                    })
+    
+                    newRow(worksheet, billRow, currentColor)
+    
+                    if (partialPayments.length > 0) {
+    
+                        worksheet.addRow([])
+    
+                        const partialPaymentHeaders = ['', '', '', '', '', 'Partial Payments', 'Amount Paid', 'Payment Date']
+                        newRow(worksheet, partialPaymentHeaders, currentColor, false)
+                                        
+                        // Add partial payment data rows with background color
+                        partialPayments.forEach(partialPayment => {
+                            const { amountPaid, paymentDate } = partialPayment
+                            const rowValues = ['', '', '', '', '', '', amountPaid, paymentDate ? formatDate(paymentDate) : '']
+                            newRow(worksheet, rowValues, currentColor, false)
+                        })
+                    }
+                })
+            }
+    
+            worksheet.eachRow({ includeEmpty: false }, row => {
+                row.alignment = {
+                    vertical: 'middle',
+                    horizontal: 'center',
+                    wrapText: true,
                 }
             })
-        }
-
-        worksheet.eachRow({ includeEmpty: false }, row => {
-            row.alignment = {
-                vertical: 'middle',
-                horizontal: 'center',
-                wrapText: true,
-            }
-        })
-
-        const firstColumn = worksheet.getColumn(1)
-        firstColumn.width = 10
-
-        firstColumn.eachCell({ includeEmpty: true }, cell => {
-            cell.style = {}
-            cell.alignment = {
-                vertical: 'middle',
-                horizontal: 'center',
-                wrapText: true,
-            }
-        })
-
-        // Write the workbook to a file
-        await workbook.xlsx.writeFile('D:\\New folder\\test.xlsx')
     
-        return response.success().addToast("File backup successful").getResponse()
-    }).catch(error => log(`Something went wrong: ${error}`))
+            const firstColumn = worksheet.getColumn(1)
+            firstColumn.width = 10
+    
+            firstColumn.eachCell({ includeEmpty: true }, cell => {
+                cell.style = {}
+                cell.alignment = {
+                    vertical: 'middle',
+                    horizontal: 'center',
+                    wrapText: true,
+                }
+            })
+    
+            const fullDirectoryPath = `${directoryPath}\\${fullName}'s record`
+            
+            fs.ensureDir(fullDirectoryPath, error => {
+                if (error) {
+                    console.log(error)
+                    reject(response.failed().addToast(`Error in creating new folder for ${fullName}'s export data`).getResponse())
+                }
+            })
+
+            // Write the workbook to a file
+            await workbook.xlsx.writeFile(`${fullDirectoryPath}\\${fullName}'s account history.xlsx`)
+        
+            if (clientData.clientFiles.length > 0) {
+    
+                const destinationFilePath = `${fullDirectoryPath}\\Files`
+
+                fs.ensureDir(destinationFilePath, error => {
+                    if (error) {
+                        console.log(error)
+                        reject(response.failed().addToast(`Error in creating files folder for ${fullName}'s export data`).getResponse())
+                    }
+                })
+
+                const filesToMove = clientData.clientFiles.map(async (file) => {
+    
+                    const filePath = path.join(path.resolve(__dirname, "../../source/assets/files/"), file.name)
+                    const newFilePath = path.join(`${destinationFilePath}`, file.name)
+            
+                    const fileExists = await fs.pathExists(filePath)
+            
+                    if (fileExists) {
+                        await fs.copy(filePath, newFilePath)
+                    } else {
+                        console.log(`File ${file.name} from ${filePath} cannot be found`)
+                    }
+                    
+                })
+            
+                await Promise.all(filesToMove)
+            }
+    
+            resolve(response.success().addToast("File backup successful").getResponse())
+
+        } catch (error) {
+            console.error(`Something went wrong: ${error}`)
+            reject(response.failed().addToast("Failed to export client data").getResponse())
+        }
+    })
+
+ 
 
 })
