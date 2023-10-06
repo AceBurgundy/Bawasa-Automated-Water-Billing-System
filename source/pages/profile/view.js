@@ -1,5 +1,5 @@
 const { validateFormData } = require("../../utilities/validations")
-const tryCatchWrapper = require("../../utilities/helpers")
+const { tryCatchWrapper } = require("../../utilities/helpers")
 const Response = require("../../utilities/response")
 const { ipcMain } = require("electron")
 const { Op } = require('sequelize')

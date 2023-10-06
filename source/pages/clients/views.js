@@ -1,7 +1,7 @@
 // collapse
 
 const { connectionStatusTypes } = require("../../../source/utilities/constants")
-const tryCatchWrapper = require("../../../source/utilities/helpers")
+const { tryCatchWrapper } = require("../../../source/utilities/helpers")
 const Response = require("../../../source/utilities/response")
 const { ipcMain } = require("electron")
 
