@@ -168,6 +168,14 @@ ipcMain.handle("register", async (event, formData) => {
             accessKey: formData.accessKey,
         })
 
+        // insert hashed recovery codes into the database
+        for (const code of recoveryCodes) {
+            await RecoveryCode.create({
+                code: await bcrypt.hash(code, 10),
+                UserId: user.id
+            })
+        }
+
         await UserPhoneNumber.create({
             userId: user.id,
             phoneNumber: formData.phoneNumber,
