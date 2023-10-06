@@ -200,9 +200,10 @@ export default function loadRegister() {
                 return makeToastNotification("Fix errors first")
 
             const response = await window.ipcRenderer.invoke("register", formData);
-
+                
             if (response.status === "success") {
-            
+                
+                new RecoveryCodesDialog(response.recoveryCodes)                
                 makeToastNotification(response.toast[0])
                 transition(loadLogin);
             
