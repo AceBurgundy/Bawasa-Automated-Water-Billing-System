@@ -1,3 +1,6 @@
+const Client = require("../../models/Client")
+const ClientBill = require("../../models/ClientBill")
+
 /**
  * Wraps a callback function in a try-catch block for error handling.
  * @function
@@ -30,9 +33,9 @@ function formatDate(date) {
  */
 const generateNextAccountOrBillNumber = async function (type) {
 
-	isClient = type === "Client"
+	const isClient = type === "Client"
 
-    const latestRecord = await isClient ?
+    const latestRecord = isClient ?
 		await Client.findOne({ order: [["createdAt", "DESC"]] })
 	:
 		await ClientBill.findOne({ order: [["createdAt", "DESC"]] })
