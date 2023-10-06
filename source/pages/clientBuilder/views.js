@@ -16,7 +16,6 @@ const ClientPhoneNumber = require("../../../models/ClientPhoneNumber")
 const ClientAddress = require("../../../models/ClientAddress")
 const ClientFile = require("../../../models/ClientFile")
 const Client = require("../../../models/Client")
-const { log } = require("console")
 
 const clientFormFields = {
     firstName: "First Name",
@@ -74,95 +73,104 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 	await db.transaction(async manager => {
 
 		try {
+			const client = await Client.create(
+                {
+                    accountNumber: await generateNextAccountOrBillNumber("Client"),
+                    firstName: formData.firstName,
+                    middleName: formData.middleName,
+                    lastName: formData.lastName,
+                    extension: formData.extension,
+                    relationshipStatus: formData.relationshipStatus,
+                    birthDate: formData.birthDate,
+                    age: formData.age,
+                    email: formData.email,
+                    occupation: formData.occupation,
+                    profilePicture: "user.webp",
+                    housePicture: "template_house.webp",
+                    meterNumber: formData.meterNumber,
+                    mainAddress: {
+                        street: formData.mainAddressStreet,
+                        subdivision: formData.mainAddressSubdivision,
+                        barangay: formData.mainAddressBarangay,
+                        city: formData.mainAddressCity,
+                        province: formData.mainAddressProvince,
+                        postalCode: formData.mainAddressPostalCode,
+                        details: formData.mainAddressDetails,
+                    },
+                    presentAddress: {
+                        street: formData.presentAddressStreet,
+                        subdivision: formData.presentAddressSubdivision,
+                        barangay: formData.presentAddressBarangay,
+                        city: formData.presentAddressCity,
+                        province: formData.presentAddressProvince,
+                        postalCode: formData.presentAddressPostalCode,
+                        details: formData.presentAddressDetails,
+                    },
+                },
+                {
+                    include: [
+                        { model: ClientAddress, as: "mainAddress" },
+                        { model: ClientAddress, as: "presentAddress" },
+                    ],
+                    transaction: manager,
+                }
+            )
 
-			const client = await Client.create({
-					accountNumber: await generateNextAccountOrBillNumber("Client"),
-					firstName: formData.firstName,
-					middleName: formData.middleName,
-					lastName: formData.lastName,
-					extension: formData.extension,
-					relationshipStatus: formData.relationshipStatus,
-					birthDate: formData.birthDate,
-					age: formData.age,
-					email: formData.email,
-					occupation: formData.occupation,
-					profilePicture: "user.webp",
-					housePicture: "template_house.webp",
-					meterNumber: formData.meterNumber,
-					mainAddress: {
-						street: formData.mainAddressStreet,
-						subdivision: formData.mainAddressSubdivision,
-						barangay: formData.mainAddressBarangay,
-						city: formData.mainAddressCity,
-						province: formData.mainAddressProvince,
-						postalCode: formData.mainAddressPostalCode,
-						details: formData.mainAddressDetails,
-					},
-					presentAddress: {
-						street: formData.presentAddressStreet,
-						subdivision: formData.presentAddressSubdivision,
-						barangay: formData.presentAddressBarangay,
-						city: formData.presentAddressCity,
-						province: formData.presentAddressProvince,
-						postalCode: formData.presentAddressPostalCode,
-						details: formData.presentAddressDetails,
-					},
-				},
-				{
-					include: [
-						{ model: ClientAddress, as: "mainAddress" },
-						{ model: ClientAddress, as: "presentAddress" },
-					]
-				},
-				{ transaction: manager }
-			)
+            if (files.length > 0) {
 
-			if (files.length > 0) {
 				const saveResult = saveFiles(files, client.id, manager)
-				if (saveResult.status === "failed") {
 
+                if (saveResult.status === "failed") {
 					const deleteResult = deleteClient(client.id)
 					if (deleteResult.status === "failed") {
-						throw new Error(deleteResult.toast[0])
+						console.log( "Delete Result status failed", deleteResult.toast[0])
+						return
 					}
-
-					throw new Error(saveResult.toast[0])
 				}
-			}
+            }
 
-			await ClientPhoneNumber.create({
-					clientId: client.id,
-					phoneNumber: formData.phoneNumber
-				},
-				{ transaction: manager }
-			)
-	
-			await ClientConnectionStatus.create({
-					clientId: client.id,
-					status: connectionStatusTypes.Connected
-				},
-				{ transaction: manager }
-			)
-	
-			if (profilePicture) {
-				const saveImage = savePicture(profilePicture)
-				if (saveImage.status === "failed") {
-					deleteClient(client.id)
-					throw new Error(saveImage.message);
-				} else {
-					client.profilePicture = saveImage.imageName
-					await client.save({ transaction: manager });
-				}
-			}
-	
+            // Create a new client phone number record.
+            await ClientPhoneNumber.create(
+                {
+                    clientId: client.id,
+                    phoneNumber: formData.phoneNumber,
+                },
+                { transaction: manager }
+            )
+
+            // Create a new client connection status record.
+            await ClientConnectionStatus.create(
+                {
+                    clientId: client.id,
+                    status: connectionStatusTypes.Connected,
+                },
+                { transaction: manager }
+            )
+
+            if (profilePicture) {
+                const saveImageResult = savePicture(profilePicture)
+                
+				if (saveImageResult.status === "failed") {
+                    console.log("Save Image status failed")
+					const deleteResult = deleteClient(client.id)
+					if (deleteResult.status === "failed") {
+						console.log("Delete Result status failed", deleteResult.toast[0])
+						return
+					}
+                }                    
+				
+				client.profilePicture = saveImageResult.imageName
+            }
+
+            await client.save({ transaction: manager })
+
 		} catch (error) {
+		
+			console.log(error)
 
-			console.error(`\n\n${error}\n\n`);
-			await manager.rollback()
-			return response.responseError("Error in registering client");
 		}
 
-	});
+    })
 	
 	return response.success().addToast("Client Succesfully registered").getResponse()
 	
@@ -386,8 +394,6 @@ async function checkDuplicateClient(formData, forEdit = false, clientId = null) 
 			: await Client.findAndCountAll({ where })
 		)
 	  
-		console.log(field.split("-").join(" "), ': ', duplicates.count);
-
 		if (duplicates.count > 0) {
 		  	return responseWithMessage(`Client with the same ${field.split("-").join(" ")} is already registered`)
 		}
