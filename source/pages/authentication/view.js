@@ -155,8 +155,6 @@ ipcMain.handle("register", async (event, formData) => {
     formData.password = await bcrypt.hash(formData.password, 10)
     formData["accessKey"] = await generateAccessKey()
 
-    const recoveryCodes = generateRecoveryCodes()
-
     try {
 
         const user = await User.create({
@@ -171,23 +169,25 @@ ipcMain.handle("register", async (event, formData) => {
             accessKey: formData.accessKey,
         })
 
-        // insert hashed recovery codes into the database
-        for (const code of recoveryCodes) {
-            await RecoveryCode.create({
-                code: await bcrypt.hash(code, 10),
-                UserId: user.id
-            })
-        }
-
         await UserPhoneNumber.create({
             userId: user.id,
             phoneNumber: formData.phoneNumber,
         })
 
+        // insert hashed recovery codes into the database
+        const generatationResponse = await generateRecoveryCodes(user.id)
+        if (generatationResponse.status === "failed") {
+            await user.destroy()
+            return response
+                .failed()
+                .addToast(generatationResponse.toast[0])
+                .getResponse()
+        }
+
         return response
                 .success()
                 .addToast(`New admin ${user.firstName} added`)
-                .addObject("recoveryCodes", recoveryCodes)
+                .addObject("recoveryCodes", generatationResponse.recoveryCodes)
                 .getResponse()
         
     } catch (error) {
@@ -217,18 +217,46 @@ async function generateAccessKey() {
     return hash.slice(0, 64)
 }
 
-function generateRecoveryCodes() {
-    const codes = []
-    const characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+async function generateRecoveryCodes(userId) {
 
-    for (let outer = 0; outer < 12; outer++) {
-        let code = ""
-        for (let inner = 0; inner < 8; inner++) {
-            const randomIndex = Math.floor(Math.random() * characters.length)
-            code += characters[randomIndex]
+    const response = new Response();
+
+    if (!userId) {
+        console.error("Missing user id for generating recovery codes")
+        return response
+                .failed()
+                .addToast("Failed to generate recovery codes bacause of missing user id")
+                .getResponse()
+    }
+    
+    const characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const promises = [];
+    const codes = []
+
+    try {
+        for (let outer = 0; outer < 12; outer++) {
+            let code = Array.from({ length: 8 }, () => characters[Math.floor(Math.random() * characters.length)]).join('');
+            codes.push(code)        
+            promises.push(
+                RecoveryCode.create({
+                    code: await bcrypt.hash(code, 10),
+                    userId: userId
+                })
+            );
         }
-        codes.push(code)
+
+        await Promise.all(promises);
+        return response
+                .success()
+                .addObject("recoveryCodes", codes)
+                .getResponse();
+
+    } catch (error) {
+        console.error(error);
+        return response
+                .failed()
+                .addToast(`Failed to add recovery codes`)
+                .getResponse();
     }
 
-    return codes
 }
