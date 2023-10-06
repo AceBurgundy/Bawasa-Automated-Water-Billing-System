@@ -11,6 +11,7 @@ const {
     validateFormData,
 } = require("../../utilities/validations")
 const { log } = require("console")
+const RecoveryCode = require("../../../models/RecoveryCode")
 
 ipcMain.handle("login", async (event, formData) => {
 
@@ -154,6 +155,8 @@ ipcMain.handle("register", async (event, formData) => {
     formData.password = await bcrypt.hash(formData.password, 10)
     formData["accessKey"] = await generateAccessKey()
 
+    const recoveryCodes = generateRecoveryCodes()
+
     try {
 
         const user = await User.create({
@@ -181,8 +184,12 @@ ipcMain.handle("register", async (event, formData) => {
             phoneNumber: formData.phoneNumber,
         })
 
-        return response.success().addToast(`New admin ${user.firstName} added`).getResponse()
-
+        return response
+                .success()
+                .addToast(`New admin ${user.firstName} added`)
+                .addObject("recoveryCodes", recoveryCodes)
+                .getResponse()
+        
     } catch (error) {
 
         let errors = []
@@ -208,4 +215,20 @@ async function generateAccessKey() {
     const randomString = crypto.randomBytes(32).toString("hex")
     const hash = bcrypt.hashSync(randomString, 10)
     return hash.slice(0, 64)
+}
+
+function generateRecoveryCodes() {
+    const codes = []
+    const characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+    for (let outer = 0; outer < 12; outer++) {
+        let code = ""
+        for (let inner = 0; inner < 8; inner++) {
+            const randomIndex = Math.floor(Math.random() * characters.length)
+            code += characters[randomIndex]
+        }
+        codes.push(code)
+    }
+
+    return codes
 }
