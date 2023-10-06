@@ -13,6 +13,7 @@ import {
 
 import Select from "../../../assets/scripts/classes/Select.js"
 import Input from "../../../assets/scripts/classes/Input.js"
+import RecoveryCodesDialog from "../templates/classes/RecoveryCodesDialog.js"
 
 const { 
     isBirthDate, 
@@ -202,7 +203,6 @@ export default function loadRegister() {
             const response = await window.ipcRenderer.invoke("register", formData);
                 
             if (response.status === "success") {
-                
                 new RecoveryCodesDialog(response.recoveryCodes)                
                 makeToastNotification(response.toast[0])
                 transition(loadLogin);
