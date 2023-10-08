@@ -13,25 +13,24 @@ import BillingRow from "./BillingRow.js";
 /**
  * Generates a ${this.billType} bill entry form template for a client's billing record.
  *
- * @param {Object} formData - The form data containing client details and bills.
+ * @param {Object} account - The form data containing client details and bills.
  * @param {boolean} forNewBill - Indicates whether the form is for a ${this.billType} bill entry.
  * @returns {string} - The HTML template for the ${this.billType} bill entry form.
  */
 export default class BillForm {
 
-    constructor(rowId, 
-        billType, formData, forNewBill) {
+    constructor(rowId, billType, account, forNewBill) {
         
         this.billType = billType
-        this.formData = formData
+        this.account = account
         this.forNewBill = forNewBill
         this.rowId = rowId
 
-        const latestBill = this.formData.Bills[0];
+        const latestBill = this.account.Bills[0];
         this.billId = latestBill?.id
         console.log(latestBill, this.billId);
         
-        const { lastName, fullName, id } = formData
+        const { lastName, fullName, id } = account
 
         this.clientId = id ?? ''
 
@@ -40,7 +39,7 @@ export default class BillForm {
         
         if (billType === "new") {
 
-            title = `New Reading for Mr/Mrs ${showData(formData.fullName)}`
+            title = `New Reading for Mr/Mrs ${showData(account.fullName)}`
 
             readingWarning = latestBill === undefined || this.forNewBill ?
                 "This will be the client's new billing record" 
@@ -50,7 +49,7 @@ export default class BillForm {
     
         if (billType === "pay") {
 
-            title = `Bills payment for Mr/Mrs ${showData(formData.fullName)}`
+            title = `Bills payment for Mr/Mrs ${showData(account.fullName)}`
             
             readingWarning = latestBill.paymentStatus === "unpaid" ?
                 `Mr/Mrs ${showData(fullName)} current bill is ${showData(latestBill.billAmount)}`
@@ -121,42 +120,52 @@ export default class BillForm {
         if (this.clientId, paymentAmount) {
             
             const newBillData = {
-                    clientId: this.clientId,
-                    monthlyReading: paymentAmount,
-                    billId: this.billId ?? '',
-                }
+                clientId: this.clientId,
+                monthlyReading: paymentAmount,
+                billId: this.billId ?? '',
+            }
 
             const payBillData = {
                 amount: paymentAmount,
                 billId: this.billId
             }
 
+            if (type === "new") {
+                this.oldMonthlyReading = this.account["monthlyReading"]
+            } else {
+                this.oldAmount = this.account["amount"]
+            }
+
+            this.updateRow()
+
             const response = await window.ipcRenderer.invoke(`${this.billType}-bill`, this.billType === "new" ? newBillData : payBillData)
             
-            if (response.status === "success") {
+            if (response.status === "failed") {
                 makeToastNotification(response.toast[0])
-                clearAndHideDialog()
-
-                const getResponse = await window.ipcRenderer.invoke("get-bill", { billId: response.billId ?? this.billId, clientId: this.clientId })
-
-                if (getResponse.status === "failed") {
-                    getResponse.toast[0] && makeToastNotification(getResponse.toast[0])
-                    return
-                }
-
-                const updatedBill = JSON.parse(getResponse.data)
-
-                const originalRow = getById(this.rowId)
-
-                originalRow.replaceWith(generateHTML(new BillingRow(updatedBill)))
-                              
-
-            } else {
-                makeToastNotification(response.toast[0])
+                this.rollbackOriginalRow(type)
             }
+
         }
 
         return
+    }
+
+    updateRow() {
+        const originalRow = getById(this.rowId)
+        originalRow.replaceWith(generateHTML(new BillingRow(this.account)))
+        clearAndHideDialog()
+    }
+
+    rollbackOriginalRow(type) {
+
+        if (type === "new") {
+            this.account["monthlyReading"] = this.oldMonthlyReading
+        } else {
+            this.account["amount"] = this.oldAmount
+        }
+
+        const originalRow = getById(this.rowId)
+        originalRow.replaceWith(generateHTML(new BillingRow(this.account)))
     }
 
     loadScripts() {
@@ -166,17 +175,11 @@ export default class BillForm {
             const closeButton = getById(this.closeButtonId)
             const submitButton = getById(this.submitButtonId)
 
-            const exists = element => document.body.contains(element)
-
-            if (exists(closeButton)) {
-                closeButton.onclick = event => {
-                    event.preventDefault()
-                    this.dialogElement.close()
-                    this.dialogElement.innerHTML = ''
-                }
+            if (closeButton) {
+                closeButton.onclick = clearAndHideDialog()
             }
 
-            if (exists(submitButton)) {
+            if (submitButton) {
                 submitButton.onclick = async event => {
                     event.preventDefault()
                     await this.processForm()
