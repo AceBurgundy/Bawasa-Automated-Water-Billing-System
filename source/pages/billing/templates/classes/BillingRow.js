@@ -159,6 +159,7 @@ export default class BillingRow {
             const rowMenuToggle = getById(this.rowMenuToggleId)
             const rowMenu = getById(this.rowMenuId)
 
+            console.log(this.account);
     
             if (newBillButton) {
                 newBillButton.onclick = () => {
