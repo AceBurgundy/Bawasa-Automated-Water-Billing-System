@@ -20,7 +20,7 @@ import BillingRow from "./BillingRow.js";
 export default class BillForm {
 
     constructor(rowId, billType, account, forNewBill) {
-        
+                
         this.billType = billType
         this.account = account
         this.forNewBill = forNewBill
@@ -28,7 +28,6 @@ export default class BillForm {
 
         const latestBill = this.account.Bills[0];
         this.billId = latestBill?.id
-        console.log(latestBill, this.billId);
         
         const { lastName, fullName, id } = account
 
@@ -92,12 +91,12 @@ export default class BillForm {
                 </form>
         `;
     
-        this.loadScripts()
         this.toString()
     }
 
     toString() {
         fillAndShowDialog(this.template)
+        this.loadScripts()
     }
 
     async processForm() {
@@ -176,7 +175,10 @@ export default class BillForm {
             const submitButton = getById(this.submitButtonId)
 
             if (closeButton) {
-                closeButton.onclick = clearAndHideDialog()
+                closeButton.onclick = event => {
+                    event.preventDefault()
+                    clearAndHideDialog()
+                }
             }
 
             if (submitButton) {
