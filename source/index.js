@@ -1,6 +1,6 @@
 const {connectionStatusTypes } = require("./utilities/constants.js")
 const { app, BrowserWindow, screen, ipcMain } = require("electron")
-const tryCatchWrapper = require("./utilities/helpers.js")
+const { tryCatchWrapper } = require("./utilities/helpers.js")
 const { db } = require("./utilities/sequelize.js")
 const session = require("./utilities/session.js")
 const { resolve, join } = require("path")
@@ -11,11 +11,13 @@ require("./pages/authentication/view.js")
 require("./pages/clients/views.js")
 require("./pages/billing/views.js")
 require("./pages/profile/view.js")
+require("./utilities/backup.js")
 
 const ClientConnectionStatus = require("../models/ClientConnectionStatus")
 const ClientPhoneNumber = require("../models/ClientPhoneNumber.js")
 const UserPhoneNumber = require("../models/UserPhoneNumber")
 const PartialPayment = require("../models/PartialPayment")
+const RecoveryCode = require("../models/RecoveryCode.js")
 const ClientAddress = require("../models/ClientAddress")
 const UserAddress = require("../models/UserAddress")
 const ClientFile = require("../models/ClientFile")
@@ -69,7 +71,7 @@ const createWindow = async () => {
             minWidth: 1280,
             height: 720,
             width: 1280,
-            // fullscreen: true,
+            fullscreen: true,
             // autoHideMenuBar: true,
             webPreferences: {
                 contextIsolation: true,
