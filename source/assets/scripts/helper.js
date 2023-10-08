@@ -69,8 +69,8 @@ export const showData = (data, placeholder = "") => data ?? false ? data : place
  * @param {Date} date - date object to be formatted
  * @returns the formatted date in format "MMM DD, YYYY"
  */
+
 export function formatDate(date) {
-    
     return date ?? false ? new Date(date).toLocaleDateString("en-US", {
             year: "numeric",
             month: "short",
