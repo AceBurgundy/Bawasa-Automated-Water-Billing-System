@@ -159,27 +159,26 @@ export default class BillingRow {
             const rowMenuToggle = getById(this.rowMenuToggleId)
             const rowMenu = getById(this.rowMenuId)
 
-            const exists = element => document.body.contains(element)
     
-            if (exists(newBillButton)) {
+            if (newBillButton) {
                 newBillButton.onclick = () => {
                     new BillForm(this.rowId, "new", this.account, this.clientHasPaid)
                 }
             }
     
-            if (exists(payBillButton)) {
+            if (payBillButton) {
                 payBillButton.onclick = () => {
                     new BillForm(this.rowId, "pay", this.account, this.clientHasPaid)
                 }
             }
     
-            if (exists(printBillButton)) {
+            if (printBillButton) {
                 printBillButton.onclick = () => {
                     console.log("print");
                 }
             }
 
-            if (exists(rowMenuToggle)) {
+            if (rowMenuToggle) {
                 rowMenuToggle.onclick = () => {
                     console.log("clicking menu");
                     rowMenu.classList.toggle("active")
