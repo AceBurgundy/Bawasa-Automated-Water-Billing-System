@@ -3,9 +3,13 @@
  * @class
  */
 class Response {
+
+	static SUCCESS = "success"
+	static FAILED = "failed"
+	
 	constructor() {
 		this.response = {
-			status: "success",
+			status: Response.SUCCESS,
 			toast: [],
 			fieldErrors: {},
 			elementName: null,
@@ -18,7 +22,7 @@ class Response {
 	 * @returns {Response} The Response instance.
 	 */
 	failed() {
-		this.response.status = "failed";
+		this.response.status = Response.FAILED;
 		return this;
 	}
 
@@ -28,7 +32,7 @@ class Response {
 	 * @returns {Response} The Response instance.
 	 */
 	success() {
-		this.response.status = "success";
+		this.response.status = Response.SUCCESS;
 		return this;
 	}
 
