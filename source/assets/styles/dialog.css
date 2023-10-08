@@ -1,7 +1,7 @@
 dialog {
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -10%);
     background-color: var(--background);
     border: var(--borderDefaultGray);
     border-radius: 10px;
@@ -12,6 +12,14 @@ dialog {
 dialog::backdrop {
     background-color: rgba(34, 34, 34, 0.575);
     z-index: 990;
+    top: 50%;
+    left: 50%;
+    width: 100dvw;
+    height: 100dvh;
+}
+
+dialog[open].closing, dialog[open].closing::backdrop {
+    animation: fade-out 500ms forwards;
 }
 
 dialog[open], dialog[open]::backdrop {
@@ -20,9 +28,22 @@ dialog[open], dialog[open]::backdrop {
 
 @keyframes fade-in {
     0% {
+        transform: translate(-50%, -10%);
         opacity: 0;
     }
     100% {
+        transform: translate(-50%, -50%);
         opacity: 1;
+    }
+}
+
+@keyframes fade-out {
+    0% {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -10%);
+        opacity: 0;
     }
 }

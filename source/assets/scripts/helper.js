@@ -191,32 +191,33 @@ export const toSentenceCase = sentence => {
     return sentence.charAt(0).toUpperCase() + sentence.slice(1).toLowerCase();
 }
 
+const dialog = queryElement("dialog")
+
 /**
  * Shows the dialog element
  */
 export const showDialog = () => {
-    queryElement("dialog").showModal()  
+    dialog.showModal()  
 }
 
 /**
  * Closes the dialog element
  */
 export const closeDialog = () => {
-    queryElement("dialog").close()
+    dialog.close()
 }
 
 /**
  * FIlls dialog innerHTML
  */
 export const fillDialog = (template) => {
-    queryElement("dialog").innerHTML = template  
+    dialog.innerHTML = template  
 }
 
 /**
  * FIlls dialog innerHTML
  */
 export const fillAndShowDialog = (template) => {
-    const dialog = queryElement("dialog")
     dialog.innerHTML = template
     dialog.showModal()
 }
@@ -225,9 +226,12 @@ export const fillAndShowDialog = (template) => {
  * Clears the dialog then closes it
  */
 export const clearAndHideDialog = () => {
-    const dialog = queryElement("dialog")
-    dialog.innerHTML = ""
-    dialog.close()
+    dialog.classList.add("closing")
+    setTimeout(() => {
+        dialog.innerHTML = ""
+        dialog.close()
+        dialog.classList.remove("closing")
+    }, 520);
 }
 
 /**
