@@ -1,20 +1,18 @@
 
-const { db } = require("../source/utilities/sequelize")
-const { DataTypes } = require('sequelize')
+const { DB } = require("../source/utilities/sequelize")
+const { DATA_TYPES } = require('sequelize')
 
-const UserAddress = db.define(
+const USER_ADDRESS = DB.define(
     "UserAddress",
-
     {
-
         id: {
-            type: DataTypes.INTEGER,
+            type: DATA_TYPES.INTEGER,
             primaryKey: true,
             autoIncrement: true,
         },
 
         street: {
-            type: DataTypes.STRING(50),
+            type: DATA_TYPES.STRING(50),
             validate: {
                 is: {
                     args: /^[A-Za-z\s0-9.]+$/,
@@ -24,7 +22,7 @@ const UserAddress = db.define(
         },
 
         subdivision: {
-            type: DataTypes.STRING(50),
+            type: DATA_TYPES.STRING(50),
             validate: {
                 is: {
                     args: /^[A-Za-z\s0-9.]+$/,
@@ -34,7 +32,7 @@ const UserAddress = db.define(
         },
 
         barangay: {
-            type: DataTypes.STRING(50),
+            type: DATA_TYPES.STRING(50),
             allowNull: false,
             validate: {
                 is: {
@@ -51,7 +49,7 @@ const UserAddress = db.define(
         },
 
         city: {
-            type: DataTypes.STRING(100),
+            type: DATA_TYPES.STRING(100),
             allowNull: false,
             validate: {
                 is: {
@@ -68,7 +66,7 @@ const UserAddress = db.define(
         },
 
         province: {
-            type: DataTypes.STRING(50),
+            type: DATA_TYPES.STRING(50),
             allowNull: false,
             validate: {
                 is: {
@@ -85,7 +83,7 @@ const UserAddress = db.define(
         },
 
         postalCode: {
-            type: DataTypes.STRING(4),
+            type: DATA_TYPES.STRING(4),
             allowNull: false,
             validate: {
                 isAlphanumeric: {
@@ -101,7 +99,7 @@ const UserAddress = db.define(
         },
 
         details: {
-            type: DataTypes.STRING(255),
+            type: DATA_TYPES.STRING(255),
             allowNull: false,
             validate: {
                 notNull: {
@@ -115,7 +113,7 @@ const UserAddress = db.define(
     }
 )
 
-UserAddress.sync()
+USER_ADDRESS.sync()
     .then(() => {
         console.log("User Address model successfully created or synchronized");
     })
@@ -123,4 +121,4 @@ UserAddress.sync()
         console.error("\n\nError creating/synchronizing table for User Address because of error:", error);
     })
 
-module.exports = UserAddress
+module.exports = USER_ADDRESS

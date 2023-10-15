@@ -1,31 +1,29 @@
-const { db } = require('../source/utilities/sequelize')
-const { DataTypes } = require('sequelize')
+const { DB } = require('../source/utilities/sequelize')
+const { DATA_TYPES } = require('sequelize')
 
-const Client = require('./Client')
+const CLIENT = require('./Client')
 
-const ClientPhoneNumber = db.define(
+const CLIENT_PHONE_NUMBER = DB.define(
     'ClientPhoneNumber',
-
     {
-
         id: {
-            type: DataTypes.INTEGER,
+            type: DATA_TYPES.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
 
         clientId: {
-            type: DataTypes.INTEGER,
+            type: DATA_TYPES.INTEGER,
             allowNull: false,
             validate: {
                 notNull: {
-                    msg: 'Client ID is required'
+                    msg: 'Client id is required'
                 }
             }
         },
 
         phoneNumber: {
-            type: DataTypes.STRING(10),
+            type: DATA_TYPES.STRING(10),
             allowNull: false,
             validate: {
                 notNull: {
@@ -42,18 +40,18 @@ const ClientPhoneNumber = db.define(
     }
 )
 
-ClientPhoneNumber.belongsTo(Client, {
+CLIENT_PHONE_NUMBER.belongsTo(CLIENT, {
     foreignKey: 'clientId',
     as: "phoneNumbers",
     onDelete: 'CASCADE'
 })
 
-Client.hasMany(ClientPhoneNumber, {
+CLIENT.hasMany(CLIENT_PHONE_NUMBER, {
     foreignKey: 'clientId',
     as: "phoneNumbers"
 })
 
-ClientPhoneNumber.sync()
+CLIENT_PHONE_NUMBER.sync()
     .then(() => {
         console.log("Client Phone Number model successfully created or synchronized");
     })
@@ -61,4 +59,4 @@ ClientPhoneNumber.sync()
         console.error("\n\nError creating/synchronizing table for Client Phone Number because of error:", error);
     });
 
-module.exports = ClientPhoneNumber
+module.exports = CLIENT_PHONE_NUMBER

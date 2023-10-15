@@ -1,21 +1,20 @@
-const { connectionStatusOptions } = require("../source/utilities/constants")
-const { db } = require("../source/utilities/sequelize")
-const { DataTypes } = require('sequelize')
+const { CONNECTION_STATUS_OPTIONS } = require("../source/utilities/constants")
+const { DB } = require("../source/utilities/sequelize")
+const { DATA_TYPES } = require('sequelize')
 
-const Client = require("./Client")
+const CLIENT = require("./Client")
 
-const ClientConnectionStatus = db.define(
+const CLIENT_CONNECTION_STATUS = DB.define(
     "ClientConnectionStatus",
-
     {
         id: {
-            type: DataTypes.INTEGER,
+            type: DATA_TYPES.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
 
         clientId: {
-            type: DataTypes.INTEGER,
+            type: DATA_TYPES.INTEGER,
             allowNull: false,
             validate: {
                 notNull: {
@@ -31,7 +30,7 @@ const ClientConnectionStatus = db.define(
         },
 
         status: {
-            type: DataTypes.STRING(30),
+            type: DATA_TYPES.STRING(30),
             allowNull: false,
             validate: {
                 notNull: {
@@ -41,7 +40,7 @@ const ClientConnectionStatus = db.define(
                     msg: "Connection status cannot be left blank"
                 },
                 isIn: {
-                    args: connectionStatusOptions,
+                    args: CONNECTION_STATUS_OPTIONS,
                     msg: "Invalid connection status"
                 }
             }
@@ -49,18 +48,18 @@ const ClientConnectionStatus = db.define(
     }
 )
 
-ClientConnectionStatus.belongsTo(Client, { 
+CLIENT_CONNECTION_STATUS.belongsTo(CLIENT, { 
     foreignKey: "clientId", 
     as: "connectionStatuses",
     onDelete: 'CASCADE'
 })
 
-Client.hasMany(ClientConnectionStatus, { 
+CLIENT.hasMany(CLIENT_CONNECTION_STATUS, { 
     foreignKey: "clientId", 
     as: "connectionStatuses" 
 })
 
-ClientConnectionStatus.sync()
+CLIENT_CONNECTION_STATUS.sync()
     .then(() => {
         console.log("Client Connection Status model successfully created or synchronized");
     })
@@ -68,4 +67,4 @@ ClientConnectionStatus.sync()
         console.error("\n\nError creating/synchronizing table for Client Connection Status because of error:", error);
     });
 
-module.exports = ClientConnectionStatus
+module.exports = CLIENT_CONNECTION_STATUS

@@ -1,35 +1,34 @@
-const { db } = require("../source/utilities/sequelize")
-const { DataTypes } = require("sequelize")
+const { DB } = require("../source/utilities/sequelize")
+const { DATA_TYPES } = require("sequelize")
 
-const ClientBill = require("./ClientBill")
+const CLIENT_BILL = require("./CLIENT_BILL")
 
-const PartialPayment = db.define(
-    "PartialPayment", 
-    
+const PARTIAL_PAYMENT = DB.define(
+    "PartialPayment",    
     {
         id: {
-            type: DataTypes.INTEGER,
+            type: DATA_TYPES.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
 
         clientBillId: {
-            type: DataTypes.INTEGER,
+            type: DATA_TYPES.INTEGER,
             allowNull: false,
             validate: {
                 notNull: { 
-                    msg: "Client Bill ID is required" 
+                    msg: "Client Bill id is required" 
                 }
             }
         },
 
         paymentDate: {
-            type: DataTypes.DATE,
-            defaultValue: DataTypes.NOW
+            type: DATA_TYPES.DATE,
+            defaultValue: DATA_TYPES.NOW
         },
 
         amountPaid: {
-            type: DataTypes.DECIMAL,
+            type: DATA_TYPES.DECIMAL,
             allowNull: false,
             validate: {
                 notNull: { 
@@ -43,18 +42,18 @@ const PartialPayment = db.define(
     }
 )
 
-PartialPayment.belongsTo(ClientBill, { 
+PARTIAL_PAYMENT.belongsTo(CLIENT_BILL, { 
     foreignKey: "clientBillId",
     onDelete: 'CASCADE',
     as: "partialPayments"
 })
 
-ClientBill.hasMany(PartialPayment, { 
+CLIENT_BILL.hasMany(PARTIAL_PAYMENT, { 
     foreignKey: "clientBillId",
     as: "partialPayments"
 })
 
-PartialPayment.sync()
+PARTIAL_PAYMENT.sync()
     .then(() => {
         console.log("Partial Payment model successfully created or synchronized");
     })
@@ -62,4 +61,4 @@ PartialPayment.sync()
         console.error("\n\nError creating/synchronizing table for Partial Payment because of error:", error);
     })
 
-module.exports = PartialPayment
+module.exports = PARTIAL_PAYMENT

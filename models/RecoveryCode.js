@@ -1,21 +1,18 @@
-const { db } = require("../source/utilities/sequelize")
-const { DataTypes } = require('sequelize');
-const User = require('./User')
+const { DB } = require("../source/utilities/sequelize")
+const { DATA_TYPES } = require('sequelize');
+const USER = require('./User')
 
-const RecoveryCode = db.define(
-    
+const RECOVERY_CODE = DB.define(
     "RecoveryCode",
-
     {
-
         id: {
-            type: DataTypes.INTEGER,
+            type: DATA_TYPES.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
     
         code: {
-            type: DataTypes.STRING(8),
+            type: DATA_TYPES.STRING(8),
             allowNull: false,
         }
 
@@ -23,16 +20,16 @@ const RecoveryCode = db.define(
 
 )
 
-RecoveryCode.belongsTo(User, {
+RECOVERY_CODE.belongsTo(USER, {
     foreignKey: 'userId',
     as: "recoveryCodes"
 })
-User.hasMany(RecoveryCode, {
+USER.hasMany(RECOVERY_CODE, {
     foreignKey: 'userId',
     as: "recoveryCodes"
 })
 
-RecoveryCode.sync()
+RECOVERY_CODE.sync()
     .then(() => {
         console.log("Recovery Code model successfully created or synchronized");
     })
@@ -40,4 +37,4 @@ RecoveryCode.sync()
         console.error("\n\nError creating/synchronizing table for Recovery Code because of error:", error);
     })
 
-module.exports = RecoveryCode
+module.exports = RECOVERY_CODE

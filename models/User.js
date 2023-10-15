@@ -1,24 +1,20 @@
-// @collapse
+const { RELATIONSHIP_OPTIONS } = require("../source/utilities/constants")
+const { DB } = require("../source/utilities/sequelize")
+const { DATA_TYPES } = require('sequelize');
 
-const { relationshipOptions } = require("../source/utilities/constants")
-const { db } = require("../source/utilities/sequelize")
-const { DataTypes } = require('sequelize');
+const USER_ADDRESS = require("./UserAddress");
 
-const UserAddress = require("./UserAddress");
-
-const User = db.define(
+const USER = DB.define(
     "User",
-
     {
-
         id: {
-            type: DataTypes.INTEGER,
+            type: DATA_TYPES.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
 
         firstName: {
-            type: DataTypes.STRING(255),
+            type: DATA_TYPES.STRING(255),
             allowNull: false,
             validate: {
                 notNull: {
@@ -35,7 +31,7 @@ const User = db.define(
         },
 
         middleName: {
-            type: DataTypes.STRING(255),
+            type: DATA_TYPES.STRING(255),
             allowNull: false,
             validate: {
                 notNull: {
@@ -52,7 +48,7 @@ const User = db.define(
         },
 
         lastName: {
-            type: DataTypes.STRING(255),
+            type: DATA_TYPES.STRING(255),
             allowNull: false,
             validate: {
                 notNull: {
@@ -69,7 +65,7 @@ const User = db.define(
         },
 
         fullName: {
-            type: DataTypes.VIRTUAL,
+            type: DATA_TYPES.VIRTUAL,
             get() {
                 return `${this.firstName} ${this.middleName.charAt(0).toUpperCase()}. ${this.lastName}`;
             },
@@ -79,7 +75,7 @@ const User = db.define(
         },
         
         extension: {
-            type: DataTypes.STRING(10),
+            type: DATA_TYPES.STRING(10),
             validate: {
                 is: {
                     args: /^[A-Za-z\s]+$/,
@@ -89,7 +85,7 @@ const User = db.define(
         },
 
         birthDate: {
-            type: DataTypes.DATEONLY,
+            type: DATA_TYPES.DATEONLY,
             allowNull: false,
             validate: {
                 notNull: {
@@ -102,7 +98,7 @@ const User = db.define(
         },
  
         age: {
-            type: DataTypes.INTEGER,
+            type: DATA_TYPES.INTEGER,
             allowNull: false,
             validate: {
                 notNull: {
@@ -115,7 +111,7 @@ const User = db.define(
         },
 
         relationshipStatus: {
-            type: DataTypes.STRING(35),
+            type: DATA_TYPES.STRING(35),
             allowNull: false,
             validate: {
                 notNull: {
@@ -125,14 +121,14 @@ const User = db.define(
                     msg: "Relationship status cannot be left blank"
                 },
                 isIn: {
-                    args: relationshipOptions,
+                    args: RELATIONSHIP_OPTIONS,
                     msg: "Invalid relationship status"
                 }
             }
         },
         
         email: {
-            type: DataTypes.STRING(255),
+            type: DATA_TYPES.STRING(255),
             allowNull: false,
             unique: true,
             validate: {
@@ -149,7 +145,7 @@ const User = db.define(
         },
 
         password: {
-            type: DataTypes.STRING(255),
+            type: DATA_TYPES.STRING(255),
             allowNull: false,
             validate: {
                 notNull: {
@@ -162,17 +158,17 @@ const User = db.define(
         },
 
         profilePicture: {
-            type: DataTypes.STRING(255),
+            type: DATA_TYPES.STRING(255),
             defaultValue: ""
         },
 
         nightMode: {
-            type: DataTypes.BOOLEAN,
+            type: DATA_TYPES.BOOLEAN,
             defaultValue: false
         },
 
         accessKey: {
-            type: DataTypes.STRING(64),
+            type: DATA_TYPES.STRING(64),
             allowNull: false,
             validate: {
                 notNull: {
@@ -183,27 +179,27 @@ const User = db.define(
     }
 )
 
-User.hasOne(UserAddress, { 
+USER.hasOne(USER_ADDRESS, { 
     foreignKey: "mainAddressId", 
     as: "mainAddress"
 })
 
-User.hasOne(UserAddress, { 
+USER.hasOne(USER_ADDRESS, { 
     foreignKey: "presentAddressId", 
     as: "presentAddress"
 })
 
-UserAddress.belongsTo(User, {
+USER_ADDRESS.belongsTo(USER, {
 	foreignKey: "mainAddressId",
 	as: "mainAddress",
 })
 
-UserAddress.belongsTo(User, {
+USER_ADDRESS.belongsTo(USER, {
 	foreignKey: "presentAddressId",
 	as: "presentAddress",
 })
 
-User.sync()
+USER.sync()
     .then(() => {
         console.log("User model successfully created or synchronized");
     })
@@ -211,4 +207,4 @@ User.sync()
         console.error("\n\nError creating/synchronizing table for User because of error:", error);
     })
 
-module.exports = User
+module.exports = USER

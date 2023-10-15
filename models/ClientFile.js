@@ -1,35 +1,33 @@
-const { db } = require("../source/utilities/sequelize")
-const { DataTypes } = require("sequelize")
+const { DB } = require("../source/utilities/sequelize")
+const { DATA_TYPES } = require("sequelize")
 
-const Client = require("./Client")
+const CLIENT = require("./Client")
 
-const ClientFile = db.define(
+const CLIENT_FILE = DB.define(
     "ClientFile",
-
     {
-
         id: {
-            type: DataTypes.INTEGER,
+            type: DATA_TYPES.INTEGER,
             primaryKey: true,
             autoIncrement: true,
         },
 
         clientId: {
-            type: DataTypes.INTEGER,
+            type: DATA_TYPES.INTEGER,
             allowNull: false,
             validate: {
                 notNull: {
-                    msg: 'Client ID is required'
+                    msg: 'Clients ID is required'
                 }
             }
         },
         
         name: {
             allowNull: false,
-            type: DataTypes.STRING(255),
+            type: DATA_TYPES.STRING(255),
             validate: {
                 notNull: {
-                    msg: 'Client ID is required'
+                    msg: 'Clients ID is required'
                 }
             }
         }
@@ -37,23 +35,23 @@ const ClientFile = db.define(
     }
 )
 
-ClientFile.belongsTo(Client, {
+CLIENT_FILE.belongsTo(CLIENT, {
     foreignKey: 'clientId',
-    as: "clientFiles",
+    as: "files",
     onDelete: 'CASCADE'
 })
 
-Client.hasMany(ClientFile, {
+CLIENT.hasMany(CLIENT_FILE, {
     foreignKey: 'clientId',
-    as: "clientFiles"
+    as: "files"
 })
 
-ClientFile.sync()
+CLIENT_FILE.sync()
     .then(() => {
-        console.log("Client File model successfully created or synchronized");
+        console.log("Client file model successfully created or synchronized");
     })
     .catch((error) => {
-        console.error("\n\nError creating/synchronizing table for Client File because of error:", error);
+        console.error("\n\nError creating/synchronizing table for client file because of error:", error);
     });
 
-module.exports = ClientFile
+module.exports = CLIENT_FILE
