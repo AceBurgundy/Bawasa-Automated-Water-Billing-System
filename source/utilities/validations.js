@@ -60,6 +60,29 @@ const notIn = (list, value) => {
 }
 
 /**
+ * Checks if the provided string has no symbols.
+ *
+ * @param {string} value - The string to be checked.
+ * @returns {Object} An object with a 'passed' property indicating whether the string has no symbols, and a 'message' property with error messages if applicable.
+ */
+const hasNoSymbols = value => {
+    
+    if (!value) return { passed: false, message: `${hasNoSymbols.name} validation cannot work without a value`}
+    
+    const regex = /[^a-zA-Z0-9]/g;
+
+    // Test the value against the regex
+    const result = !regex.test(String(value).trim());
+
+    if (!result) {
+        return { passed: false, message: "String contains symbols" }
+    }
+
+    return { passed: true }
+}
+
+
+/**
  * Checks if the provided value is a valid birthdate.
  *
  * @param {string} value - The value to be checked.
@@ -235,6 +258,7 @@ if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
         isBirthDate,
         isValidPhoneNumber,
         validateFormData,
+        hasNoSymbols
     }
 } else {
     window.isEmpty = isEmpty
@@ -243,5 +267,6 @@ if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
     window.notIn = notIn
     window.isBirthDate = isBirthDate
     window.isValidPhoneNumber = isValidPhoneNumber
-    window.validateFormData = validateFormData
+    window.validateFormData = validateFormData,
+    window.hasNoSymbols = hasNoSymbols
 }

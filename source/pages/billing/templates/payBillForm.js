@@ -1,8 +1,8 @@
 /**
- * Generates a payment form template for a client's bill payment.
+ * Generates a payment form template for a Client's bill payment.
  * This form will be added as the html template of the <dialog></dialog> code in html
  *
- * @param {Object} formData - The form data containing client details and bills.
+ * @param {Object} formData - The form data containing Client details and bills.
  * @returns {string} - The HTML template for the payment form.
  */
 export async function payBillForm(formData) {
@@ -33,7 +33,7 @@ export async function payBillForm(formData) {
             </div>
             <div id="pay-bill-form-buttons">
                 <button class="button-primary" id="pay-bill-form-close">Cancel</button>
-                <button class="button-primary" id="pay-bill-form-submit" data-client-id="${formData?.id}" data-bill-id="${latestBill?.id || ""}">Pay</button>
+                <button class="button-primary" id="pay-bill-form-submit" data-Client-id="${formData?.id}" data-bill-id="${latestBill?.id || ""}">Pay</button>
             </div>
         </form>
     `

@@ -33,7 +33,7 @@ ipcMain.handle("accounts", async (event, args) => {
                 include: [
                     {
                         model: ClientBill,
-                        as: "Bills",
+                        as: "bills",
                         include: [
                             {
                                 model: PartialPayment,
@@ -54,7 +54,7 @@ ipcMain.handle("accounts", async (event, args) => {
                     [
                         {
                             model: ClientBill,
-                            as: "Bills"
+                            as: "bills"
                         },
                         "createdAt",
                         "DESC"
@@ -102,7 +102,7 @@ ipcMain.handle("get-bill", async (event, args) => {
                 include: [
                     {
                         model: ClientBill,
-                        as: "Bills",
+                        as: "bills",
                         include: [
                             { 
                                 model: PartialPayment,
@@ -123,7 +123,7 @@ ipcMain.handle("get-bill", async (event, args) => {
                     [
                         {
                             model: ClientBill,
-                            as: "Bills"
+                            as: "bills"
                         }, 
                         'createdAt', 'DESC'
                     ]
@@ -207,7 +207,7 @@ ipcMain.handle("new-bill", async (event, args) => {
 
     if (clientBill) {
         const latestBill = clientBill.toJSON()
-        latestBillAlreadyPaid = latestBill.paymentStatus === "paid" || latestBill.paymentStatus === "overpaid" && latestBill.secondReading !== null
+        latestBillAlreadyPaid = latestBill.status === "paid" || latestBill.status === "overpaid" && latestBill.secondReading !== null
     }
 
     if (clientBill && !latestBillAlreadyPaid && clientBill.secondReading !== null) {
@@ -254,11 +254,11 @@ ipcMain.handle("pay-bill", async (event, args) => {
     const { amount, billId } = args
     const response = new Response()
 
-    const paymentAmount = parseFloat(amount)
+    const amountPaid = parseFloat(amount)
 
     console.log(amount, billId);
 
-    if (!paymentAmount) {
+    if (!amountPaid) {
         return response.failed().addToast("Missing payment amount").getResponse()
     }
 
@@ -275,16 +275,16 @@ ipcMain.handle("pay-bill", async (event, args) => {
     const billJSON = bill.toJSON()
     const totalPartialPayments = calculateTotalPartialPayments(billJSON)
 
-    if (billJSON.paymentStatus === "paid") {
+    if (billJSON.status === "paid") {
         return response.failed().addToast("Bill had already been paid").getResponse()
     }
 
-    if (billJSON.paymentStatus === "underpaid") {
-        return await handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, response)
+    if (billJSON.status === "underpaid") {
+        return await handleUnderpaidBill(bill, totalPartialPayments, amountPaid, response)
     }
 	
-	if (billJSON.paymentStatus === "unpaid") {
-		return await handleUnpaidBill(bill, billJSON, paymentAmount, bill.clientId, response)
+	if (billJSON.status === "unpaid") {
+		return await handleUnpaidBill(bill, billJSON, amountPaid, bill.clientId, response)
 	}
 
 })
@@ -303,7 +303,7 @@ async function getClientWithBills(clientId) {
             include: [
                 { 
                     model: ClientBill, 
-                    as: "Bills",
+                    as: "bills",
                     order: [ [ 'createdAt', 'DESC' ]]
                 },
                 { 
@@ -336,7 +336,7 @@ async function getClientBillById(billId) {
  */
 async function getPreviousBillExcess(billId) {
     const bill = await getClientBillById(billId - 1)
-    return bill ? bill.toJSON().paymentExcess : null
+    return bill ? bill.toJSON().excess : null
 }
 
 /**
@@ -365,8 +365,8 @@ function updateBillWithNoPayment(bill, response) {
     try {
 		bill.secondReading = bill.firstReading
 		bill.consumption = 0
-		bill.billAmount = 0
-		bill.paymentStatus = "paid"
+		bill.total = 0
+		bill.status = "paid"
 		bill.save()
 		return response.success().addToast("No payments as water consumption is 0").getResponse()
 	} catch (error) {
@@ -387,7 +387,7 @@ function updateBillWithSecondReading(bill, monthlyReading, previousBillExcess, r
 	try {
 		bill.secondReading = parseFloat(monthlyReading).toFixed(2)
 		bill.consumption = parseFloat(monthlyReading).toFixed(2) - bill.firstReading
-		bill.billAmount = previousBillExcess !== null ? (bill.consumption * 5) - previousBillExcess : bill.consumption * 5
+		bill.total = previousBillExcess !== null ? (bill.consumption * 5) - previousBillExcess : bill.consumption * 5
 		const currentDate = new Date()
 		const twoWeeksFromNow = new Date(currentDate.getTime() + (14 * 24 * 60 * 60 * 1000))
         bill.dueDate = twoWeeksFromNow
@@ -442,21 +442,21 @@ function calculateTotalPartialPayments(billJSON) {
  *
  * @param {Object} bill - The client bill object.
  * @param {number} totalPartialPayments - The total amount of partial payments.
- * @param {number} paymentAmount - The payment amount for the current payment.
+ * @param {number} amountPaid - The payment amount for the current payment.
  * @param {Object} response - The response object to update.
  */
-async function handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, response) {
-    const newPaymentAmount = totalPartialPayments + paymentAmount
+async function handleUnderpaidBill(bill, totalPartialPayments, amountPaid, response) {
+    const newPaymentAmount = totalPartialPayments + amountPaid
 
-    if (newPaymentAmount === bill.billAmount) {
-        const lastPartialPayment = createLastPartialPayment(bill, paymentAmount)
+    if (newPaymentAmount === bill.total) {
+        const lastPartialPayment = createLastPartialPayment(bill, amountPaid)
 
 		if (!lastPartialPayment) {
 			return response.failed().addToast("Failed on creating creating bills last partial payment").getResponse()
 		}
 
-        bill.paymentStatus = "paid"
-        bill.remainingBalance = 0
+        bill.status = "paid"
+        bill.balance = 0
         responseMessage = "Remaining balance paid"
 
         const clientRecentStatus = await tryCatchWrapper(async () => {
@@ -478,27 +478,27 @@ async function handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, re
         }
     } 
 	
-	if (newPaymentAmount < bill.billAmount) {
-        const newPartialPayment = createNewPartialPayment(bill, paymentAmount)
+	if (newPaymentAmount < bill.total) {
+        const newPartialPayment = createNewPartialPayment(bill, amountPaid)
 		
 		if (!newPartialPayment) {
 			return response.failed().addToast("Failed on creating creating the bills' last partial payment").getResponse()
 		}
 
-        bill.remainingBalance = bill.billAmount - newPaymentAmount
+        bill.balance = bill.total - newPaymentAmount
         responseMessage = "Remaining balance has been updated"
     }
 	
-	if (newPaymentAmount > bill.billAmount) {
-        const lastPartialPayment = createLastPartialPayment(bill, paymentAmount)
+	if (newPaymentAmount > bill.total) {
+        const lastPartialPayment = createLastPartialPayment(bill, amountPaid)
 
 		if (!lastPartialPayment) {
 			return response.failed().addToast("Failed on creating creating the bills' last partial payment").getResponse()
 		}
 		
-		bill.paymentStatus = "overpaid"
-        bill.paymentExcess = newPaymentAmount - bill.billAmount
-        bill.remainingBalance = 0
+		bill.status = "overpaid"
+        bill.excess = newPaymentAmount - bill.total
+        bill.balance = 0
         responseMessage = "Remaining balance paid and excess amount saved"
 
         const clientRecentStatus = await tryCatchWrapper(async () => {
@@ -520,7 +520,7 @@ async function handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, re
         }
     }
 
-    bill.paymentAmount = newPaymentAmount
+    bill.amountPaid = newPaymentAmount
     bill.save()
     return response.success().addToast(responseMessage).getResponse()
 }
@@ -530,15 +530,15 @@ async function handleUnderpaidBill(bill, totalPartialPayments, paymentAmount, re
  *
  * @param {Object} bill - The client bill object.
  * @param {Object} billJSON - The client bill objects toJSON version.
- * @param {number} paymentAmount - The payment amount for the first payment.
+ * @param {number} amountPaid - The payment amount for the first payment.
  * @param {Object} response - The response object to update.
 */
-async function handleUnpaidBill(bill, billJSON, paymentAmount, clientId, response) {
+async function handleUnpaidBill(bill, billJSON, amountPaid, clientId, response) {
 
-	if (billJSON.billAmount === paymentAmount) {
-		bill.paymentAmount = bill.billAmount
-		bill.paymentStatus = "paid"
-		bill.remainingBalance = 0
+	if (billJSON.total === amountPaid) {
+		bill.amountPaid = bill.total
+		bill.status = "paid"
+		bill.balance = 0
 
         responseMessage = "Bill successfully paid"
 
@@ -561,23 +561,23 @@ async function handleUnpaidBill(bill, billJSON, paymentAmount, clientId, respons
 
 	}
 	
-	if (paymentAmount < billJSON.billAmount) {
-		const firstPartialPayment = await createNewPartialPayment(bill, paymentAmount)
+	if (amountPaid < billJSON.total) {
+		const firstPartialPayment = await createNewPartialPayment(bill, amountPaid)
 			
 		if (!firstPartialPayment) {
 			return response.failed().addToast("Failed creating new partial payment").getResponse()
 		}
 		
-		bill.paymentStatus = "underpaid"
-		bill.remainingBalance = bill.billAmount - paymentAmount
-		bill.paymentAmount = paymentAmount
+		bill.status = "underpaid"
+		bill.balance = bill.total - amountPaid
+		bill.amountPaid = amountPaid
 		responseMessage = "New remaining balance has been set"
 	}
 
-	if (paymentAmount > billJSON.billAmount) {
-		bill.paymentStatus = "overpaid"
-		bill.paymentAmount = bill.billAmount
-		bill.paymentExcess = paymentAmount - bill.billAmount
+	if (amountPaid > billJSON.total) {
+		bill.status = "overpaid"
+		bill.amountPaid = bill.total
+		bill.excess = amountPaid - bill.total
 		responseMessage = "Bill paid and excess saved"
 
         const clientRecentStatus = await tryCatchWrapper(async () => {
@@ -607,14 +607,14 @@ async function handleUnpaidBill(bill, billJSON, paymentAmount, clientId, respons
  * Creates a new partial payment record.
  *
  * @param {Object} bill - The client bill object.
- * @param {number} paymentAmount - The payment amount for the current payment.
+ * @param {number} amountPaid - The payment amount for the current payment.
  * @returns {Promise<Object|null>} - A promise that resolves to the created partial payment or null if creation fails.
  */
-async function createNewPartialPayment(bill, paymentAmount) {
+async function createNewPartialPayment(bill, amountPaid) {
     return await tryCatchWrapper(async () => {
         return await PartialPayment.create({
             clientBillId: bill.id,
-            amountPaid: paymentAmount
+            amountPaid: amountPaid
         })
     })
 }
@@ -623,14 +623,14 @@ async function createNewPartialPayment(bill, paymentAmount) {
  * Creates a last partial payment record for an underpaid bill.
  *
  * @param {Object} bill - The client bill object.
- * @param {number} paymentAmount - The payment amount for the current payment.
+ * @param {number} amountPaid - The payment amount for the current payment.
  * @returns {Promise<Object|null>} - A promise that resolves to the created partial payment or null if creation fails.
  */
-async function createLastPartialPayment(bill, paymentAmount) {
+async function createLastPartialPayment(bill, amountPaid) {
     return await tryCatchWrapper(async () => {
         return await PartialPayment.create({
             clientBillId: bill.id,
-            amountPaid: paymentAmount
+            amountPaid: amountPaid
         })
     })
 }

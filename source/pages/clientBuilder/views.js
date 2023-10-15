@@ -586,14 +586,14 @@ async function deleteClient(clientId, saveData = false) {
 	if (!clientId) return response.failed().addToast("Client id not found").getResponse()
 
 	const client = Client.findByPk(clientId, {
-		include: "clientFiles"
+		include: "files"
 	})
 
 	if (!client) return response.failed().addToast("Failed to delete client record").getResponse()
 
-	if (client.clientFiles.length > 0) {
+	if (client.files.length > 0) {
 
-        client.clientFiles.forEach(async file => {
+        client.files.forEach(async file => {
 
             const filePath = path.join(path.resolve(__dirname, "../../assets/files/"), file.name )
 

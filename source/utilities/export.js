@@ -107,11 +107,11 @@ const getClientData = async (id) => {
                 },
                 { 
                     model: ClientFile, 
-                    as: "clientFiles"
+                    as: "files"
                 },
                 { 
                     model: ClientBill, 
-                    as: "Bills",
+                    as: "bills",
                     include: [
                         { 
                             model: PartialPayment,
@@ -134,7 +134,7 @@ const getClientData = async (id) => {
 
 }
 
-ipcMain.handle("backup-record", async (event, args) => {
+ipcMain.handle("export-record", async (event, args) => {
 
     const response = new Response()
     
@@ -150,7 +150,7 @@ ipcMain.handle("backup-record", async (event, args) => {
                 reject(response.failed().addToast(getClientResponse.toast[0]).getResponse())
             }
             
-            const clientData = getClientResponse.clientData
+            const client = getClientResponse.clientData
         
             const { 
                 fullName, 
@@ -161,12 +161,12 @@ ipcMain.handle("backup-record", async (event, args) => {
                 birthDate,
                 email,
                 occupation
-            } = clientData
+            } = client
             
-            const presentAddress = clientData.presentAddress ?? ''
-            const mainAddress = clientData.mainAddress ?? ''
-            const phoneNumber = clientData.phoneNumbers ? clientData.phoneNumbers[0].phoneNumber : ''
-            const bills = clientData.Bills
+            const presentAddress = client.presentAddress ?? ''
+            const mainAddress = client.mainAddress ?? ''
+            const phoneNumber = client.phoneNumbers ? client.phoneNumbers[0].phoneNumber : ''
+            const bills = client.bills
             
             const directoryPath = await askDirectory()
                 
@@ -185,8 +185,8 @@ ipcMain.handle("backup-record", async (event, args) => {
             worksheet.addRow(["Client Details"])
             worksheet.addRow([])
     
-            worksheet.addRow([ "", "Account Number", "Meter Number", "Full Name", "Relationship Status", "Birth Date", "Age", "Email", "Occupation", "Present Address", "Main Address", "Phone Numbers" ])        
-            worksheet.addRow([ "", accountNumber, meterNumber, fullName, relationshipStatus, formatDate(birthDate), age, email, occupation, presentAddress.fullAddress, mainAddress.fullAddress, phoneNumber ?? '' ])
+            worksheet.addRow([ "", "Account Number", "Meter Number", "Full Name", "Relationship Status", "Birth Date", "Age", "Email", "Occupation", "Present Address", "Main Address", "Phone Numbers" ])
+            worksheet.addRow([ "", accountNumber, meterNumber, fullName, relationshipStatus, formatDate(birthDate), age, email, occupation, presentAddress.fullAddress, mainAddress.fullAddress, phoneNumber ? ["0", phoneNumber].join('') : '' ])
             
             // Additional data
             if (bills) {
@@ -207,9 +207,9 @@ ipcMain.handle("backup-record", async (event, args) => {
                 
                     currentIndex = index
     
-                    const { billNumber, firstReading, secondReading, consumption, billAmount, paymentStatus, paymentAmount, remainingBalance, paymentExcess, penalty, dueDate, disconnectionDate, partialPayments } = bill
+                    const { billNumber, firstReading, secondReading, consumption, total, status, amountPaid, balance, excess, penalty, dueDate, disconnectionDate, partialPayments } = bill
     
-                    billRow = [ "", billNumber, firstReading ?? 0, secondReading ?? 0, consumption ?? 0, billAmount ?? 0, paymentStatus, paymentAmount ?? 0, remainingBalance ?? 0, paymentExcess ?? 0, penalty ?? 0, formatDate(dueDate), formatDate(disconnectionDate), "" ]
+                    billRow = [ "", billNumber, firstReading ?? 0, secondReading ?? 0, consumption ?? 0, total ?? 0, status, amountPaid ?? 0, balance ?? 0, excess ?? 0, penalty ?? 0, formatDate(dueDate), formatDate(disconnectionDate), "" ]
     
                     worksheet.addRow([])
     
@@ -264,7 +264,7 @@ ipcMain.handle("backup-record", async (event, args) => {
             // Write the workbook to a file
             await workbook.xlsx.writeFile(`${fullDirectoryPath}\\${fullName}'s account history.xlsx`)
         
-            if (clientData.clientFiles.length > 0) {
+            if (client.files.length > 0) {
     
                 const destinationFilePath = `${fullDirectoryPath}\\Files`
 
@@ -275,7 +275,7 @@ ipcMain.handle("backup-record", async (event, args) => {
                     }
                 })
 
-                const filesToMove = clientData.clientFiles.map(async (file) => {
+                const filesToMove = client.files.map(async (file) => {
     
                     const filePath = path.join(path.resolve(__dirname, "../../source/assets/files/"), file.name)
                     const newFilePath = path.join(`${destinationFilePath}`, file.name)

@@ -6,12 +6,21 @@
 }
 
 #table-data-title {
-    padding: 0.5rem;
     border-bottom: var(--borderDefaultGray);
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 #table-data-title > p {
     font-size: 1rem;
+}
+
+#table-data-title > div {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
 }
 
 #table-data-headers, .table-info {

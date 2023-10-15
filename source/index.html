@@ -1,32 +1,42 @@
 <!DOCTYPE html>
+
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="assets/styles/root.css">
-    <link rel="stylesheet" href="assets/styles/table.css">
-    <link rel="stylesheet" href="pages/billing/static/billing.css">
-    <link rel="stylesheet" href="pages/clients/static/clients.css">
-    <link rel="stylesheet" href="pages/authentication/static/authentication.css">
-    <link rel="stylesheet" href="pages/client_builder/static/clientBuilder.css">
-    <link rel="stylesheet" href="pages/clients/static/reconnectClientForm.css">
-    <link rel="stylesheet" href="pages/billing/static/newBill.css">
-    <link rel="stylesheet" href="pages/billing/static/payBill.css">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login</title>
+        <link rel="stylesheet" href="assets/styles/root.css">
+        <link rel="stylesheet" href="assets/styles/table.css">
 
-    <script type="module">
-        import loadLogin from "./pages/authentication/static/login.js"
-        document.addEventListener("DOMContentLoaded", loadLogin)
-    </script>
+        <link rel="stylesheet" href="pages/authentication/static/forgetPasswordDialog.css">
+        <link rel="stylesheet" href="pages/authentication/static/recoveryCodesDialog.css">
+        <link rel="stylesheet" href="pages/authentication/static/authentication.css">
+        
+        <link rel="stylesheet" href="pages/billing/static/billing.css">
+        <link rel="stylesheet" href="pages/billing/static/newBill.css">
+        <link rel="stylesheet" href="pages/billing/static/payBill.css">
 
-</head>
-<body>
+        <link rel="stylesheet" href="pages/CLIENTs/static/reconnectCLIENTForm.css">
+        <link rel="stylesheet" href="pages/CLIENTs/static/CLIENTs.css">
 
-    <div id="container">
-    </div>
+        <link rel="stylesheet" href="pages/CLIENTBuilder/static/CLIENTBuilder.css">
 
-    <dialog>
-    </dialog>
+        <script type="module">
+            import loadLogin from "./pages/authentication/static/Login.js"
+            document.addEventListener("DOMContentLoaded", loadLogin)            
+        </script>
 
-</body>
+        <script type="module" src="./global.js"></script>
+    </head>
+    <body>
+
+        <div id="container">
+        </div>
+
+        <div id="dialog-backdrop"></div>
+
+        <dialog class="form_dialog">
+        </dialog>
+
+    </body>
 </html>

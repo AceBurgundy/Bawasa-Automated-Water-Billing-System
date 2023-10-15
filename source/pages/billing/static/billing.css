@@ -29,19 +29,3 @@
     grid-template-columns: 1fr 1fr 1fr;
     gap: 3rem;
 }
-
-#search-box {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    justify-content: space-between;
-}
-
-#search-box-input {
-    width: 500px;
-    background-color: inherit;
-}
-
-#magnifier {
-    width: 1.2rem;
-}

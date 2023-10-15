@@ -1,17 +1,20 @@
 export function transition(callback) {
     const box = document.getElementById("container")
-
     callback()
 
     setTimeout(() => {
-        box.lastElementChild.style.zIndex = "3"
-        box.lastElementChild.classList.add("active")
-        // removeAllEventListeners()
+        if (box) {
+            const lastChild = box.lastElementChild
+            lastChild.style.zIndex = "3"
+            lastChild.classList.add("active")
+        }
     }, 200)
 
     setTimeout(() => {
-        box.firstElementChild.remove()
-        box.lastElementChild.style.zIndex = "2"
+        if (box) {
+            box.firstElementChild.remove()
+            box.lastElementChild.style.zIndex = "2"
+        }
     }, 800)
 }
 
@@ -20,40 +23,30 @@ export function transition(callback) {
  * @param {string} message - The message content of the notification.
  */
 export function makeToastNotification(message) {
-
-    if (typeof message !== 'string') return console.error("Toast notification message is not a string")
-
-    if (message.trim() === '') return console.error("Toast notification message is empty")
+    if (!message || (typeof message === "string" && !message.trim())) {
+        console.error("Toast notification requires a non-empty message")
+        return
+    }
 
     let flashes = document.getElementById("flashes")
 
     if (!flashes) {
         const newFlashes = document.createElement("div")
         newFlashes.setAttribute("id", "flashes")
-
-        if (document.body.firstChild) {
-            document.body.insertBefore(newFlashes, document.body.firstChild)
-        } else {
-            document.body.appendChild(newFlashes)
-        }
-
+        document.body.insertBefore(newFlashes, document.body.firstChild || null)
         flashes = newFlashes
     }
 
-    if (message === "") return
-
-    const newToast = document.createElement("li")
+    const newToast = document.createElement("dialog")
     newToast.classList.add("message")
     newToast.textContent = message
     flashes.append(newToast)
-    newToast.classList.toggle("active")
+    newToast.show()
 
     setTimeout(() => {
-        newToast.classList.remove("active")
-        setTimeout(() => {
-            newToast.remove()
-        }, 500)
-    }, 2000)
+        newToast.classList.add("close")
+        setTimeout(() => newToast.remove(), 500)
+    }, 5000)
 }
 
 /**
@@ -62,22 +55,21 @@ export function makeToastNotification(message) {
  * @param {String} placeholder - A placeholder that replaces the data if the data is null or undefined. Default: ""
  * @returns string
  */
-export const showData = (data, placeholder = "") => data ?? false ? data : placeholder
+export const showData = (data, placeholder = "") => (data ?? false ? data : placeholder)
 
 /**
  *
  * @param {Date} date - date object to be formatted
  * @returns the formatted date in format "MMM DD, YYYY"
  */
-
 export function formatDate(date) {
-    return date ?? false ? new Date(date).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-        })    
-    : ''
-
+    return date ?? false
+        ? new Date(date).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric"
+          })
+        : ""
 }
 
 /**
@@ -85,7 +77,7 @@ export function formatDate(date) {
  * @function
  * @param {Function} callback - The callback function to wrap.
  */
-export async function tryCatchWrapper(callback) {
+export async function TRY_CATCH_WRAPPER(callback) {
     try {
         return await callback()
     } catch (error) {
@@ -130,7 +122,7 @@ export function queryElements(tag) {
  * @param {String} template - The template literal to be converted to HTML
  * @returns {HTMLElement} - The HTML element generated from the template.
  */
-export const generateHTML = (template) => {
+export const generateHTML = template => {
     const bufferElement = document.createElement("div")
     bufferElement.innerHTML = template
     template = bufferElement.firstElementChild
@@ -145,9 +137,9 @@ export const generateHTML = (template) => {
  * @param {string} inputString - The input string to check and convert.
  * @returns {string} The input string in dashed notation if it was in camelCase, otherwise, the input string as is.
  * @example
- * const inputString = "userName";
- * const dashedString = camelToDashed(inputString);
- * console.log(dashedString); // Output: "user-name"
+ * const inputString = "userName"
+ * const dashedString = camelToDashed(inputString)
+ * console.log(dashedString) // Output: "user-name"
  */
 export const camelToDashed = inputString => {
     if (/^[a-z][a-zA-Z0-9]*$/.test(inputString)) {
@@ -164,13 +156,12 @@ export const camelToDashed = inputString => {
  * @returns {formFieldData} - A FormData like object containing the form field values.
  */
 export function getFormData(formElement) {
-    
-	const formFieldData = {}
+    const formFieldData = {}
 
-    const formFields = queryElements(".form-field__input")
+    const formFields = formElement.querySelectorAll(".form-field__input")
 
-    for (let i = 0; i < formFields.length; i++) {
-        const field = formFields[i]        
+    for (let index = 0; index < formFields.length; index++) {
+        const field = formFields[index]
         if (field.name) {
             formFieldData[field.name] = field.value
         } else {
@@ -183,43 +174,25 @@ export function getFormData(formElement) {
 
 /**
  * Fixed strings to follow basic sentence casing.
- * 
+ *
  * @param {String} sentence - Sentence to be transformed to sentence case.
  * @returns {String} new sentence
  */
 export const toSentenceCase = sentence => {
-    return sentence.charAt(0).toUpperCase() + sentence.slice(1).toLowerCase();
+    return sentence.charAt(0).toUpperCase() + sentence.slice(1).toLowerCase()
 }
 
 const dialog = queryElement("dialog")
-
-/**
- * Shows the dialog element
- */
-export const showDialog = () => {
-    dialog.showModal()  
-}
-
-/**
- * Closes the dialog element
- */
-export const closeDialog = () => {
-    dialog.close()
-}
+const background = getById("dialog-backdrop")
 
 /**
  * FIlls dialog innerHTML
  */
-export const fillDialog = (template) => {
-    dialog.innerHTML = template  
-}
-
-/**
- * FIlls dialog innerHTML
- */
-export const fillAndShowDialog = (template) => {
+export const fillAndShowDialog = template => {
     dialog.innerHTML = template
-    dialog.showModal()
+    background.style.display = "block"
+    background.classList.add("open")
+    dialog.show()
 }
 
 /**
@@ -227,24 +200,25 @@ export const fillAndShowDialog = (template) => {
  */
 export const clearAndHideDialog = () => {
     dialog.classList.add("closing")
+    background.classList.add("closing")
+    background.classList.remove("open")
     setTimeout(() => {
-        dialog.innerHTML = ""
         dialog.close()
+        dialog.innerHTML = ""
         dialog.classList.remove("closing")
-    }, 520);
+        background.classList.remove("closing")
+        background.style.display = "none"
+    }, 520)
 }
 
 /**
  * Generates a unique input element id attribute value
- * 
+ *
  * @returns the new input element id
  */
-export const generateUniqueId = (name) => {
-    const randomNumber = Math.floor(Math.random() * 100) + 1;
+export const generateUniqueId = name => {
+    const randomNumber = Math.floor(Math.random() * 100) + 1
     const id = [randomNumber, name].join("-")
 
-    return document.body.contains(getById(id)) ? 
-        generateUniqueId()
-    :   
-        id
+    return document.body.contains(getById(id)) ? generateUniqueId() : id
 }

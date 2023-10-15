@@ -1,4 +1,5 @@
 import BillingRow from "./classes/BillingRow.js";
+import icons from "../../../assets/scripts/icons.js";
 
 /**
  * Generate a billing table HTML based on the provided billing data.
@@ -10,55 +11,38 @@ import BillingRow from "./classes/BillingRow.js";
  */
 export default function billingTable(bills, user, responseMessage) {
             
+    const { usersIcon, billIcon, powerIcon, userIcon } = icons
+    const navigationObject = [
+        { title: "CLIENTs", icon: usersIcon },
+        { title: "Billing", icon: billIcon },
+        { title: "Logout", icon: powerIcon },
+    ]
+
     return `
         <section id="section-type-container" class="page">
 
         <nav>
             <div id="nav-items">
-                <div id="clients" class="nav-item">
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="users-icon">
-                            <rect width="256" height="256" fill="none"></rect>
-                            <circle cx="88" cy="108" r="52" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="16"></circle>
-                            <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" d="M155.41251 57.937A52.00595 52.00595 0 1 1 169.52209 160M15.99613 197.39669a88.01736 88.01736 0 0 1 144.00452-.00549M169.52209 160a87.89491 87.89491 0 0 1 72.00032 37.3912"></path>
-                        </svg>
-                    </div>
-                    <p>Clients</p>
-                </div>
-                <div id="billing" class="nav-item active">
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" id="bill-icon">
-                            <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m25 29-1.59-.8a6 6 0 0 0-4.91-.2L16 29l-2.5-1a6 6 0 0 0-4.91.2L7 29V3h18ZM11 7h8M11 11h6M11 15h10"></path>
-                        </svg>
-                    </div>
-                    <p>Billing</p>
-                </div>
-                <div id="logout" class="nav-item">
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="power-icon">
-                            <rect width="256" height="256" fill="none"></rect>
-                            <line x1="127.992" x2="127.992" y1="48.003" y2="124.003" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></line>
-                            <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" d="M176.00189,54.23268a88,88,0,1,1-96.00346-.00021"></path>
-                        </svg>
-                    </div>
-                    <p>Logout</p>
-                </div>
+                ${
+                    navigationObject.map(navigation => {
+                        return `
+                            <div id="${ navigation.title.toLowerCase() }" class="nav-item">
+                                <div>${ navigation.icon }</div>
+                                <p>${ navigation.title }</p>
+                            </div>
+                        `        
+                    })
+                }
             </div>
             <div id="profile" class="nav-item">
-                <div>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="user-icon">
-                        <rect width="256" height="256" fill="none"></rect>
-                        <circle cx="128" cy="96" r="64" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="16"></circle>
-                        <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" d="M30.989,215.99064a112.03731,112.03731,0,0,1,194.02311.002"></path>
-                    </svg>
-                </div>
+                <div>${ userIcon }</div>
                 <p>Profile</p>
             </div>
         </nav>
 
         <section>
 
-            <div id="clients-section" class="content">
+            <div id="CLIENTs-section" class="content">
 
                 <div class="content__top">
                     <div>
@@ -75,38 +59,38 @@ export default function billingTable(bills, user, responseMessage) {
                     <div class="content__center-right">
 
                         <div id="statistics">
-                            <div class="statistics__child">
-                                <p>
-                                    <span id="paid-clients"></span>
-                                    Paid
-                                </p>
-                            </div>
-                            <div class="statistics__child">
-                                <p>
-                                    <span id="unpaid-clients"></span>
-                                    Unpaid
-                                </p>
-                            </div>
-                            <div class="statistics__child">
-                                <p>
-                                    <span id="overpaid-clients"></span>
-                                    Overpaid    
-                                </p>
-                            </div>
+                            ${
+                                ["Paid", "Unpaid", "Overpaid"].map(statistic => {
+                                    return `
+                                        <div class="statistics__child">
+                                            <p>
+                                                <span id="${ statistic.toLowerCase() }-CLIENTs"></span>
+                                                ${ statistic }
+                                            </p>
+                                        </div>    
+                                    `
+                                })
+                            }
                         </div>
                         
                         <div id="search-box">
                             <input
-                                id="search-box-input"
+                                id="billing-search-box-input"
                                 type="text"
-                                class="borderless-input"
+                                class="borderless-input search-box-input"
                                 placeholder="Search recent bill by meter or account number">
 
-                            <select id="search-box-filter">
+                            <select id="billing-search-box-filter" class="search-box-filter">
                                 <option selected disable>Search by</option>
-                                <option value="Meter Number" >Meter Number</option>
-                                <option value="Account Number" >Account Number</option>
-                                <option value="Full Name" >Full Name</option>
+                                ${
+                                    [ "Account Number", "Meter Number", "Full Name" ].map(selectOption => {
+                                        const split = selectOption.split(' ')
+                                        const newValue = split.length >= 2 ? [split[0].toLowerCase(), split[1]].join('') : selectOption
+                                        return `
+                                            <option value="${ newValue }">${ selectOption }</option>
+                                        `
+                                    })
+                                }
                             </select>
                         </div>
 
@@ -122,51 +106,15 @@ export default function billingTable(bills, user, responseMessage) {
                         </div>
 
                         <div id="table-data-headers" class="account">
-                            <div class="table-data-headers__item">
-                                <p>Account #</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>Name</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>Meter Number</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>1st Reading</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>2nd Reading</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>Consumed</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>Bill</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>Due Date</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>Status</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>Penalty</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>Excess</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>Balance</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>Total Paid</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>Disconnection Date</p>
-                            </div>
-                            <div class="table-data-headers__item">
-                                <p>Menu</p>
-                            </div>
+                        ${
+                            [ "Account #", "Name", "Meter Number", "1st Reading", "2nd Reading", "Consumed", "Bill", "Due Date", "Status", "Penalty", "Excess", "Balance", "Total Paid", "Disconnection Date", "Menu" ].map(header => {
+                                return `
+                                    <div class="table-data-headers__item">
+                                        <p>${ header }</p>
+                                    </div>
+                                `
+                            })
+                        }
                         </div>
                         <div id="table-data-row">
                             ${
@@ -179,3 +127,4 @@ export default function billingTable(bills, user, responseMessage) {
         </section>
     `;
 }
+

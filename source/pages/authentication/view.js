@@ -1,3 +1,4 @@
+const { validateFormData, isEmail, isEmpty } = require("../../utilities/validations")
 const Response = require("../../utilities/response")
 const session = require("../../utilities/session")
 const { ipcMain } = require("electron")
@@ -5,14 +6,139 @@ const bcrypt = require("bcrypt")
 const crypto = require("crypto")
 
 const UserPhoneNumber = require("../../../models/UserPhoneNumber")
-const User = require("../../../models/User")
-
-const {
-    validateFormData,
-} = require("../../utilities/validations")
-const { log } = require("console")
 const RecoveryCode = require("../../../models/RecoveryCode")
+const User = require("../../../models/User")
+const { tryCatchWrapper } = require("../../utilities/helpers")
 
+ipcMain.handle("reset-password", async (event, formData) => {
+
+    const response = new Response()
+
+    if (Object.keys(formData).length === 0) {
+        console.error("Form data seems to be empty")
+        return response.failed().addToast("Something went wrong").getResponse()
+    }
+
+    const { email, userRecoveryCode } = formData
+
+    if (!email) {
+        return response.failed().addToast("An email is required to change your password").getResponse()
+    }
+
+    validateResult = isEmail(email)
+
+    if (!validateResult.passed) {
+        return response.failed().addToast(validateResult.message).getResponse()
+    }
+
+    if (!userRecoveryCode) {
+        return response.failed().addToast("A recovery code is required to change your password").getResponse()
+    }
+
+    if (userRecoveryCode.length > 8) {
+        return response.failed().addToast("A recovery code shouldn't exceed 8 characters").getResponse()
+    }
+
+    const userRecoveryCodeHasSymbols = /[^a-zA-Z0-9]/.test(userRecoveryCode);
+
+    if (userRecoveryCodeHasSymbols) {
+        return response.failed().addToast("A recovery code must not contain any symbols").getResponse()
+    }
+
+    return tryCatchWrapper(async () => {
+        
+        const user = await User.findOne({ 
+            where: { 
+                email: email 
+            },
+            include: [
+				{ 
+                    model: RecoveryCode, 
+                    as: "recoveryCodes",
+                    attributes: ['code']
+                },
+            ]
+        })
+        
+        const userJSON = user ? user.toJSON() : null
+
+        if (!userJSON) {
+            return response
+                .failed()
+                .addToast(`User with email ${formData.email} might not have been registered yet`)
+                .getResponse()
+        }
+
+        const userRecoveryCodes = user.recoveryCodes.map(recoveryCode => recoveryCode.code)
+        
+        const promises = userRecoveryCodes.map(recoveryCode => bcrypt.compare(userRecoveryCode, recoveryCode))
+
+        return tryCatchWrapper(async () => {
+
+            const results = await Promise.all(promises);
+            console.log(results);
+            const hasMatchingRecoveryCode = results.some(result => result === true);
+        
+            if (hasMatchingRecoveryCode) {
+                return response.success().addToast("Recovery code matched. Enter new password").getResponse()
+            } else {
+                return response.failed().addToast("Recovery code did not match").getResponse()
+            }
+
+        })
+    })
+})
+
+ipcMain.handle("change-password", async (event, args) => {
+
+    const response = new Response()
+
+    if (!args.email) {
+        console.log("line 97");
+        return response.failed().addToast("Email is required to change password").getResponse()
+    }
+
+    if (!args.password) {
+        return response.failed().addToast("New Password is required to change old password").getResponse()
+    }
+
+    const { email, password } = args
+
+    const emailIsEmpty = isEmpty(email)
+
+    if (emailIsEmpty.passed === "false") {
+        return response.failed().addToast("Email is required to change password").getResponse()
+    }
+
+    const anEmail = isEmail(email)
+
+    if (anEmail.passed === "false") {
+        return response.failed().addToast("Email must be of type 'email' required to change password").getResponse()
+    }
+
+    if (password.trim() === '') {
+        return response.failed().addToast("New Password is required to change old password").getResponse()
+    }
+
+    return tryCatchWrapper(async () => {
+        const user = await User.findOne({ where: { email: email } })
+        
+        const userJSON = user ? user.toJSON() : null
+
+        if (!userJSON) {
+            return response
+                .failed()
+                .addToast(`User with email ${formData.email} might not have been registered yet`)
+                .getResponse()
+        }
+
+        user.password = await bcrypt.hash(password, 10)
+        user.save()
+
+        return response.success().addToast("Password changed successfully").getResponse()
+    })
+})
+  
 ipcMain.handle("login", async (event, formData) => {
 
     const response = new Response()
@@ -62,19 +188,14 @@ ipcMain.handle("login", async (event, formData) => {
                 .getResponse()
         }
 
-        bcrypt
-            .compare(formData.password, userJSON.password)
-            .then(result => {
-                if (!result) {
-                    return response
-                        .failed()
-                        .addToast("Password does not match")
-                        .getResponse()
-                }
-            })
-            .catch(error => {
-                console.error("Error comparing passwords:", error)
-            })
+        const passwordPassed = await bcrypt.compare(formData.password, userJSON.password)
+
+        if (!passwordPassed) {
+            return response
+                .failed()
+                .addToast("Password does not match")
+                .getResponse()
+        }
 
         const newAccesskey = await generateAccessKey()
         user.accessKey = newAccesskey
@@ -83,7 +204,10 @@ ipcMain.handle("login", async (event, formData) => {
 
         session.login(newAccesskey)
 
-        return response.success().addToast(`Welcome ${user.firstName}`).getResponse()
+        return response
+                .success()
+                .addToast(`Welcome ${user.firstName}`)
+                .getResponse()
 
     } catch (error) {
         console.error(error.message)

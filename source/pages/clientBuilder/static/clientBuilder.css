@@ -1,4 +1,4 @@
-#client, .content__form {
+#Client, .content__form {
     height: 95vh;
     overflow-y: scroll;
     display: flex;
@@ -17,7 +17,7 @@
     font-size: 2rem;
 }
 
-#new-client-form-title {
+#new-Client-form-title {
     font-size: 2.2rem;
     margin: 0.5rem 0 3rem 0;
 }
@@ -80,7 +80,7 @@ input[name="mainAddressDetails"] {
     justify-content: flex-end;
 }
 
-#client-register-submit-button {
+#Client-register-submit-button {
     font-size: 1rem;
     margin-right: 7rem;
     width: 170px;
@@ -187,7 +187,7 @@ input[name="mainAddressDetails"] {
         transform: translateY(0%);
     }
     
-    #client-form-video {
+    #Client-form-video {
         width: 50vw;
         height: 50vw;
     }
@@ -202,14 +202,14 @@ input[name="mainAddressDetails"] {
         border: 2px solid black;
     }
     
-    #client-register-profile {
+    #Client-register-profile {
         position: absolute;
         width: 100%;
         height: 100%;
         z-index: 1;
     }
 
-    #client-register-submit-button {
+    #Client-register-submit-button {
         margin-right: 0rem;
     }
 }

@@ -1,6 +1,6 @@
 
-import Select from "../../../assets/scripts/classes/Select.js"
-import Input from "../../../assets/scripts/classes/Input.js"
+import Select from "../../../components/Select.js"
+import Input from "../../../components/Input.js"
 import { showData } from "../../../assets/scripts/helper.js"
 import "../../../utilities/constants.js"
 
@@ -25,11 +25,11 @@ export function getTemplate(forEdit, user) {
 
         <nav>
             <div id="nav-items">
-                <div id="clients" class="nav-item">
+                <div id="CLIENTs" class="nav-item">
                     <div>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="users-icon"><rect width="256" height="256" fill="none"></rect><circle cx="88" cy="108" r="52" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="16"></circle><path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" d="M155.41251 57.937A52.00595 52.00595 0 1 1 169.52209 160M15.99613 197.39669a88.01736 88.01736 0 0 1 144.00452-.00549M169.52209 160a87.89491 87.89491 0 0 1 72.00032 37.3912"></path></svg>
                     </div>
-                    <p>Clients</p>
+                    <p>CLIENTs</p>
                 </div>
                 <div id="billing" class="nav-item">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" id="bill-icon">

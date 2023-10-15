@@ -1,5 +1,5 @@
 
-import { renderClientSection } from "../../clients/static/clients.js"
+import { renderCLIENTSection } from "../../CLIENTs/static/CLIENTs.js"
 import renderBillingSection from "../../billing/static/billing.js"
 import { getTemplate } from "../templates/profile.js"
 import "../../../utilities/constants.js"
@@ -38,7 +38,7 @@ export async function renderProfile(forEdit = false) {
 		const elementId = target.id
 
 		if (elementId === "billing") transition(renderBillingSection)
-		if (elementId === "clients") transition(renderClientSection)
+		if (elementId === "CLIENTs") transition(renderCLIENTSection)
         if (elementId === "user-register-submit-button") {
 
             event.preventDefault()

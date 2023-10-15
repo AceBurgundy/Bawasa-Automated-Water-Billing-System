@@ -11,44 +11,45 @@ import {
 import BillingRow from "./BillingRow.js";
 
 /**
- * Generates a ${this.billType} bill entry form template for a client's billing record.
+ * Generates a ${this.billType} bill entry form template for a Client's billing record.
  *
- * @param {Object} account - The form data containing client details and bills.
+ * @param {Object} formData - The form data containing Client details and bills.
  * @param {boolean} forNewBill - Indicates whether the form is for a ${this.billType} bill entry.
  * @returns {string} - The HTML template for the ${this.billType} bill entry form.
  */
 export default class BillForm {
 
-    constructor(rowId, billType, account, forNewBill) {
-                
+    constructor(rowId, billType, formData, forNewBill) {
+        
         this.billType = billType
-        this.account = account
+        this.formData = formData
         this.forNewBill = forNewBill
         this.rowId = rowId
 
-        const latestBill = this.account.Bills[0];
+        const latestBill = this.formData.Bills[0];
         this.billId = latestBill?.id
+        console.log(latestBill, this.billId);
         
-        const { lastName, fullName, id } = account
+        const { lastName, fullName, id } = formData
 
-        this.clientId = id ?? ''
+        this.CLIENTId = id ?? ''
 
         let readingWarning = null
         let title = null
         
         if (billType === "new") {
 
-            title = `New Reading for Mr/Mrs ${showData(account.fullName)}`
+            title = `New Reading for Mr/Mrs ${showData(formData.fullName)}`
 
             readingWarning = latestBill === undefined || this.forNewBill ?
-                "This will be the client's new billing record" 
+                "This will be the Client's new billing record" 
             :
                 `Mr/Mrs ${showData(lastName)}'s previous reading is ${showData(latestBill.firstReading)}`;
         }
     
         if (billType === "pay") {
 
-            title = `Bills payment for Mr/Mrs ${showData(account.fullName)}`
+            title = `Bills payment for Mr/Mrs ${showData(formData.fullName)}`
             
             readingWarning = latestBill.paymentStatus === "unpaid" ?
                 `Mr/Mrs ${showData(fullName)} current bill is ${showData(latestBill.billAmount)}`
@@ -59,7 +60,6 @@ export default class BillForm {
             : ''
         }
     
-
         this.closeButtonId = generateUniqueId(`${billType}-bill-form-close`)
         this.submitButtonId = generateUniqueId(`${billType}-bill-form-submit`)
         this.dialogId = generateUniqueId(`${billType}-bill-box`)
@@ -91,12 +91,12 @@ export default class BillForm {
                 </form>
         `;
     
+        this.loadScripts()
         this.toString()
     }
 
     toString() {
         fillAndShowDialog(this.template)
-        this.loadScripts()
     }
 
     async processForm() {
@@ -116,10 +116,10 @@ export default class BillForm {
             return
         }
 
-        if (this.clientId, paymentAmount) {
+        if (this.CLIENTId, paymentAmount) {
             
             const newBillData = {
-                clientId: this.clientId,
+                CLIENTId: this.CLIENTId,
                 monthlyReading: paymentAmount,
                 billId: this.billId ?? '',
             }
@@ -129,42 +129,32 @@ export default class BillForm {
                 billId: this.billId
             }
 
-            if (type === "new") {
-                this.oldMonthlyReading = this.account["monthlyReading"]
-            } else {
-                this.oldAmount = this.account["amount"]
-            }
-
-            this.updateRow()
-
             const response = await window.ipcRenderer.invoke(`${this.billType}-bill`, this.billType === "new" ? newBillData : payBillData)
             
             if (response.status === "failed") {
                 makeToastNotification(response.toast[0])
-                this.rollbackOriginalRow(type)
+                return
             }
+
+            makeToastNotification(response.toast[0])
+            clearAndHideDialog()
+
+            const getResponse = await window.ipcRenderer.invoke("get-bill", { billId: response.billId ?? this.billId, CLIENTId: this.CLIENTId })
+
+            if (getResponse.status === "failed") {
+                getResponse.toast[0] && makeToastNotification(getResponse.toast[0])
+                return
+            }
+
+            const updatedBill = JSON.parse(getResponse.data)
+
+            const originalRow = getById(this.rowId)
+
+            originalRow.replaceWith(generateHTML(new BillingRow(updatedBill)))
 
         }
 
         return
-    }
-
-    updateRow() {
-        const originalRow = getById(this.rowId)
-        originalRow.replaceWith(generateHTML(new BillingRow(this.account)))
-        clearAndHideDialog()
-    }
-
-    rollbackOriginalRow(type) {
-
-        if (type === "new") {
-            this.account["monthlyReading"] = this.oldMonthlyReading
-        } else {
-            this.account["amount"] = this.oldAmount
-        }
-
-        const originalRow = getById(this.rowId)
-        originalRow.replaceWith(generateHTML(new BillingRow(this.account)))
     }
 
     loadScripts() {

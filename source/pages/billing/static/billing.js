@@ -1,6 +1,6 @@
 // collapse
 
-import { renderClientSection } from "../../clients/static/clients.js"
+import { renderCLIENTSection } from "../../CLIENTs/static/CLIENTs.js"
 import { renderProfile } from "../../profile/static/profile.js"
 import loadLogin from "../../authentication/static/login.js"
 import billingTable from "../templates/billing.js"
@@ -10,11 +10,11 @@ import {
     makeToastNotification,
     getById,
     queryElements,
-    tryCatchWrapper
+    TRY_CATCH_WRAPPER
 } from "../../../assets/scripts/helper.js"
 
 /**
- * Renders the billing section, including the table of client accounts and statistics.
+ * Renders the billing section, including the table of Client accounts and statistics.
  */
 export default async function renderBillingSection() {
 
@@ -44,12 +44,12 @@ export default async function renderBillingSection() {
 	const tableOptions = {}
 
 	queryElements(".table-info__options").forEach(option => {
-		tableOptions[option.getAttribute("data-client-id")] = option.classList
+		tableOptions[option.getAttribute("data-Client-id")] = option.classList
 	})
 
-    let paidClients = 0
-    let unpaidClients = 0
-    let overpaidClients = 0
+    let paidCLIENTs = 0
+    let unpaidCLIENTs = 0
+    let overpaidCLIENTs = 0
 
     let meterNumbers = []
     let accountNumbers = []
@@ -59,25 +59,25 @@ export default async function renderBillingSection() {
 
         accounts.map(bill => {
             
-            const clientBills = bill.Bills
+            const CLIENT_BILLs = bill.Bills
 
-            if (clientBills.length > 0) {
-                const recentBill = clientBills[0]
+            if (CLIENT_BILLs.length > 0) {
+                const recentBill = CLIENT_BILLs[0]
 
                 if (recentBill.paymentStatus !== "") {
 
                     const recentBillStatus = recentBill.paymentStatus
 
                     if (recentBillStatus === "paid") {
-                        paidClients += 1
+                        paidCLIENTs += 1
                     } 
     
                     if (recentBillStatus === "unpaid") {
-                        unpaidClients += 1
+                        unpaidCLIENTs += 1
                     }    
 
                     if (recentBillStatus === "overpaid") {
-                        overpaidClients += 1
+                        overpaidCLIENTs += 1
                     }
                 }
 
@@ -89,15 +89,15 @@ export default async function renderBillingSection() {
         })    
 
         const searchFilterOptions = ["Full Name", "Meter Number", "Account Number"]
-        const searchFilter = getById("search-box-filter")
-        const searchElement = getById("search-box-input")
+        const searchFilter = getById("billing-search-box-filter")
+        const searchElement = getById("billing-search-box-input")
         
         searchElement.oninput = () => {
 
             const tableRows = queryElements(".table-info")
 
             if (!tableRows) {
-                makeToastNotification("No clients yet")
+                makeToastNotification("No CLIENTs yet")
                 return
             }
 
@@ -112,10 +112,10 @@ export default async function renderBillingSection() {
             }
 
             const find = (data, value) => data.toLowerCase().includes(value.toLowerCase())
-            const rerenderTable = (filteredClients, attribute) => {
+            const rerenderTable = (filteredCLIENTs, attribute) => {
                 const tableRows = queryElements(".table-info")
                 tableRows.forEach(row => {
-                    if (!filteredClients.includes(row.getAttribute(attribute))) {
+                    if (!filteredCLIENTs.includes(row.getAttribute(attribute))) {
                         row.style.display = "none"
                     } else {
                         row.style.display = "grid"
@@ -139,11 +139,11 @@ export default async function renderBillingSection() {
     
     }
     
-    setStatistics(paidClients, unpaidClients, overpaidClients)
+    setStatistics(paidCLIENTs, unpaidCLIENTs, overpaidCLIENTs)
 
     window.onclick = async event => {
         const targetId = event.target.getAttribute("id")
-        if (targetId === "clients") transition(renderClientSection)
+        if (targetId === "CLIENTs") transition(renderCLIENTSection)
         if (targetId === "profile") transition(renderProfile)
         if (targetId === "logout") loadLogin()
     }
@@ -153,14 +153,14 @@ export default async function renderBillingSection() {
 /**
  * Sets the value for paid, unpaid, overpaid statistics element
  * 
- * @param {Number} paid - holds the value for the number of paid clients
- * @param {Number} unpaid - holds the value for the number of unpaid clients
- * @param {Number} overpaid - holds the value for the number of overpaid clients
+ * @param {Number} paid - holds the value for the number of paid CLIENTs
+ * @param {Number} unpaid - holds the value for the number of unpaid CLIENTs
+ * @param {Number} overpaid - holds the value for the number of overpaid CLIENTs
  */
 function setStatistics(paid, unpaid, overpaid) {
-    const paidCustomersElement = getById("paid-clients")
-    const unpaidCustomersElement = getById("unpaid-clients")
-    const overpaidCustomersElement = getById("overpaid-clients")
+    const paidCustomersElement = getById("paid-CLIENTs")
+    const unpaidCustomersElement = getById("unpaid-CLIENTs")
+    const overpaidCustomersElement = getById("overpaid-CLIENTs")
 
     if (paidCustomersElement) paidCustomersElement.innerHTML = paid
     if (unpaidCustomersElement) unpaidCustomersElement.innerHTML = unpaid

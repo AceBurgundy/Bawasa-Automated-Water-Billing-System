@@ -1,4 +1,4 @@
-const {connectionStatusTypes } = require("./utilities/constants.js")
+const { connectionStatusTypes } = require("./utilities/constants.js")
 const { app, BrowserWindow, screen, ipcMain } = require("electron")
 const { tryCatchWrapper } = require("./utilities/helpers.js")
 const { db } = require("./utilities/sequelize.js")
@@ -11,7 +11,7 @@ require("./pages/authentication/view.js")
 require("./pages/clients/views.js")
 require("./pages/billing/views.js")
 require("./pages/profile/view.js")
-require("./utilities/backup.js")
+require("./utilities/export.js")
 
 const ClientConnectionStatus = require("../models/ClientConnectionStatus")
 const ClientPhoneNumber = require("../models/ClientPhoneNumber.js")
@@ -62,7 +62,7 @@ const createWindow = async () => {
     try {
 
         const displays = screen.getAllDisplays()
-        const availableScreen = displays.length > 1 ? displays[1] : displays[0]
+        const availableScreen = displays.length > 1 ? displays[0] : displays[0]
 
         const mainWindow = new BrowserWindow({
             x: availableScreen.bounds.x,
@@ -92,7 +92,7 @@ const createWindow = async () => {
                     {
                         model: ClientBill,
                         as: 'Bills',
-                        attributes: ['id', 'penalty', 'billAmount', 'paymentStatus', 'dueDate', 'disconnectionDate', 'createdAt'],
+                        attributes: ['id', 'penalty', 'total', 'status', 'dueDate', 'disconnectionDate', 'createdAt'],
                         required: false,
                         separate: true,
                         order: [['createdAt', 'DESC']],
@@ -113,33 +113,43 @@ const createWindow = async () => {
 
     if (clients && clients.length > 0) {
 
-        const currentDate = new Date();
+        const { Connected, DueForDisconnection, Disconnected } = connectionStatusTypes
                 
         for (let client of clients) {
 
-            const latestBill = client.Bills && client.Bills.length > 0 ? client.Bills[0] : null;
+            const latestBill = client.bills && client.bills.length > 0 ? client.bills[0] : null;
             const connectionStatus = client.connectionStatuses && client.connectionStatuses.length > 0 ? client.connectionStatuses[0].status : null;
-        
+            
             if (!latestBill) continue;
             if (!connectionStatus) continue;
-            if (latestBill.paymentStatus === "paid") continue
+            if (!latestBill.dueDate) continue
+
+            if (latestBill.status === "paid") continue
 
             const billDueDate = new Date(latestBill.dueDate);
             const billDisconnectionDate = new Date(latestBill.disconnectionDate);
         
-            const currentDay = currentDate.getDate();
-            const currentMonth = currentDate.getMonth();
-            const dueDateDay = billDueDate.getDate();
-            const dueDateMonth = billDueDate.getMonth();
-            const disconnectionDateDay = billDisconnectionDate.getDate();
-            const disconnectionDateMonth = billDisconnectionDate.getMonth();
-        
-            if (currentDay >= dueDateDay && currentMonth >= dueDateMonth && connectionStatus === connectionStatusTypes.Connected) {
+            const current = {
+                day: new Date().getDate(),
+                month: new Date().getMonth()
+            }
+
+            const due = {
+                day: billDueDate.getDate(),
+                month: billDueDate.getMonth()
+            }
+
+            const disconnection = {
+                day: billDisconnectionDate.getDate(),
+                month: billDisconnectionDate.getMonth()
+            }
+
+            if (current.day >= due.day && current.month >= due.month && connectionStatus === Connected) {
 
                 tryCatchWrapper(async () => {
                     await ClientConnectionStatus.create({
                         clientId: client.id,
-                        status: connectionStatusTypes.DueForDisconnection,
+                        status: DueForDisconnection,
                     });
                 })
 
@@ -149,18 +159,18 @@ const createWindow = async () => {
                 tryCatchWrapper(async () => {
                     await latestBill.update({
                         penalty: penalty,
-                        billAmount: latestBill.billAmount + penalty,
+                        total: latestBill.total + penalty,
                     });
                 })
 
             }
         
-            if (currentDay >= disconnectionDateDay && currentMonth >= disconnectionDateMonth && connectionStatus === connectionStatusTypes.DueForDisconnection) {
+            if (current.day >= disconnection.day && current.month >= disconnection.month && connectionStatus === DueForDisconnection) {
 
                 tryCatchWrapper(async () => {
                     await ClientConnectionStatus.create({
                         clientId: client.id,
-                        status: connectionStatusTypes.Disconnected,
+                        status: Disconnected,
                     });
                 })
             }

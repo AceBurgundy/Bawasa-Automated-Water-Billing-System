@@ -1,4 +1,4 @@
-import { camelToDashed, generateUniqueId, getById } from "../helper.js";
+import { camelToDashed, generateUniqueId, getById } from "../assets/scripts/helper.js";
 
 const allowedAttributes = ["name", "label", "selected"];
 

@@ -19,51 +19,89 @@ const Client = require("../../../models/Client")
  * @param {Object} args - Arguments passed with the request.
  * @returns {Promise<Object>} A promise that resolves with a response object.
  */
-ipcMain.handle("clients", async (event, args) => {
+ipcMain.handle("clients", async (event, table) => {
 
     return tryCatchWrapper(async () => {
 
         const response = new Response()
 
+        const clientWhereClause = {}
+
+        const columnMap = {
+            fullName: "$fullName$",
+            accountNumber: "$accountNumber$",
+            meterNumber: "$meterNumber$",
+            relationshipStatus: "$relationshipStatus$",
+            age: "$age$",
+            email: "$email$"
+        }
+
+        if (!table.ColumnName && table.columnData) {
+            return response.failed().addObject("message", "Column data is needed").getResponse()
+        }
+
+        if (table.ColumnName && !table.columnData) {
+            return response.failed().addObject("message", "Column name is needed").getResponse()
+        }
+
+        if (table.ColumnName && table.columnData) {
+            clientWhereClause[columnMap[table.ColumnName]] = table.columnData
+        } 
+
+        const phoneNumberWhereClause = {}
+        const connectionStatusWhereClause = {}
+
+        if (table.ColumnName && table.ColumnName === "phoneNumbers.phoneNumber") {
+            phoneNumberWhereClause["$phoneNumbers.phoneNumber$"] = table.columnData
+        }
+        
+        if (table.ColumnName && table.ColumnName === "connectionStatuses.status") {
+            connectionStatusWhereClause["$connectionStatuses.status$"] = table.columnData
+        }
+
         const clients = await Client.findAll({
-		
+            where: clientWhereClause,
             include: [
-				{ 
-                    model: ClientPhoneNumber, 
+                {
+                    model: ClientPhoneNumber,
                     as: "phoneNumbers",
-                    attributes: ['phoneNumber']
+                    attributes: ["phoneNumber"],
+                    where: phoneNumberWhereClause
                 },
-                { 
-                    model: ClientAddress, 
+                {
+                    model: ClientAddress,
                     as: "mainAddress"
                 },
-				{ 
-                    model: ClientAddress, 
+                {
+                    model: ClientAddress,
                     as: "presentAddress"
                 },
-                { 
-                    model: ClientConnectionStatus, 
+                {
+                    model: ClientConnectionStatus,
                     as: "connectionStatuses",
-                    attributes: ['status']
+                    attributes: ["status"],
+                    where: connectionStatusWhereClause
                 }
-			],
+            ],
             order: [
                 [
                     {
-                        model: ClientPhoneNumber, 
+                        model: ClientPhoneNumber,
                         as: "phoneNumbers"
                     },
-                    'createdAt', 'DESC'
+                    "createdAt",
+                    "DESC"
                 ],
                 [
                     {
-                        model: ClientConnectionStatus, 
+                        model: ClientConnectionStatus,
                         as: "connectionStatuses"
                     },
-                    'createdAt', 'DESC'
+                    "createdAt",
+                    "DESC"
                 ]
             ]
-		})
+        })
 
         if (clients.length > 0) {
             return response.success().addObject("data", JSON.stringify(clients)).getResponse()
@@ -72,6 +110,7 @@ ipcMain.handle("clients", async (event, args) => {
         }
     })
 })
+  
 
 /**
  * Handles the "get-client" IPC request to retrieve a specific client with associated data.
@@ -133,7 +172,7 @@ ipcMain.handle("reconnect-client", async (event, args) => {
 
         const recentBill = client.Bills[0]
 
-        if (recentBill.billAmount !== parseFloat(paidAmount)) {
+        if (recentBill.total !== parseFloat(paidAmount)) {
             return response.failed().addToast("Payment amount must be the same as bill").getResponse()
         }
 
@@ -166,7 +205,7 @@ async function getClientWithRecentBill(clientId) {
 				{
 					model: ClientBill,
 					as: "Bills",
-					attributes: ["id", "billAmount", "paymentStatus", "paymentAmount", "remainingBalance"],
+					attributes: ["id", "total", "status", "amountPaid", "balance"],
 					order: [
                         ["createdAt", "DESC"]
                     ],
@@ -186,18 +225,19 @@ async function getClientWithRecentBill(clientId) {
  * Updates the payment status, payment amount, and remaining balance for a client bill.
  *
  * @param {number} billId - The ID of the bill to update.
- * @param {number} paymentAmount - The payment amount to set.
- * @param {number} remainingBalance - The remaining balance to set.
+ * @param {number} amountPaid - The payment amount to set.
+ * @param {number} balance - The remaining balance to set.
  * @returns {Promise<Object>} - A Promise that resolves to an object indicating the status of the update operation.
  */
-async function updateClientPaymentStatus(billId, paymentAmount, remainingBalance) {
+async function updateClientPaymentStatus(billId, amountPaid, balance) {
 
     return tryCatchWrapper(async () => {
+
         const [rowsUpdated] = await ClientBill.update(
             { 
-                paymentStatus: "paid",
-                paymentAmount: paymentAmount,
-                remainingBalance: remainingBalance
+                status: "paid",
+                amountPaid: amountPaid,
+                balance: balance
             },
             {
                 where: {
@@ -206,10 +246,7 @@ async function updateClientPaymentStatus(billId, paymentAmount, remainingBalance
             }
         );
 
-        if (rowsUpdated > 0) {
-           return { status: "success" }
-        } else {
-            return { status: "failed" }
-        }
+        return { status: rowsUpdated > 0 ? "success" : "failed" }
+
     })
 }

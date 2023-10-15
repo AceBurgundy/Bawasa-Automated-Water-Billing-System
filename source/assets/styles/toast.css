@@ -1,9 +1,9 @@
 #flashes {
     position: fixed;
     left: 0%;
-    bottom: 3.5%;
+    bottom: 0%;
     max-width: max-content;
-    z-index: 9990;
+    z-index: 520;
     margin: 1em;
     background-color: var(--transparent);
     pointer-events: none;
@@ -15,22 +15,44 @@
 }
 
 .message {
-    padding: 0.5em 1.2em;
-    font-size: 0.9rem;
-    margin-bottom: 0.5em;
-    border: none;
-    width: fit-content;
-    border-radius: 15px;
-    list-style: none;
-    opacity: 0;
-    position: relative;
-    color: black;
     background-color: var(--primary);
-    transition: 500ms;
+    padding: 0.4em 1.2em;
+    margin-bottom: 0.5em;
     pointer-events: none;
+    border-radius: 20px;
+    position: relative;
+    width: fit-content;
+    font-size: 0.9rem;
+    border: none;
+    color: black;
 }
 
-.message.active {
-    margin-left: 1.1em;
-    opacity: 1;
+.message:last-child {
+    margin-bottom: 0;
+}
+
+.message[open] {
+    animation: fade-in 500ms forwards;
+}
+
+.message[open].close {
+    animation: fade-out 500ms forwards;
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes fade-out {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
 }

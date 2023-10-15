@@ -1,32 +1,37 @@
-dialog {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -10%);
+.form_dialog {
     background-color: var(--background);
     border: var(--borderDefaultGray);
     border-radius: 10px;
     padding: 1rem;
     width: 450px;
-}
-
-dialog::backdrop {
-    background-color: rgba(34, 34, 34, 0.575);
-    z-index: 990;
+    z-index: 510;
     top: 50%;
     left: 50%;
-    width: 100dvw;
+    transform: translate(-50%, -10%);
+}
+
+#dialog-backdrop {
+    background-color: #22222293;
+    position: fixed;
+    display: none;
     height: 100dvh;
+    width: 100dvw;
+    z-index: 500;
+    opacity: 0;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -10%);
 }
 
-dialog[open].closing, dialog[open].closing::backdrop {
-    animation: fade-out 500ms forwards;
+.form_dialog[open], #dialog-backdrop.open {
+    animation: slide-fade-in 500ms forwards;
 }
 
-dialog[open], dialog[open]::backdrop {
-    animation: fade-in 500ms forwards;
+.form_dialog[open].closing, #dialog-backdrop.closing {
+    animation: slide-fade-out 500ms forwards;
 }
 
-@keyframes fade-in {
+@keyframes slide-fade-in {
     0% {
         transform: translate(-50%, -10%);
         opacity: 0;
@@ -37,7 +42,7 @@ dialog[open], dialog[open]::backdrop {
     }
 }
 
-@keyframes fade-out {
+@keyframes slide-fade-out {
     0% {
         transform: translate(-50%, -50%);
         opacity: 1;
