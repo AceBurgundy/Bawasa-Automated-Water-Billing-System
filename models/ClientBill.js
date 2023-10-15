@@ -1,19 +1,19 @@
-const { DB } = require("../source/utilities/sequelize")
-const { DATA_TYPES } = require("sequelize")
+const { db } = require("../source/utilities/sequelize")
+const { DataTypes } = require("sequelize")
 
-const CLIENT = require("./Client")
+const Client = require("./Client")
 
-const CLIENT_BILL = DB.define(
+const ClientBill = db.define(
     "ClientBill",
     {
         id: {
-            type: DATA_TYPES.INTEGER,
+            type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
 
         billNumber: {
-            type: DATA_TYPES.STRING(7),
+            type: DataTypes.STRING(7),
             allowNull: false,
             validate: {
                 notNull: {
@@ -26,7 +26,7 @@ const CLIENT_BILL = DB.define(
         },
 
         clientId: {
-            type: DATA_TYPES.INTEGER,
+            type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
                 notNull: {
@@ -39,7 +39,7 @@ const CLIENT_BILL = DB.define(
         },
 
         firstReading: {
-            type: DATA_TYPES.DECIMAL(10,2),
+            type: DataTypes.DECIMAL(10,2),
             allowNull: false,
             validate: {
                 notNull: {
@@ -52,7 +52,7 @@ const CLIENT_BILL = DB.define(
         },
 
         secondReading: {
-            type: DATA_TYPES.DECIMAL(10,2),
+            type: DataTypes.DECIMAL(10,2),
             validate: {
                 isDecimal: {
                     msg: "Must be a decimal number ex: (100.00)"
@@ -61,7 +61,7 @@ const CLIENT_BILL = DB.define(
         },
         
         consumption: {
-            type: DATA_TYPES.DECIMAL(10,2),
+            type: DataTypes.DECIMAL(10,2),
             validate: {
                 isInt: {
                     msg: "Consumption must be an integer"
@@ -70,7 +70,7 @@ const CLIENT_BILL = DB.define(
         },
 
         total: {
-            type: DATA_TYPES.DECIMAL(10,2),
+            type: DataTypes.DECIMAL(10,2),
             validate: {
                 isDecimal: {
                     msg: "Bill amount must be a decimal number ex: (100.00)"
@@ -79,7 +79,7 @@ const CLIENT_BILL = DB.define(
         },
 
         status: {
-            type: DATA_TYPES.STRING(50),
+            type: DataTypes.STRING(50),
             defaultValue: "unpaid",
             validate: {
                 isIn: {
@@ -90,7 +90,7 @@ const CLIENT_BILL = DB.define(
         },
 
         amountPaid: {
-            type: DATA_TYPES.DECIMAL(10,2),
+            type: DataTypes.DECIMAL(10,2),
             validate: {
                 isDecimal: {
                     msg: "Payment amount must be a decimal number ex: (100.00)"
@@ -99,7 +99,7 @@ const CLIENT_BILL = DB.define(
         },
 
         balance: {
-            type: DATA_TYPES.DECIMAL(10,2),
+            type: DataTypes.DECIMAL(10,2),
             validate: {
                 isDecimal: {
                     msg: "Remaining balance must be a decimal number ex: (100.00)"
@@ -108,7 +108,7 @@ const CLIENT_BILL = DB.define(
         },
 
         excess: {
-            type: DATA_TYPES.DECIMAL(10,2),
+            type: DataTypes.DECIMAL(10,2),
             validate: {
                 isDecimal: {
                     msg: "Payment excess must be a decimal number ex: (100.00)"
@@ -117,7 +117,7 @@ const CLIENT_BILL = DB.define(
         },
 
         paymentDate: {
-            type: DATA_TYPES.DATE,
+            type: DataTypes.DATE,
             validate: {
                 isDate: {
                     msg: "Payment date must be a valid date"
@@ -126,7 +126,7 @@ const CLIENT_BILL = DB.define(
         },
 
         penalty: {
-            type: DATA_TYPES.DECIMAL(10,2),
+            type: DataTypes.DECIMAL(10,2),
             validate: {
                 isDecimal: {
                     msg: "Penalty amount must be a decimal number ex: (100.00)"
@@ -135,7 +135,7 @@ const CLIENT_BILL = DB.define(
         },
 
         dueDate: {
-            type: DATA_TYPES.DATE,
+            type: DataTypes.DATE,
             validate: {
                 isDate: {
                     msg: "Due date must be a valid date"
@@ -144,7 +144,7 @@ const CLIENT_BILL = DB.define(
         },
 
         disconnectionDate: {
-            type: DATA_TYPES.DATE,
+            type: DataTypes.DATE,
             validate: {
                 isDate: {
                     msg: "Disconnection date must be a valid date"
@@ -155,18 +155,18 @@ const CLIENT_BILL = DB.define(
     }
 )
 
-CLIENT_BILL.belongsTo(CLIENT, { 
+ClientBill.belongsTo(Client, { 
     foreignKey: "clientId", 
     as: "bills",
     onDelete: 'CASCADE'
 })
 
-CLIENT.hasMany(CLIENT_BILL, { 
+Client.hasMany(ClientBill, { 
     foreignKey: "clientId", 
     as: "bills"
 })
 
-CLIENT_BILL.sync()
+ClientBill.sync()
     .then(() => {
         console.log("Client Bill model successfully created or synchronized");
     })
@@ -174,4 +174,4 @@ CLIENT_BILL.sync()
         console.error("\n\nError creating/synchronizing table Client Bill because of error:", error);
     });
 
-module.exports = CLIENT_BILL
+module.exports = ClientBill

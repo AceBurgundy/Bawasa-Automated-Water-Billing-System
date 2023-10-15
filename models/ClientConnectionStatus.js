@@ -1,20 +1,20 @@
 const { CONNECTION_STATUS_OPTIONS } = require("../source/utilities/constants")
-const { DB } = require("../source/utilities/sequelize")
-const { DATA_TYPES } = require('sequelize')
+const { db } = require("../source/utilities/sequelize")
+const { DataTypes } = require('sequelize')
 
-const CLIENT = require("./Client")
+const Client = require("./Client")
 
-const CLIENT_CONNECTION_STATUS = DB.define(
+const ClientConnectionStatus = db.define(
     "ClientConnectionStatus",
     {
         id: {
-            type: DATA_TYPES.INTEGER,
+            type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
 
         clientId: {
-            type: DATA_TYPES.INTEGER,
+            type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
                 notNull: {
@@ -30,7 +30,7 @@ const CLIENT_CONNECTION_STATUS = DB.define(
         },
 
         status: {
-            type: DATA_TYPES.STRING(30),
+            type: DataTypes.STRING(30),
             allowNull: false,
             validate: {
                 notNull: {
@@ -48,18 +48,18 @@ const CLIENT_CONNECTION_STATUS = DB.define(
     }
 )
 
-CLIENT_CONNECTION_STATUS.belongsTo(CLIENT, { 
+ClientConnectionStatus.belongsTo(Client, { 
     foreignKey: "clientId", 
     as: "connectionStatuses",
     onDelete: 'CASCADE'
 })
 
-CLIENT.hasMany(CLIENT_CONNECTION_STATUS, { 
+Client.hasMany(ClientConnectionStatus, { 
     foreignKey: "clientId", 
     as: "connectionStatuses" 
 })
 
-CLIENT_CONNECTION_STATUS.sync()
+ClientConnectionStatus.sync()
     .then(() => {
         console.log("Client Connection Status model successfully created or synchronized");
     })
@@ -67,4 +67,4 @@ CLIENT_CONNECTION_STATUS.sync()
         console.error("\n\nError creating/synchronizing table for Client Connection Status because of error:", error);
     });
 
-module.exports = CLIENT_CONNECTION_STATUS
+module.exports = ClientConnectionStatus

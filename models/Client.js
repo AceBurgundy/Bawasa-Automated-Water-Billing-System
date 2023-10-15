@@ -1,21 +1,22 @@
 
-const { RELATIONSHIP_OPTIONS } = require("../source/utilities/constants")
-const { DB } = require("../source/utilities/sequelize")
-const { DATA_TYPES } = require("sequelize")
+const { relationshipOptions } = require("../source/utilities/constants")
+const { db } = require("../source/utilities/sequelize")
+const { DataTypes } = require("sequelize")
 
-const CLIENT_ADDRESS = require("./ClientAddress")
+const ClientAddress = require("./ClientAddress")
 
-const CLIENT = DB.define(
+const Client = db.define(
     "Client",
+
     {
         id: {
-            type: DATA_TYPES.INTEGER,
+            type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
         },
 
         accountNumber: {
-            type: DATA_TYPES.STRING(7),
+            type: DataTypes.STRING(7),
             allowNull: false,
             validate: {
                 notNull: {
@@ -28,7 +29,7 @@ const CLIENT = DB.define(
         },
 
         firstName: {
-            type: DATA_TYPES.STRING(255),
+            type: DataTypes.STRING(255),
             allowNull: false,
             validate: {
                 notNull: {
@@ -45,7 +46,7 @@ const CLIENT = DB.define(
         },
 
         middleName: {
-            type: DATA_TYPES.STRING(255),
+            type: DataTypes.STRING(255),
             allowNull: false,
             validate: {
                 notNull: {
@@ -62,7 +63,7 @@ const CLIENT = DB.define(
         },
 
         lastName: {
-            type: DATA_TYPES.STRING(255),
+            type: DataTypes.STRING(255),
             allowNull: false,
             validate: {
                 notNull: {
@@ -79,11 +80,11 @@ const CLIENT = DB.define(
         },
 
         extension: {
-            type: DATA_TYPES.STRING(10),
+            type: DataTypes.STRING(10),
         },
 
         fullName: {
-            type: DATA_TYPES.VIRTUAL,
+            type: DataTypes.VIRTUAL,
             get() {
                 return `${this.firstName} ${this.middleName
                     .charAt(0)
@@ -95,7 +96,7 @@ const CLIENT = DB.define(
         },
 
         relationshipStatus: {
-            type: DATA_TYPES.STRING(35),
+            type: DataTypes.STRING(35),
             allowNull: false,
             validate: {
                 notEmpty: {
@@ -105,14 +106,14 @@ const CLIENT = DB.define(
                     msg: "Relationship status is required",
                 },
                 isIn: {
-                    args: RELATIONSHIP_OPTIONS,
+                    args: relationshipOptions,
                     msg: "Invalid relationship status",
                 },
             },
         },
 
         birthDate: {
-            type: DATA_TYPES.DATEONLY,
+            type: DataTypes.DATEONLY,
             allowNull: false,
             validate: {
                 notNull: {
@@ -125,7 +126,7 @@ const CLIENT = DB.define(
         },
 
         age: {
-            type: DATA_TYPES.INTEGER,
+            type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
                 notNull: {
@@ -138,7 +139,7 @@ const CLIENT = DB.define(
         },
 
         email: {
-            type: DATA_TYPES.STRING(255),
+            type: DataTypes.STRING(255),
             allowNull: false,
             unique: true,
             validate: {
@@ -155,7 +156,7 @@ const CLIENT = DB.define(
         },
 
         occupation: {
-            type: DATA_TYPES.STRING(100),
+            type: DataTypes.STRING(100),
             allowNull: false,
             validate: {
                 notNull: {
@@ -168,17 +169,17 @@ const CLIENT = DB.define(
         },
         
         profilePicture: {
-            type: DATA_TYPES.STRING(255),
+            type: DataTypes.STRING(255),
             defaultValue: "user.webp",
         },
 
         housePicture: {
-            type: DATA_TYPES.STRING(255),
+            type: DataTypes.STRING(255),
             defaultValue: "blank_image.webp",
         },
 
         meterNumber: {
-            type: DATA_TYPES.STRING(25),
+            type: DataTypes.STRING(25),
             allowNull: false,
             validate: {
                 notNull: {
@@ -192,29 +193,29 @@ const CLIENT = DB.define(
     }
 )
 
-CLIENT.hasOne(CLIENT_ADDRESS, { 
+Client.hasOne(ClientAddress, { 
     foreignKey: "mainAddressId", 
     as: "mainAddress",
     onDelete: 'CASCADE'
 })
 
-CLIENT.hasOne(CLIENT_ADDRESS, { 
+Client.hasOne(ClientAddress, { 
     foreignKey: "presentAddressId", 
     as: "presentAddress",
     onDelete: 'CASCADE'
 })
 
-CLIENT_ADDRESS.belongsTo(CLIENT, {
+ClientAddress.belongsTo(Client, {
 	foreignKey: "mainAddressId",
 	as: "mainAddress",
 })
 
-CLIENT_ADDRESS.belongsTo(CLIENT, {
+CLIENTAddress.belongsTo(Client, {
 	foreignKey: "presentAddressId",
 	as: "presentAddress",
 })
 
-CLIENT.sync()
+Client.sync()
     .then(() => {
         console.log("Client model successfully created or synchronized")
     })
@@ -222,4 +223,4 @@ CLIENT.sync()
         console.error("\n\nError creating/synchronizing table for Client because of error:", error)
     })
 
-module.exports = CLIENT
+module.exports = Client

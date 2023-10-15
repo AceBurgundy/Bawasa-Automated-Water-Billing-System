@@ -1,19 +1,19 @@
-const { DB } = require("../source/utilities/sequelize")
-const { DATA_TYPES } = require("sequelize")
+const { db } = require("../source/utilities/sequelize")
+const { DataTypes } = require("sequelize")
 
-const CLIENT_BILL = require("./CLIENT_BILL")
+const ClientBill = require("./ClientBill")
 
-const PARTIAL_PAYMENT = DB.define(
+const PartialPayment = db.define(
     "PartialPayment",    
     {
         id: {
-            type: DATA_TYPES.INTEGER,
+            type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
 
         clientBillId: {
-            type: DATA_TYPES.INTEGER,
+            type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
                 notNull: { 
@@ -23,12 +23,12 @@ const PARTIAL_PAYMENT = DB.define(
         },
 
         paymentDate: {
-            type: DATA_TYPES.DATE,
-            defaultValue: DATA_TYPES.NOW
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW
         },
 
         amountPaid: {
-            type: DATA_TYPES.DECIMAL,
+            type: DataTypes.DECIMAL,
             allowNull: false,
             validate: {
                 notNull: { 
@@ -42,18 +42,18 @@ const PARTIAL_PAYMENT = DB.define(
     }
 )
 
-PARTIAL_PAYMENT.belongsTo(CLIENT_BILL, { 
+PartialPayment.belongsTo(ClientBill, { 
     foreignKey: "clientBillId",
     onDelete: 'CASCADE',
     as: "partialPayments"
 })
 
-CLIENT_BILL.hasMany(PARTIAL_PAYMENT, { 
+ClientBill.hasMany(PartialPayment, { 
     foreignKey: "clientBillId",
     as: "partialPayments"
 })
 
-PARTIAL_PAYMENT.sync()
+PartialPayment.sync()
     .then(() => {
         console.log("Partial Payment model successfully created or synchronized");
     })
@@ -61,4 +61,4 @@ PARTIAL_PAYMENT.sync()
         console.error("\n\nError creating/synchronizing table for Partial Payment because of error:", error);
     })
 
-module.exports = PARTIAL_PAYMENT
+module.exports = PartialPayment

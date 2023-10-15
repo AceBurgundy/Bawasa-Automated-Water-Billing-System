@@ -1,19 +1,19 @@
-const { DB } = require("../source/utilities/sequelize")
-const { DATA_TYPES } = require("sequelize")
+const { db } = require("../source/utilities/sequelize")
+const { DataTypes } = require("sequelize")
 
-const CLIENT = require("./Client")
+const Client = require("./Client")
 
-const CLIENT_FILE = DB.define(
+const ClientFile = db.define(
     "ClientFile",
     {
         id: {
-            type: DATA_TYPES.INTEGER,
+            type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
         },
 
         clientId: {
-            type: DATA_TYPES.INTEGER,
+            type: DataTypes.INTEGER,
             allowNull: false,
             validate: {
                 notNull: {
@@ -24,7 +24,7 @@ const CLIENT_FILE = DB.define(
         
         name: {
             allowNull: false,
-            type: DATA_TYPES.STRING(255),
+            type: DataTypes.STRING(255),
             validate: {
                 notNull: {
                     msg: 'Clients ID is required'
@@ -35,18 +35,18 @@ const CLIENT_FILE = DB.define(
     }
 )
 
-CLIENT_FILE.belongsTo(CLIENT, {
+ClientFile.belongsTo(Client, {
     foreignKey: 'clientId',
     as: "files",
     onDelete: 'CASCADE'
 })
 
-CLIENT.hasMany(CLIENT_FILE, {
+Client.hasMany(ClientFile, {
     foreignKey: 'clientId',
     as: "files"
 })
 
-CLIENT_FILE.sync()
+ClientFile.sync()
     .then(() => {
         console.log("Client file model successfully created or synchronized");
     })
@@ -54,4 +54,4 @@ CLIENT_FILE.sync()
         console.error("\n\nError creating/synchronizing table for client file because of error:", error);
     });
 
-module.exports = CLIENT_FILE
+module.exports = ClientFile

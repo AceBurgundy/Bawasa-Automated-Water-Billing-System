@@ -1,17 +1,17 @@
-const { DB } = require("../source/utilities/sequelize")
-const { DATA_TYPES } = require("sequelize")
+const { db } = require("../source/utilities/sequelize")
+const { DataTypes } = require("sequelize")
 
-const CLIENT_ADDRESS = DB.define(
+const ClientAddress = db.define(
     "ClientAddress",
     {
         id: {
-            type: DATA_TYPES.INTEGER,
+            type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
         },
 
         street: {
-            type: DATA_TYPES.STRING(50),
+            type: DataTypes.STRING(50),
             validate: {
                 is: {
                     args: /^[A-Za-z\s0-9.]+$/,
@@ -21,7 +21,7 @@ const CLIENT_ADDRESS = DB.define(
         },
 
         subdivision: {
-            type: DATA_TYPES.STRING(50),
+            type: DataTypes.STRING(50),
             validate: {
                 is: {
                     args: /^[A-Za-z\s0-9.]+$/,
@@ -31,7 +31,7 @@ const CLIENT_ADDRESS = DB.define(
         },
 
         barangay: {
-            type: DATA_TYPES.STRING(50),
+            type: DataTypes.STRING(50),
             allowNull: false,
             validate: {
                 is: {
@@ -48,7 +48,7 @@ const CLIENT_ADDRESS = DB.define(
         },
 
         city: {
-            type: DATA_TYPES.STRING(100),
+            type: DataTypes.STRING(100),
             allowNull: false,
             validate: {
                 is: {
@@ -65,7 +65,7 @@ const CLIENT_ADDRESS = DB.define(
         },
 
         province: {
-            type: DATA_TYPES.STRING(50),
+            type: DataTypes.STRING(50),
             allowNull: false,
             validate: {
                 is: {
@@ -82,7 +82,7 @@ const CLIENT_ADDRESS = DB.define(
         },
 
         postalCode: {
-            type: DATA_TYPES.STRING(4),
+            type: DataTypes.STRING(4),
             allowNull: false,
             validate: {
                 isAlphanumeric: {
@@ -98,7 +98,7 @@ const CLIENT_ADDRESS = DB.define(
         },
 
         details: {
-            type: DATA_TYPES.STRING(255),
+            type: DataTypes.STRING(255),
             allowNull: false,
             validate: {
                 notNull: {
@@ -111,7 +111,7 @@ const CLIENT_ADDRESS = DB.define(
         },
 
         fullAddress: {
-            type: DATA_TYPES.VIRTUAL,
+            type: DataTypes.VIRTUAL,
             get() {
                 return [ 
                     this.details,
@@ -130,7 +130,7 @@ const CLIENT_ADDRESS = DB.define(
     }
 )
 
-CLIENT_ADDRESS.sync()
+ClientAddress.sync()
     .then(() => {
         console.log("Client Address model successfully created or synchronized");
     })
@@ -138,4 +138,4 @@ CLIENT_ADDRESS.sync()
         console.error("\n\nError creating/synchronizing table for Client Address because of error:", error);
     });
 
-module.exports = CLIENT_ADDRESS
+module.exports = ClientAddress
