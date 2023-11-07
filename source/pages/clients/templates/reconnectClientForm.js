@@ -1,15 +1,15 @@
 import { clearAndHideDialog, showData } from "../../../assets/scripts/helper.js"
 
 /**
- * Generates a reconnection form template for a Client.
+ * Generates a reconnection form template for a client.
  * 
- * @param {Object} Client - The Client data.
+ * @param {Object} client - The client data.
  * @returns {string} - The HTML template for the reconnection form.
  */
-export class ReconnectCLIENTForm {
+export class ReconnectClientForm {
 
-    constructor(Client) {
-        const billAmount = showData(Client.Bills[0].billAmount)
+    constructor(client) {
+        const billAmount = showData(client.Bills[0].billAmount)
 
         this.closeButtonId = generateUniqueId(`reconnect-form-close`)
         this.submitButtonId = generateUniqueId(`reconnect-form-submit`)
@@ -19,7 +19,7 @@ export class ReconnectCLIENTForm {
 
         this.template = `
             <form id="reconnect-form">
-                <p id="reconnect-form-title">Reconnection for Mr/Mrs ${showData(Client.fullName)}</p>
+                <p id="reconnect-form-title">Reconnection for Mr/Mrs ${showData(client.fullName)}</p>
                 <div id="reconnect-form__input-box">
                     <p id="${ this.dialogErrorId }"></p>
                     <p id="reconnect-form__input-box__warning">A total amount of ${billAmount} must be paid first to complete reconnection</p>
@@ -62,8 +62,8 @@ export class ReconnectCLIENTForm {
         this.setRowReconnected()
         clearAndHideDialog()
 
-        const response = await window.ipcRenderer.invoke("reconnect-Client", {
-            CLIENTId: this.CLIENTId,
+        const response = await window.ipcRenderer.invoke("reconnect-client", {
+            clientId: this.clientId,
             paidAmount: paidAmount
         })
 
@@ -77,18 +77,18 @@ export class ReconnectCLIENTForm {
     }
 
     setRowReconnected() {
-        const rowElement = getById(`Client-row-${this.CLIENTId}`)
-        rowElement.children[6].firstElementChild.textContent = window.CONNECTION_STATUS_TYPES.Connected
+        const rowElement = getById(`client-row-${this.clientId}`)
+        rowElement.children[6].firstElementChild.textContent = window.connectionStatusTypes.Connected
         rowElement.removeAttribute(`id`)
         rowElement.querySelector(".table-info__options-item.reconnect").style.display = "none"
     }
 
     revertOriginalRow() {
-        const rowElement = getById(`Client-row-${CLIENTId}`)
+        const rowElement = getById(`client-row-${clientId}`)
         
         if (rowElement) {
-            rowElement.children[6].firstElementChild.textContent = window.CONNECTION_STATUS_TYPES.Disconnected
-            rowElement.id = `Client-row-${this.CLIENTId}`
+            rowElement.children[6].firstElementChild.textContent = window.connectionStatusTypes.Disconnected
+            rowElement.id = `client-row-${this.clientId}`
             rowElement.querySelector(".table-info__options-item.reconnect").style.display = "block"
         }
     }
