@@ -1,4 +1,4 @@
-const { RELATIONSHIP_OPTIONS } = require("../source/utilities/constants")
+const { relationshipOptions } = require("../source/utilities/constants")
 const { db } = require("../source/utilities/sequelize")
 const { DataTypes } = require('sequelize');
 
@@ -121,7 +121,7 @@ const User = db.define(
                     msg: "Relationship status cannot be left blank"
                 },
                 isIn: {
-                    args: RELATIONSHIP_OPTIONS,
+                    args: relationshipOptions,
                     msg: "Invalid relationship status"
                 }
             }

@@ -77,7 +77,7 @@ export function formatDate(date) {
  * @function
  * @param {Function} callback - The callback function to wrap.
  */
-export async function TRY_CATCH_WRAPPER(callback) {
+export async function tryCatchWrapper(callback) {
     try {
         return await callback()
     } catch (error) {
@@ -218,7 +218,7 @@ export const clearAndHideDialog = () => {
  */
 export const generateUniqueId = name => {
     const randomNumber = Math.floor(Math.random() * 100) + 1
-    const id = [randomNumber, name].join("-")
+    const id = [name, randomNumber].join("-")
 
     return document.body.contains(getById(id)) ? generateUniqueId() : id
 }

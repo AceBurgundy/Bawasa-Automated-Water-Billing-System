@@ -1,4 +1,4 @@
-const { CONNECTION_STATUS_OPTIONS } = require("../source/utilities/constants")
+const { connectionStatusOptions } = require("../source/utilities/constants")
 const { db } = require("../source/utilities/sequelize")
 const { DataTypes } = require('sequelize')
 
@@ -40,7 +40,7 @@ const ClientConnectionStatus = db.define(
                     msg: "Connection status cannot be left blank"
                 },
                 isIn: {
-                    args: CONNECTION_STATUS_OPTIONS,
+                    args: connectionStatusOptions,
                     msg: "Invalid connection status"
                 }
             }

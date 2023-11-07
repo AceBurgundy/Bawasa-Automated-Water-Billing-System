@@ -210,7 +210,7 @@ ClientAddress.belongsTo(Client, {
 	as: "mainAddress",
 })
 
-CLIENTAddress.belongsTo(Client, {
+ClientAddress.belongsTo(Client, {
 	foreignKey: "presentAddressId",
 	as: "presentAddress",
 })

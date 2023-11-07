@@ -11,9 +11,9 @@ import {
 import BillingRow from "./BillingRow.js";
 
 /**
- * Generates a ${this.billType} bill entry form template for a Client's billing record.
+ * Generates a ${this.billType} bill entry form template for a client's billing record.
  *
- * @param {Object} formData - The form data containing Client details and bills.
+ * @param {Object} formData - The form data containing client details and bills.
  * @param {boolean} forNewBill - Indicates whether the form is for a ${this.billType} bill entry.
  * @returns {string} - The HTML template for the ${this.billType} bill entry form.
  */
@@ -26,13 +26,13 @@ export default class BillForm {
         this.forNewBill = forNewBill
         this.rowId = rowId
 
-        const latestBill = this.formData.Bills[0];
+        const latestBill = this.formData.bills[0];
         this.billId = latestBill?.id
         console.log(latestBill, this.billId);
         
         const { lastName, fullName, id } = formData
 
-        this.CLIENTId = id ?? ''
+        this.clientId = id ?? ''
 
         let readingWarning = null
         let title = null
@@ -42,7 +42,7 @@ export default class BillForm {
             title = `New Reading for Mr/Mrs ${showData(formData.fullName)}`
 
             readingWarning = latestBill === undefined || this.forNewBill ?
-                "This will be the Client's new billing record" 
+                "This will be the client's new billing record" 
             :
                 `Mr/Mrs ${showData(lastName)}'s previous reading is ${showData(latestBill.firstReading)}`;
         }
@@ -51,13 +51,14 @@ export default class BillForm {
 
             title = `Bills payment for Mr/Mrs ${showData(formData.fullName)}`
             
-            readingWarning = latestBill.paymentStatus === "unpaid" ?
-                `Mr/Mrs ${showData(fullName)} current bill is ${showData(latestBill.billAmount)}`
+            if (latestBill.paymentStatus === "unpaid") {
+                readingWarning = `Mr/Mrs ${showData(fullName)} current bill is ${showData(latestBill.billAmount)}`
+            } else if (latestBill.paymentStatus === "underpaid") {
+                readingWarning = `Mr/Mrs ${showData(fullName)} remaining balance is ${showData(latestBill.remainingBalance)}`
+            } else {
+                readingWarning = ''
+            }
             
-            : latestBill.paymentStatus === "underpaid" ?
-                `Mr/Mrs ${showData(fullName)} remaining balance is ${showData(latestBill.remainingBalance)}`
-            
-            : ''
         }
     
         this.closeButtonId = generateUniqueId(`${billType}-bill-form-close`)
@@ -116,10 +117,10 @@ export default class BillForm {
             return
         }
 
-        if (this.CLIENTId, paymentAmount) {
+        if (this.clientId && paymentAmount) {
             
             const newBillData = {
-                CLIENTId: this.CLIENTId,
+                clientId: this.clientId,
                 monthlyReading: paymentAmount,
                 billId: this.billId ?? '',
             }
@@ -139,7 +140,7 @@ export default class BillForm {
             makeToastNotification(response.toast[0])
             clearAndHideDialog()
 
-            const getResponse = await window.ipcRenderer.invoke("get-bill", { billId: response.billId ?? this.billId, CLIENTId: this.CLIENTId })
+            const getResponse = await window.ipcRenderer.invoke("get-bill", { billId: response.billId ?? this.billId, clientId: this.clientId })
 
             if (getResponse.status === "failed") {
                 getResponse.toast[0] && makeToastNotification(getResponse.toast[0])
@@ -154,7 +155,6 @@ export default class BillForm {
 
         }
 
-        return
     }
 
     loadScripts() {

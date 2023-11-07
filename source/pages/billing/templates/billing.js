@@ -1,5 +1,5 @@
-import BillingRow from "./classes/BillingRow.js";
-import icons from "../../../assets/scripts/icons.js";
+import BillingRow from "./classes/BillingRow.js"
+import { icons } from "../../../assets/scripts/icons.js"
 
 /**
  * Generate a billing table HTML based on the provided billing data.
@@ -13,7 +13,7 @@ export default function billingTable(bills, user, responseMessage) {
             
     const { usersIcon, billIcon, powerIcon, userIcon } = icons
     const navigationObject = [
-        { title: "CLIENTs", icon: usersIcon },
+        { title: "clients", icon: usersIcon },
         { title: "Billing", icon: billIcon },
         { title: "Logout", icon: powerIcon },
     ]
@@ -26,12 +26,12 @@ export default function billingTable(bills, user, responseMessage) {
                 ${
                     navigationObject.map(navigation => {
                         return `
-                            <div id="${ navigation.title.toLowerCase() }" class="nav-item">
+                            <div id="${ navigation.title.toLowerCase() }" class="nav-item ${ navigation.title === "Billing" ? "active" : "" }">
                                 <div>${ navigation.icon }</div>
                                 <p>${ navigation.title }</p>
                             </div>
                         `        
-                    })
+                    }).join("\n")
                 }
             </div>
             <div id="profile" class="nav-item">
@@ -42,7 +42,7 @@ export default function billingTable(bills, user, responseMessage) {
 
         <section>
 
-            <div id="CLIENTs-section" class="content">
+            <div id="clients-section" class="content">
 
                 <div class="content__top">
                     <div>
@@ -64,12 +64,12 @@ export default function billingTable(bills, user, responseMessage) {
                                     return `
                                         <div class="statistics__child">
                                             <p>
-                                                <span id="${ statistic.toLowerCase() }-CLIENTs"></span>
+                                                <span id="${ statistic.toLowerCase() }-clients"></span>
                                                 ${ statistic }
                                             </p>
                                         </div>    
                                     `
-                                })
+                                }).join("\n")
                             }
                         </div>
                         
@@ -89,7 +89,7 @@ export default function billingTable(bills, user, responseMessage) {
                                         return `
                                             <option value="${ newValue }">${ selectOption }</option>
                                         `
-                                    })
+                                    }).join("\n")
                                 }
                             </select>
                         </div>
@@ -113,7 +113,7 @@ export default function billingTable(bills, user, responseMessage) {
                                         <p>${ header }</p>
                                     </div>
                                 `
-                            })
+                            }).join("\n")
                         }
                         </div>
                         <div id="table-data-row">
@@ -125,6 +125,6 @@ export default function billingTable(bills, user, responseMessage) {
                 </div>
             </div>
         </section>
-    `;
+    `
 }
 
