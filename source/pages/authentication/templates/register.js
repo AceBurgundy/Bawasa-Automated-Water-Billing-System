@@ -1,3 +1,6 @@
+import Select from "../../../components/Select.js"
+import Input from "../../../components/Input.js"
+
 export const registerTemplate = () => {
 
     const { 
