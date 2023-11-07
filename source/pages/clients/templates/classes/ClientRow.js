@@ -1,5 +1,5 @@
-import { renderCLIENTBuilder } from "../../../CLIENTBuilder/static/CLIENTBuilder.js";
-import { ReconnectCLIENTForm } from "../ReconnectCLIENTForm.js";
+import { renderClientBuilder } from "../../../clientBuilder/static/clientBuilder.js";
+import { ReconnectClientForm } from "../ReconnectClientForm.js";
 
 import { 
     getById,
@@ -9,29 +9,32 @@ import {
     transition 
 } from "../../../../assets/scripts/helper.js";
 
-export default class CLIENTRow {
+export default class ClientRow {
 
-    constructor(Client) {
+    constructor(client) {
 
-        this.Client = Client
+        this.client = client
 
-        const { fullName, accountNumber, birthDate, connectionStatuses, meterNumber, id, phoneNumbers } = Client
+        const { fullName, mainAddress, accountNumber, birthDate, connectionStatuses, meterNumber, id, phoneNumbers } = client
 
-        this.CLIENTId = id
+        const { fullAddress } = mainAddress
+
+        this.clientId = id
                                             
         this.connectionStatus = connectionStatuses.length === 0 ? "Not Set" : connectionStatuses[0].status
 
-        this.editButtonId = ["edit-", id].join('')
-        this.exportButtonId = ["export-", id].join('')
-        this.reconnectButtonId = ["reconnect-", id].join('')
-        this.archiveButtonId = ["archive-", id].join('')
-        this.rowMenuId = ["row-menu", id].join('')
+        this.tableOptionsId = generateUniqueId("table-info__options")
+        this.reconnectButtonId = generateUniqueId("reconnect")
+        this.archiveButtonId = generateUniqueId("archive")
+        this.exportButtonId = generateUniqueId("export")
+        this.editButtonId = generateUniqueId("edit")
+        this.rowMenuId = generateUniqueId("row-menu")
 
         this.template = `
-            <div class="table-info" id="Client-row-${id}">
-                <div class="table-info__options" data-Client-id="${id}">
+            <div class="table-info" id="client-row-${id}">
+                <div id="${ this.tableOptionsId }" class="table-info__options">
                     <p>Menu</p>
-                    <div class="table-info__options-item-box" data-Client-id="${id}">
+                    <div class="table-info__options-item-box">
                         ${ this.ReconnectButton() }
                         <div id="${ this.editButtonId }" class="table-info__options-item">
                             <svg class="edit-table-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5,18H9.24a1,1,0,0,0,.71-.29l6.92-6.93h0L19.71,8a1,1,0,0,0,0-1.42L15.47,2.29a1,1,0,0,0-1.42,0L11.23,5.12h0L4.29,12.05a1,1,0,0,0-.29.71V17A1,1,0,0,0,5,18ZM14.76,4.41l2.83,2.83L16.17,8.66,13.34,5.83ZM6,13.17l5.93-5.93,2.83,2.83L8.83,16H6ZM21,20H3a1,1,0,0,0,0,2H21a1,1,0,0,0,0-2Z"/></svg>
@@ -48,12 +51,13 @@ export default class CLIENTRow {
                     </div>
                 </div>
                 <div class="table-info__item">
+                    <p>${ showData(accountNumber) }</p>
+                </div>
+                <div class="table-info__item">
                     <p>${ showData(fullName) }</p>
                 </div>
                 <div class="table-info__item">
-                    <p>
-                        ${ showData(address.fullAddress) }
-                    </p>
+                    <p>${ showData(fullAddress) }</p>
                 </div>
                 <div class="table-info__item">
                     <p>+63${showData(phoneNumbers[0]?.phoneNumber, "XXXXXXXXXX")}</p>
@@ -65,9 +69,9 @@ export default class CLIENTRow {
                     <p>${ showData(meterNumber) }</p>
                 </div>
                 <div class="table-info__item">
-                    <p>${ showData(connectionStatus) }</p>
+                    <p>${ showData(this.connectionStatus) }</p>
                 </div>
-                <div id="${ this.rowMenuId }" class="table-info__item row-menu" data-Client-id="${id}">
+                <div id="${ this.rowMenuId }" class="table-info__item row-menu">
                     <div class="icon-box">
                         <svg class="menu" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                             <path d="M12,7a2,2,0,1,0-2-2A2,2,0,0,0,12,7Zm0,10a2,2,0,1,0,2,2A2,2,0,0,0,12,17Zm0-7a2,2,0,1,0,2,2A2,2,0,0,0,12,10Z"/>
@@ -76,10 +80,16 @@ export default class CLIENTRow {
                 </div>
             </div>
         `
+
+        this.loadScripts()
+    }
+
+    toString() {
+        return this.template
     }
 
     ReconnectButton() {
-        return this.connectionStatus === window.CONNECTION_STATUS_TYPES.Disconnected ? `
+        return this.connectionStatus === window.connectionStatusTypes.Disconnected ? `
             <div id="${ this.reconnectButtonId }" class="table-info__options-item">
                 <svg class="print-bill-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17,11H16a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm0,4H16a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2ZM11,9h6a1,1,0,0,0,0-2H11a1,1,0,0,0,0,2ZM21,3H7A1,1,0,0,0,6,4V7H3A1,1,0,0,0,2,8V18a3,3,0,0,0,3,3H18a4,4,0,0,0,4-4V4A1,1,0,0,0,21,3ZM6,18a1,1,0,0,1-2,0V9H6Zm14-1a2,2,0,0,1-2,2H7.82A3,3,0,0,0,8,18V5H20Zm-9-4h1a1,1,0,0,0,0-2H11a1,1,0,0,0,0,2Zm0,4h1a1,1,0,0,0,0-2H11a1,1,0,0,0,0,2Z"/></svg>
                 <p>Reconnect</p>
@@ -88,39 +98,44 @@ export default class CLIENTRow {
 
     loadScripts() {
         setTimeout(() => {
-            const rowMenu = getById(this.rowMenuId)
-            const editButton = getById(this.editButtonId)
-            const exportButton = getById(this.exportButtonId)
             const reconnectButton = getById(this.reconnectButtonId)
             const archiveButton = getById(this.archiveButtonId)
+            const exportButton = getById(this.exportButtonId)
+            const tableOptions = getById(this.tableOptionsId)
+            const editButton = getById(this.editButtonId)
+            const rowMenu = getById(this.rowMenuId)
 
             editButton.onclick = async () => {
-                const CLIENTData = Object.values(CLIENTs).filter(Client => Client.id === parseInt(this.CLIENTId))
-                transition(() => { renderCLIENTBuilder(true, CLIENTData) })
+                transition(() => renderClientBuilder(true, this.client))
             }
 
             exportButton.onclick = async () => {
-                const exportDateResult = await window.ipcRenderer.invoke("export-record", { id: this.CLIENTId })
+                const exportDateResult = await window.ipcRenderer.invoke("export-record", { id: this.clientId })
                 makeToastNotification(exportDateResult.toast[0]) 
             }
 
             rowMenu.onclick = () => {
+                if (tableOptions.classList.contains("active")) {
+                    tableOptions.classList.remove("active")
+                    return
+                }
+
                 queryElements(".row-menu").forEach(element => {
-                    if (element.id === this.rowMenuId) {
-                        element.classList.add("active")
-                    } else {
-                        element.classList.remove("active")
+                    if (element.id !== rowMenu.id) {
+                        tableOptions.classList.remove("active")
+                        return
                     }
+                    tableOptions.classList.add("active")
                 })
             }
 
             if (reconnectButton) {
                 reconnectButton.onclick = async () => {
-                    const response = await window.ipcRenderer.invoke("get-Client", { CLIENTId: this.CLIENTId })
+                    const response = await window.ipcRenderer.invoke("get-client", { clientId: this.clientId })
                     if (response.status === "failed") return makeToastNotification(response.toast[0])           
                 
-                    const Client = JSON.parse(response.data)
-                    new ReconnectCLIENTForm(Client)
+                    const client = JSON.parse(response.data)
+                    new ReconnectClientForm(client)
                 }
             }
 
