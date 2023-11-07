@@ -25,7 +25,7 @@ ipcMain.handle("clients", async (event, table) => {
 
         const response = new Response()
 
-        const clientWhereClause = {}
+        const clientWhereClause = null
 
         const columnMap = {
             fullName: "$fullName$",
@@ -48,8 +48,8 @@ ipcMain.handle("clients", async (event, table) => {
             clientWhereClause[columnMap[table.ColumnName]] = table.columnData
         } 
 
-        const phoneNumberWhereClause = {}
-        const connectionStatusWhereClause = {}
+        const phoneNumberWhereClause = null
+        const connectionStatusWhereClause = null
 
         if (table.ColumnName && table.ColumnName === "phoneNumbers.phoneNumber") {
             phoneNumberWhereClause["$phoneNumbers.phoneNumber$"] = table.columnData
