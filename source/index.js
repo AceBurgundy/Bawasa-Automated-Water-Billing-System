@@ -62,7 +62,7 @@ const createWindow = async () => {
     try {
 
         const displays = screen.getAllDisplays()
-        const availableScreen = displays.length > 1 ? displays[0] : displays[0]
+        const availableScreen = displays.length > 1 ? displays[1] : displays[0]
 
         const mainWindow = new BrowserWindow({
             x: availableScreen.bounds.x,
@@ -91,7 +91,7 @@ const createWindow = async () => {
                 include: [
                     {
                         model: ClientBill,
-                        as: 'Bills',
+                        as: 'bills',
                         attributes: ['id', 'penalty', 'total', 'status', 'dueDate', 'disconnectionDate', 'createdAt'],
                         required: false,
                         separate: true,
