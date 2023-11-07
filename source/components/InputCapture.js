@@ -65,7 +65,7 @@ export default class InputCapture {
 
         const image = new Image()
         const context = canvas.getContext('2d')
-        const imagePath = await window.ipcRenderer.invoke("get-Client-profile-path", this.profilePicture)
+        const imagePath = await window.ipcRenderer.invoke("get-profile-path", this.profilePicture)
         image.src = imagePath
 
         image.onload = function () {
@@ -104,8 +104,8 @@ export default class InputCapture {
                 this.showHideImageCapture(numberOfWebCams)
             })
         
-            // Load the Client's profile picture when form is set to edit
-            if (this.forEdit) await this.setOriginalImage(canvas)
+            // Load the client's profile picture when form is set to edit
+            if (this.forEdit && this.profilePicture) await this.setOriginalImage(canvas)
         
             // Handle image capture
             captureElement.onclick = function (event) {
