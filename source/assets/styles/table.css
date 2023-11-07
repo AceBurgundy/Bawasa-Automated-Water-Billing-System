@@ -25,7 +25,7 @@
 
 #table-data-headers, .table-info {
     display: grid;
-    grid-template-columns: 25% 30% 10% 10% 10% 10% 5%;
+    grid-template-columns: 10% 15% 30% 10% 10% 10% 10% 5%;
     border-bottom: var(--borderDefaultGray);
 }
 
