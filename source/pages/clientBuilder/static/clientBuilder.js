@@ -1,10 +1,10 @@
 
 import DocumentBoard from "../../../components/DocumentBoard.js"
 import InputCapture from "../../../components/InputCapture.js"
-import { renderCLIENTSection } from "../../CLIENTs/static/CLIENTs.js"
+import { renderClientSection } from "../../clients/static/clients.js"
 import renderBillingSection from "../../billing/static/billing.js"
 import { renderProfile } from "../../profile/static/profile.js"
-import { getTemplate } from "../templates/CLIENTBuilder.js"
+import { getTemplate } from "../templates/clientBuilder.js"
 import "../../../utilities/constants.js"
 
 import { 
@@ -19,46 +19,51 @@ import {
 } from "../../../assets/scripts/helper.js"
 
 /**
- * Renders and manages a Client registration or edit form.
+ * Renders and manages a client registration or edit form.
  * @param {boolean} edit - Indicates whether the form is in edit mode.
- * @param {object} CLIENTObject - The Client data for pre-filling the form in edit mode.
+ * @param {object} clientObject - The client data for pre-filling the form in edit mode.
  */
-export async function renderCLIENTBuilder(edit, CLIENTObject) {
+export async function renderClientBuilder(edit, clientObject) {
 
-	let forEdit = null
-	let CLIENTData = null
+	console.log("Called client builder");
+	let forEdit = edit || null
+	let clientData = clientObject || null
 
-	if (edit && CLIENTObject) {
-		CLIENTData = CLIENTObject[0]
-		forEdit = edit
+	getById("container").innerHTML += getTemplate(forEdit, clientData)
+
+	setTimeout(() => getById("section-type-container").classList.add("active"), 500)
+	
+	document.onclick = event => {
+		
+        const targetId = event.target.getAttribute("id")
+
+		switch (targetId) {
+			case "billing":
+				transition(renderBillingSection)
+			break;
+			
+			case "clients":
+				transition(renderClientSection)
+			break
+
+            case "profile":
+                transition(renderProfile)
+            break
+		}
 	}
 
-	getById("container").innerHTML += getTemplate(forEdit, CLIENTData)
-
-	setTimeout(() => { getById("section-type-container").classList.add("active") }, 500)
-	
-	const capture = new InputCapture("CLIENTProfile", forEdit, CLIENTData?.profilePicture )
+	const capture = new InputCapture("clientProfile", forEdit, clientData?.profilePicture )
 	queryElement(".content__form-box__group__left").parentElement.innerHTML += capture
 
-	const fileCapture = new DocumentBoard("CLIENTFiles", "Client Documents", forEdit)
+	const clientId = forEdit && clientData ? clientData.id : null
+	const fileCapture = new DocumentBoard("clientFiles", "Client Documents", forEdit, clientId)
 	queryElement(".files").innerHTML = fileCapture
 
-	window.onclick = event => {
-		
-		const { target } = event
-		const elementId = target.id
-
-		if (elementId === "billing") transition(renderBillingSection)
-		if (elementId === "CLIENTs") transition(renderCLIENTSection)
-		if (elementId === "profile") transition(renderProfile)
-
-	}
-
 	// Handle form submission
-	getById("Client-register-submit-button").addEventListener("click", event => {
+	getById("client-register-submit-button").addEventListener("click", event => {
 		event.preventDefault()
-		if (forEdit && CLIENTData !== null) {
-			handleFormSubmit(forEdit, CLIENTData.id)
+		if (forEdit && clientData !== null) {
+			handleFormSubmit(forEdit, clientData.id)
 		} else {
 			handleFormSubmit()
 		}
@@ -84,16 +89,16 @@ export async function renderCLIENTBuilder(edit, CLIENTObject) {
         if duplicate address is checked,
         any values placed inside present address fields also duplicates to main address fields 
     */
-    getById("Client-form").addEventListener("keyup", ({ target }) => {
+    getById("client-form").addEventListener("keyup", ({ target }) => {
 		if (duplicateAddress) {
 			const targetName = target.getAttribute("name").replace("present", "main")
 			queryElement(`input[name='${targetName}']`).value = target.value
 		}
 	})
 
-	async function handleFormSubmit(forEdit = false, CLIENTId = null) {
+	async function handleFormSubmit(forEdit = false, clientId = null) {
 
-		const form = getById("Client-form")
+		const form = getById("client-form")
 		const formData = getFormData(form)
 
 		const invalidElements = queryElements(".invalid")
@@ -105,19 +110,19 @@ export async function renderCLIENTBuilder(edit, CLIENTObject) {
 		
 		let response = null
 		
-		if (forEdit && CLIENTId) {
+		if (forEdit && clientId) {
 
-			response = await window.ipcRenderer.invoke("edit-Client", {
+			response = await window.ipcRenderer.invoke("edit-client", {
 				formDataBuffer: {
 					formData: formData,
 					profilePicture: imageData.image
 				},
-				CLIENTId: CLIENTId
+				clientId: clientId
 			})
 
 		} else {
 			
-			response = await window.ipcRenderer.invoke("add-Client", {
+			response = await window.ipcRenderer.invoke("add-client", {
 				formData: formData,
 				image: imageData.image,
 				files: documentsArray
@@ -128,7 +133,7 @@ export async function renderCLIENTBuilder(edit, CLIENTObject) {
 		if (response.status === "success") {
 
 			response.toast.forEach(toast => makeToastNotification(toast))
-			transition(renderCLIENTSection)
+			transition(renderClientSection)
 
 		} else {
 
