@@ -1,5 +1,5 @@
 
-import { renderCLIENTSection } from "../../CLIENTs/static/CLIENTs.js"
+import { renderClientSection } from "../../clients/static/clients.js"
 import renderBillingSection from "../../billing/static/billing.js"
 import { getTemplate } from "../templates/profile.js"
 import "../../../utilities/constants.js"
@@ -35,22 +35,28 @@ export async function renderProfile(forEdit = false) {
 	window.onclick = event => {
 		
 		const { target } = event
+		const targetText = target.textContent.trim()
 		const elementId = target.id
 
-		if (elementId === "billing") transition(renderBillingSection)
-		if (elementId === "CLIENTs") transition(renderCLIENTSection)
-        if (elementId === "user-register-submit-button") {
+		switch (elementId) {
+			case "billing":
+				transition(renderBillingSection)
+			break;
+			
+			case "clients":
+				transition(renderClientSection)
+			break
 
-            event.preventDefault()
+			case "user-register-submit-button":
+				event.preventDefault()
 
-            if (target.textContent.trim() === "Edit") {
-                transition(async () => {
-                    await renderProfile(true)
-                })
-            } else {
-                handleFormSubmit(userData.id)
-            }
-        }
+				if (targetText === "Edit") {
+					transition(async () => await renderProfile(true))
+				} else {
+					handleFormSubmit(userData.id)
+				}
+			break
+		}
 
         if ((target.tagName === "INPUT" || target.tagName === "SELECT") && !forEdit) {
             makeToastNotification(`Click "Edit" at the bottom to change values`);
