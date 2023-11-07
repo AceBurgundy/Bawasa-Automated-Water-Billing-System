@@ -1,9 +1,10 @@
 import { getSampleForm } from "../static/randomFormFiller.js";
+import { icons } from "../../../assets/scripts/icons.js";
 import Select from "../../../components/Select.js";
 import Input from "../../../components/Input.js";
 import "../../../utilities/constants.js";
 
-export function getTemplate(forEdit, CLIENTData) { 
+export function getTemplate(forEdit, clientData) { 
     
     const { 
         isBirthDate, 
@@ -20,42 +21,39 @@ export function getTemplate(forEdit, CLIENTData) {
 
     const formSample = getSampleForm()
 
+    const { usersIcon, billIcon, powerIcon, userIcon } = icons
+    const navigationObject = [
+        { title: "Clients", icon: usersIcon },
+        { title: "Billing", icon: billIcon },
+        { title: "Logout", icon: powerIcon },
+    ]
+
     return `
 
-    <section id="section-type-container" class="page Client">
+    <section id="section-type-container" class="page client">
 
         <nav>
             <div id="nav-items">
-                <div id="CLIENTs" class="nav-item">
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="users-icon"><rect width="256" height="256" fill="none"></rect><circle cx="88" cy="108" r="52" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="16"></circle><path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" d="M155.41251 57.937A52.00595 52.00595 0 1 1 169.52209 160M15.99613 197.39669a88.01736 88.01736 0 0 1 144.00452-.00549M169.52209 160a87.89491 87.89491 0 0 1 72.00032 37.3912"></path></svg>
-                    </div>
-                    <p>CLIENTs</p>
-                </div>
-                <div id="billing" class="nav-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" id="bill-icon">
-                        <path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m25 29-1.59-.8a6 6 0 0 0-4.91-.2L16 29l-2.5-1a6 6 0 0 0-4.91.2L7 29V3h18ZM11 7h8M11 11h6M11 15h10"></path>
-                    </svg>
-                    <p>Billing</p>
-                </div>
-                <div id="logout" class="nav-item">
-                    <div>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="power-icon"><rect width="256" height="256" fill="none"></rect><line x1="127.992" x2="127.992" y1="48.003" y2="124.003" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></line><path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" d="M176.00189,54.23268a88,88,0,1,1-96.00346-.00021"></path></svg>
-                    </div>
-                    <p>Logout</p>
-                </div>
+                ${
+                    navigationObject.map(navigation => {
+                        return `
+                            <div id="${ navigation.title.toLowerCase() }" class="nav-item">
+                                <div>${ navigation.icon }</div>
+                                <p>${ navigation.title }</p>
+                            </div>
+                        `        
+                    }).join("\n")
+                }
             </div>
             <div id="profile" class="nav-item">
-                <div>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="user-icon"><rect width="256" height="256" fill="none"></rect><circle cx="128" cy="96" r="64" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="16"></circle><path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" d="M30.989,215.99064a112.03731,112.03731,0,0,1,194.02311.002"></path></svg>
-                </div>
+                <div>${ userIcon }</div>
                 <p>Profile</p>
             </div>
         </nav>
 
         <section>
 
-            <div id="Client" class="content">
+            <div id="client" class="content">
 
                 <div class="content__top">
                     <div>
@@ -65,9 +63,9 @@ export function getTemplate(forEdit, CLIENTData) {
                     <img src="assets/images/Logo.png" alt="">
                 </div>
 
-                <form class="content__form content__center" id="Client-form">
+                <form class="content__form content__center" id="client-form">
 
-                    <p id="new-Client-form-title">Client ${forEdit ? "Edit" : "Registration"} Form</p>
+                    <p id="new-client-form-title">Client ${forEdit ? "Edit" : "Registration"} Form</p>
 
                         <div class="content__form-box">
 
@@ -88,7 +86,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                                 attributes: {
                                                                     label: "First Name",
                                                                     name: "firstName",
-                                                                    value: `${forEdit ? CLIENTData?.firstName : formSample.firstName }`
+                                                                    value: `${forEdit ? clientData?.firstName : formSample.firstName }`
                                                                 },
                                                                 flags: ["required"]
                                                             }),
@@ -97,7 +95,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                                 attributes: {
                                                                     label: "Middle Name",
                                                                     name: "middleName",
-                                                                    value: `${forEdit ? CLIENTData?.middleName : formSample.middleName }`
+                                                                    value: `${forEdit ? clientData?.middleName : formSample.middleName }`
                                                                 },
                                                                 flags: ["required"]
                                                             }),
@@ -106,7 +104,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                                 attributes: {
                                                                     label: "Last Name",
                                                                     name: "lastName",
-                                                                    value: `${forEdit ? CLIENTData?.lastName : formSample.lastName }`
+                                                                    value: `${forEdit ? clientData?.lastName : formSample.lastName }`
                                                                 },
                                                                 flags: ["required"]
                                                             }),
@@ -115,7 +113,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                                 attributes: {
                                                                     label: "Extension",
                                                                     name: "extension",
-                                                                    value: `${forEdit ? CLIENTData?.extension : formSample.extension }`
+                                                                    value: `${forEdit ? clientData?.extension : formSample.extension }`
                                                                 },
                                                                 flags: ["required"]
                                                             })
@@ -143,7 +141,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                         attributes: {
                                                             label: "Relationship Status",
                                                             name: "relationshipStatus",
-                                                            selected: forEdit ? CLIENTData?.relationshipStatus : formSample.relationshipStatus,
+                                                            selected: forEdit ? clientData?.relationshipStatus : formSample.relationshipStatus,
                                                         },
                                                         classes: ["input-style"],
                                                         flags: ["Required"]
@@ -169,7 +167,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                                 name: "birthDate",
                                                                 type: "date",
                                                                 label: "BirthDate",
-                                                                value: `${forEdit ? CLIENTData?.birthDate : formSample.birthDate }`
+                                                                value: `${forEdit ? clientData?.birthDate : formSample.birthDate }`
                                                             }
                                                         }),
 
@@ -179,7 +177,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                                 name: "age",
                                                                 type: "number",
                                                                 label: "Age",
-                                                                value: `${forEdit ? CLIENTData?.age : formSample.age }`
+                                                                value: `${forEdit ? clientData?.age : formSample.age }`
                                                             }
                                                         }),
                             
@@ -189,7 +187,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                                 name: "email",
                                                                 type: "email",
                                                                 label: "Email",
-                                                                value: `${forEdit ? CLIENTData?.email : formSample.email }`,
+                                                                value: `${forEdit ? clientData?.email : formSample.email }`,
                                                                 minLength: 5
                                                             }
                                                         }),
@@ -199,7 +197,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                             attributes: {
                                                                 name: "occupation",
                                                                 label: "Occupation",
-                                                                value: `${forEdit ? CLIENTData?.occupation : formSample.occupation }`,
+                                                                value: `${forEdit ? clientData?.occupation : formSample.occupation }`,
                                                                 minLength: 2,
                                                                 maxLength: 100
                                                             }
@@ -210,7 +208,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                             attributes: {
                                                                 name: "meterNumber",
                                                                 label: "Meter Number",
-                                                                value: `${forEdit ? CLIENTData?.meterNumber : formSample.meterNumber }`
+                                                                value: `${forEdit ? clientData?.meterNumber : formSample.meterNumber }`
                                                             }
                                                         }),
 
@@ -221,7 +219,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                                 name: "phoneNumber",
                                                                 type: "number",
                                                                 label: "Phone Number",
-                                                                value: `${forEdit ? CLIENTData?.phoneNumbers[0]?.phoneNumber : formSample.phoneNumber }`,
+                                                                value: `${forEdit ? clientData?.phoneNumbers[0]?.phoneNumber : formSample.phoneNumber }`,
                                                                 maxlength: "10"
                                                             }
                                                         }),
@@ -258,7 +256,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                         attributes: {
                                                             name: "presentAddressStreet",
                                                             label: "Street",
-                                                            value: `${forEdit ? CLIENTData?.presentAddress?.street : formSample.presentAddressStreet }`,
+                                                            value: `${forEdit ? clientData?.presentAddress?.street : formSample.presentAddressStreet }`,
                                                             maxLength: 255, 
                                                             minLength: 5
                                                         }
@@ -268,7 +266,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                         attributes: {
                                                             name: "presentAddressSubdivision",
                                                             label: "Subdivision",
-                                                            value: `${forEdit ? CLIENTData?.presentAddress?.subdivision : formSample.presentAddressSubdivision }`,
+                                                            value: `${forEdit ? clientData?.presentAddress?.subdivision : formSample.presentAddressSubdivision }`,
                                                             maxLength: 255, 
                                                             minLength: 5
                                                         }
@@ -279,7 +277,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                         attributes: {
                                                             name: "presentAddressBarangay",
                                                             label: "Barangay",
-                                                            value: `${forEdit ? CLIENTData?.presentAddress?.barangay : formSample.presentAddressBarangay }`,
+                                                            value: `${forEdit ? clientData?.presentAddress?.barangay : formSample.presentAddressBarangay }`,
                                                             maxLength: 255, 
                                                             minLength: 5
                                                         }
@@ -290,7 +288,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                         attributes: {
                                                             name: "presentAddressCity",
                                                             label: "City",
-                                                            value: `${forEdit ? CLIENTData?.presentAddress?.city : formSample.presentAddressCity }`,
+                                                            value: `${forEdit ? clientData?.presentAddress?.city : formSample.presentAddressCity }`,
                                                             maxLength: 255, 
                                                             minLength: 5
                                                         }
@@ -301,7 +299,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                         attributes: {
                                                             name: "presentAddressProvince",
                                                             label: "Province",
-                                                            value: `${forEdit ? CLIENTData?.presentAddress?.province : formSample.presentAddressProvince }`,
+                                                            value: `${forEdit ? clientData?.presentAddress?.province : formSample.presentAddressProvince }`,
                                                             maxLength: 255, 
                                                             minLength: 10
                                                         }
@@ -313,7 +311,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                             name: "presentAddressPostalCode",
                                                             label: "Postal Code",
                                                             type: "number",
-                                                            value: `${forEdit ? CLIENTData?.presentAddress?.postalCode : formSample.postalCode }`,
+                                                            value: `${forEdit ? clientData?.presentAddress?.postalCode : formSample.postalCode }`,
                                                             maxlength: 4,
                                                             minLength: 4
                                                         }
@@ -324,7 +322,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                         attributes: {
                                                             name: "presentAddressDetails",
                                                             label: "Details",
-                                                            value: `${forEdit ? CLIENTData?.presentAddress?.details : formSample.details }`,
+                                                            value: `${forEdit ? clientData?.presentAddress?.details : formSample.details }`,
                                                             maxLength: 255, 
                                                             minLength: 20
                                                         }
@@ -352,7 +350,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                     attributes: {
                                                         name: "mainAddressStreet",
                                                         label: "Street",
-                                                        value: `${forEdit ? CLIENTData?.mainAddress?.street :  formSample.mainAddressStreet }`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.street :  formSample.mainAddressStreet }`,
                                                         maxlength: 50,
                                                         minLength: 5
                                                     }
@@ -362,7 +360,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                     attributes: {
                                                         name: "mainAddressSubdivision",
                                                         label: "Subdivision",
-                                                        value: `${forEdit ? CLIENTData?.mainAddress?.subdivision :  formSample.mainAddressSubdivision }`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.subdivision :  formSample.mainAddressSubdivision }`,
                                                         maxlength: 50,
                                                         minLength: 5
                                                     }
@@ -373,7 +371,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                     attributes: {
                                                         name: "mainAddressBarangay",
                                                         label: "Barangay",
-                                                        value: `${forEdit ? CLIENTData?.mainAddress?.barangay : formSample.mainAddressBarangay }`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.barangay : formSample.mainAddressBarangay }`,
                                                         maxlength: 50,
                                                         minLength: 5
                                                     }
@@ -384,7 +382,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                     attributes: {
                                                         name: "mainAddressCity",
                                                         label: "City",
-                                                        value: `${forEdit ? CLIENTData?.mainAddress?.city : formSample.mainAddressCity }`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.city : formSample.mainAddressCity }`,
                                                         maxlength: 50,
                                                         minLength: 5
                                                     }
@@ -395,7 +393,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                     attributes: {
                                                         name: "mainAddressProvince",
                                                         label: "Province",
-                                                        value: `${forEdit ? CLIENTData?.mainAddress?.province : formSample.mainAddressProvince }`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.province : formSample.mainAddressProvince }`,
                                                         maxlength: 50,
                                                         minLength: 10
                                                     }
@@ -407,7 +405,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                         name: "mainAddressPostalCode",
                                                         label: "Postal Code",
                                                         type: "number",
-                                                        value: `${forEdit ? CLIENTData?.mainAddress?.postalCode : formSample.postalCode }`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.postalCode : formSample.postalCode }`,
                                                         maxlength: 4,
                                                         minLength: 4
                                                     }
@@ -418,7 +416,7 @@ export function getTemplate(forEdit, CLIENTData) {
                                                     attributes: {
                                                         name: "mainAddressDetails",
                                                         label: "Details",
-                                                        value: `${forEdit ? CLIENTData?.mainAddress?.details : formSample.details }`,
+                                                        value: `${forEdit ? clientData?.mainAddress?.details : formSample.details }`,
                                                         maxLength: 255, 
                                                         minLength: 20
                                                     }
@@ -436,8 +434,8 @@ export function getTemplate(forEdit, CLIENTData) {
                                 </div>
                         
                             <div class="content__form-box__input last">                            
-                                <button class="button-primary" id="Client-register-submit-button">
-                                    ${forEdit ? CLIENTData && "Edit" : 'Create' }
+                                <button class="button-primary" id="client-register-submit-button">
+                                    ${forEdit ? clientData && "Edit" : 'Create' }
                                 </button>
                             </div>
 
