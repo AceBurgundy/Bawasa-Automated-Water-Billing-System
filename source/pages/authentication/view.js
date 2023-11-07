@@ -324,7 +324,7 @@ ipcMain.handle("register", async (event, formData) => {
             errors.push(error.message)
         }
 
-        console.error("Errors:", data.message)
+        console.error("Errors:", error.message)
 
         return response
             .failed()
