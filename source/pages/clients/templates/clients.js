@@ -1,19 +1,19 @@
-import icons from "../../../assets/scripts/icons.js";
-import CLIENTRow from "./classes/CLIENTRow.js"
+import { icons } from "../../../assets/scripts/icons.js"
+import ClientRow from "./classes/ClientRow.js"
 
 /**
- * Generates an HTML template for the Client table section.
+ * Generates an HTML template for the client table section.
  *
  * @param {Object} user - The user data.
- * @param {Array} CLIENTs - An array of Client data.
+ * @param {Array} clients - An array of client data.
  * @param {string|null} responseMessage - The response message (or null if there's no message).
- * @returns {string} - TCLIENT-filter-toggle-filter-listhe HTML template for the Client table section.
+ * @returns {string} - Tclient-filter-toggle-filter-listhe HTML template for the client table section.
  */
-export function CLIENTTable(user, CLIENTs, responseMessage) {
+export function clientTable(user, clients, responseMessage) {
 
     const { usersIcon, billIcon, powerIcon, userIcon } = icons
     const navigationObject = [
-        { title: "CLIENTs", icon: usersIcon },
+        { title: "Clients", icon: usersIcon },
         { title: "Billing", icon: billIcon },
         { title: "Logout", icon: powerIcon },
     ]
@@ -27,12 +27,12 @@ export function CLIENTTable(user, CLIENTs, responseMessage) {
                 ${
                     navigationObject.map(navigation => {
                         return `
-                            <div id="${ navigation.title.toLowerCase() }" class="nav-item">
+                            <div id="${ navigation.title.toLowerCase() }" class="nav-item ${ navigation.title === "Clients" ? "active" : "" }">
                                 <div>${ navigation.icon }</div>
                                 <p>${ navigation.title }</p>
                             </div>
                         `        
-                    })
+                    }).join("\n")
                 }
             </div>
             <div id="profile" class="nav-item">
@@ -42,7 +42,7 @@ export function CLIENTTable(user, CLIENTs, responseMessage) {
         </nav>
 
         <section>
-            <div id="CLIENTs-section" class="content">
+            <div id="clients-section" class="content">
                 <div class="content__top">
                     <div>
                         <img src="assets/images/Logo.png" alt="">
@@ -52,19 +52,19 @@ export function CLIENTTable(user, CLIENTs, responseMessage) {
                 </div>
                 <div class="content__center">
                     <div class="content__center-left">
-                        <p class="content__center-left__section-title">CLIENTs</p>
+                        <p class="content__center-left__section-title">Clients</p>
                         <p class="content__center-left__section-description">Check the latest reports and updates</p>
                     </div>
                     <div class="content__center-right">
                         
                         <div id="search-box">
                             <input
-                                id="Client-search-box-input"
+                                id="client-search-box-input"
                                 type="text"
                                 class="borderless-input search-box-input"
-                                placeholder="Search Client by meter/account number or full name">
+                                placeholder="Search client by meter/account number or full name">
 
-                            <select id="Client-search-box-filter" class="search-box-filter">
+                            <select id="client-search-box-filter" class="search-box-filter">
                                 <option selected disable>Search by</option>
                                 ${
                                     [ "Account Number", "Relationship Status", "Meter Number", "Full Name", "Email", "Age" ].map(selectOption => {
@@ -73,7 +73,7 @@ export function CLIENTTable(user, CLIENTs, responseMessage) {
                                         return `
                                             <option value="${ newValue }">${ selectOption }</option>
                                         `
-                                    })
+                                    }).join("\n")
                                 }
                             </select>
                         </div>
@@ -82,33 +82,34 @@ export function CLIENTTable(user, CLIENTs, responseMessage) {
                 <div class="content__bottom">
                     <div id="table-data">
                         <div id="table-data-title">
-                            <p>CLIENTs</p>
+                            <p>Clients</p>
                             <div>
                                 <div id="table-data-title-filter">
-                                    <button class="button-primary" id="Client-options-filter">Filter By</button>
-                                    <div id="Client-filter-toggle-filter-list">
+                                    <button class="button-primary" id="client-options-filter">Filter By</button>
+                                    <div id="client-filter-toggle-filter-list">
                                         ${
                                             ["Connected", "Due", "Disconnected"].map(filter => {
                                                 return `
-                                                    <button class="button-primary Client-filter-toggle-filter-list__item" id="filter-button-${ filter.toLowerCase() }-CLIENTs">
+                                                    <button class="button-primary client-filter-toggle-filter-list__item" id="filter-button-${ filter.toLowerCase() }-clients">
                                                         ${ filter }
                                                     </button>
                                                 `
-                                            })
+                                            }).join("\n")
                                         }
                                     </div>
                                 </div>
                                 <div id="table-data-title-options">
-                                    <button class="button-primary" id="Client-options-toggle">Options</button>
-                                    <div id="Client-options-toggle-options-list">
+                                    <button class="button-primary" id="client-options-toggle">Options</button>
+                                    <div id="client-options-toggle-options-list">
                                         ${
                                             ["New Connection", "Save as CSV"].map(option => {
+                                                const id = option.replace(' ', '-').toLowerCase()
                                                 return `
-                                                    <button class="button-primary" id="${ option.join('-').toLowerCase() }">
+                                                    <button class="button-primary" id="${ id }">
                                                         ${ option }
                                                     </button>
                                                 `
-                                            })
+                                            }).join("\n")
                                         }
                                     </div>
                                 </div>
@@ -116,17 +117,17 @@ export function CLIENTTable(user, CLIENTs, responseMessage) {
                         </div>
                         <div id="table-data-headers">
                             ${
-                                ["Name", "Address", "Contact", "Date", "Meter Number", "Status", "Menu"].map(header => {
+                                ["Account Number", "Name", "Main Address", "Contact", "Birth Date", "Meter Number", "Status", "Menu"].map(header => {
                                     return `
                                         <div class="table-data-headers__item">
                                             <p>${ header }</p>
                                         </div>
                                     `
-                                })
+                                }).join("\n")
                             }
                         </div>
                         <div id="table-data-rows">
-                            ${ renderTable(CLIENTs, responseMessage) }
+                            ${ renderTable(clients, responseMessage) }
                         </div>
                     </div>
                 </div>
@@ -139,9 +140,9 @@ export function CLIENTTable(user, CLIENTs, responseMessage) {
 return template
 }
 
-export function renderTable(CLIENTs, responseMessage) {
+export function renderTable(clients, responseMessage) {
     return responseMessage !== null ? `
         <p style="margin: 1rem">${responseMessage}</p>` 
     :
-        CLIENTs.map(Client => new CLIENTRow(Client)).join("")
+        clients.map(client => new ClientRow(client)).join("")
 }
