@@ -1,5 +1,14 @@
 import { makeToastNotification } from "./assets/scripts/helper.js";
 
+window.addEventListener("click", event => {
+
+    const activeElements = document.querySelectorAll(".active")
+
+    activeElements.forEach(element => {
+        if (element != event.target) element.classList.remove("active")
+    })
+})
+
 // window.ipcRenderer.on("count", (event, count) => {
 //     makeToastNotification(count);
 // });
