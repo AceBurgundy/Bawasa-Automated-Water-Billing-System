@@ -1,5 +1,5 @@
 // collapse
-import { formatDate, generateUniqueId, getById, makeToastNotification, showData } from "../../../../assets/scripts/helper.js";
+import { formatDate, generateUniqueId, getById, showData } from "../../../../assets/scripts/helper.js";
 import BillForm from "./BillForm.js";
 
 export default class BillingRow {
@@ -100,7 +100,7 @@ export default class BillingRow {
         const connected = window.connectionStatusTypes.Connected
         const status = this.connectionStatus
 
-        return status !== null && status !== connected && status === disconnected ? true : false
+        return !!(status !== null && status !== connected && status === disconnected)
     } 
 
     renderRowOptions(firstReading, secondReading, clientHasBills) {
