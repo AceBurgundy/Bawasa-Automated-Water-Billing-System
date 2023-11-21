@@ -34,6 +34,9 @@ const {
     saveFiles
 } = require("./functions")
 
+const PROFILE_PATH = "../../assets/images/clients/profile/"
+const ICONS_PATH = "../../assets/images/icons/"
+
 const response = new Response()
 
 /**
@@ -178,8 +181,8 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 				}
 					
 			} catch (error) {
-				if (fullName) deleteFiles(fullName, files)
 				if (profilePictureName) deletePicture(profilePictureName)
+				if (fullName) deleteFiles(fullName, files)
 				message = error.message
 				console.log(error)
 				manager.rollback()
@@ -272,14 +275,11 @@ ipcMain.handle("edit-client", async (event, data) => {
 
     // Update the client record
     for (const key in formData) {
-        if (!formData.hasOwnProperty(key)) {
-            continue
-        }
+
+        if (!formData.hasOwnProperty(key)) continue
 
         //skips these fields as profilePicture is updated earilier and accountNumber is a fixed value on creation
-        if (key === "profilePicture" || key === "accountNumber") {
-            continue
-        }
+        if (key === "profilePicture" || key === "accountNumber") continue
 
         /**
          * ex: if (key === "mainAddressStreet") {
@@ -325,9 +325,7 @@ ipcMain.handle("edit-client", async (event, data) => {
         })
     }
 
-    await tryCatchWrapper(async () => {
-        client.save()
-    })
+    await tryCatchWrapper(async () => client.save())
 
     return response.success().addToast("Client succesfully edited").getResponse()
 })
@@ -346,7 +344,7 @@ ipcMain.handle("get-files", async (event, clientId) => {
  * @returns {string|null} The path to the client's image or null.
  */
 ipcMain.handle("get-profile-path", async (event, imageName) => 
-    imageName ? joinAndResolve([__dirname, "../../assets/images/clients/profile/"], imageName) : null
+    imageName ? joinAndResolve([__dirname, PROFILE_PATH], imageName) : null
 )
 
 /**
@@ -358,7 +356,7 @@ ipcMain.handle("get-profile-path", async (event, imageName) =>
  * @returns {string|null} The path to the client's image.
  */
 ipcMain.handle("get-icon-path", (event, iconName) => 
-    iconName ? joinAndResolve([__dirname, "../../assets/images/icons/"], iconName) : null
+    iconName ? joinAndResolve([__dirname, ICONS_PATH], iconName) : null
 )
 
 /**
