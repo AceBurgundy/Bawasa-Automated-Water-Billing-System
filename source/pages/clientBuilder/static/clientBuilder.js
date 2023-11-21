@@ -25,7 +25,6 @@ import {
  */
 export async function renderClientBuilder(edit, clientObject) {
 
-	console.log("Called client builder");
 	let forEdit = edit || null
 	let clientData = clientObject || null
 
@@ -56,8 +55,7 @@ export async function renderClientBuilder(edit, clientObject) {
 	queryElement(".content__form-box__group__left").parentElement.innerHTML += capture
 
 	const clientId = forEdit && clientData ? clientData.id : null
-	const fileCapture = new DocumentBoard("clientFiles", "Client Documents", forEdit, clientId)
-	queryElement(".files").innerHTML = fileCapture
+	queryElement(".files").innerHTML = new DocumentBoard("clientFiles", forEdit, clientId, "Client Documents")
 
 	// Handle form submission
 	getById("client-register-submit-button").addEventListener("click", event => {
