@@ -227,25 +227,21 @@ ipcMain.handle("edit-client", async (event, data) => {
         })
     })
 
-    if (!client) {
-        return response.responseError("Client not found")
-    }
+    if (!client) return response.responseError("Client not found")
 
-    if (!formData) {
-        return response.responseError("Client details are missing")
-    }
+    if (!formData) return response.responseError("Client details are missing")
 
     const clientDuplicate = await checkDuplicateClient(formData, true, clientId)
     if (clientDuplicate.hasDuplicate) return response.responseError(clientDuplicate.message)
 
     const missingFields = checkMissingFields(formData)
+
     missingFields && response.responseError(missingFields)
 
     const validateResponse = validateFormData(formData)
 
     if (validateResponse.status === false) {
         const { field, message } = validateResponse
-
         return response.failed().addFieldError(field, message).getResponse()
     }
 
@@ -256,28 +252,22 @@ ipcMain.handle("edit-client", async (event, data) => {
         // problems: resaves the old picture if unchanged (Could be good to rehash the same image every time the form is edited)
         const saveNewProfilePicture = (profilePicture)
 
-        if (saveNewProfilePicture.status === "success") {
-            if (oldClientData.profilePicture) {
-                const oldProfilePicturePath = path.join(
-                    path.resolve(__dirname, "../../assets/images/clients/profile/"),
-                    oldClientData.profilePicture
-                )
+        if (saveNewProfilePicture.status === "failed")  return responseError(saveNewProfilePicture.message)
 
-                fs.unlink(oldProfilePicturePath, error => {
-                    if (error) {
-                        console.error("Error deleting client old profile picture:", error)
-                    }
-                })
-            }
+        if (oldClientData.profilePicture) {
+            const oldProfilePicturePath = path.join(
+                path.resolve(__dirname, "../../assets/images/clients/profile/"),
+                oldClientData.profilePicture
+            )
 
-            client.profilePicture = saveNewProfilePicture.imageName
-
-            await tryCatchWrapper(async () => {
-                client.save()
+            fs.unlink(oldProfilePicturePath, error => {
+                if (error) console.error("Error deleting client old profile picture:", error)
             })
-        } else {
-            return responseError(saveNewProfilePicture.message)
         }
+
+        client.profilePicture = saveNewProfilePicture.imageName
+        await tryCatchWrapper(async () => client.save())
+
     }
 
     // Update the client record
