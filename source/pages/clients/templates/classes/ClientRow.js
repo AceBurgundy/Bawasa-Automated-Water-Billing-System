@@ -107,7 +107,7 @@ export default class ClientRow {
             const rowMenu = getById(this.rowMenuId)
 
             editButton.onclick = async () => {
-                transition(() => renderClientBuilder(true, this.client))
+                transition(async () => await renderClientBuilder(true, this.client))
             }
 
             exportButton.onclick = async () => {
@@ -140,9 +140,7 @@ export default class ClientRow {
                 }
             }
 
-            archiveButton.onclick = () => {
-                console.log("archive clicked");
-            }
+            archiveButton.onclick = () => console.log("archive clicked")
 
         }, 0);
     }
