@@ -26,6 +26,17 @@ function formatDate(date) {
 }
 
 /**
+ * Joins and resolves paths.
+ *
+ * @param {(string|string[])} resolveParams - The path or paths to resolve.
+ * @param {(string|string[])} joinParams - The path or paths to join.
+ * @returns {string} The joined and resolved path.
+ */
+export function joinAndResolve(resolveParams, joinParams) {
+    return path.join(path.resolve(...[].concat(resolveParams)), ...[].concat(joinParams));
+}
+
+/**
  * Generates the next account/bill number based on the last client's account/bill number.
  * @async
  * @function
