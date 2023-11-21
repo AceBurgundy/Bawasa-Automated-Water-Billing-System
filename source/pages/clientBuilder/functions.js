@@ -1,5 +1,3 @@
-// @collapse
-
 const { tryCatchWrapper, joinAndResolve } = require("../../utilities/helpers")
 const Response = require("../../utilities/response")
 const { Op } = require("sequelize")
@@ -11,6 +9,8 @@ const path = require("path")
 const ClientPhoneNumber = require("../../../models/ClientPhoneNumber")
 const ClientFile = require("../../../models/ClientFile")
 const Client = require("../../../models/Client")
+
+const response = new Response()
 
 const clientFormFields = {
     presentAddressPostalCode: "Present Address Postal Code",
@@ -45,6 +45,7 @@ const retrieveClientDocumentFilepath = filename => joinAndResolve([__dirname, ".
  * @returns {Promise<Object>} An object containing duplicate check results.
  */
 async function checkDuplicateClient(formData, forEdit = false, clientId = null) {
+
     const response = { hasDuplicate: false, message: "" }
 
     const responseWithMessage = message => {
@@ -206,16 +207,14 @@ function deletePicture(imageName) {
  * @returns {string[]|null} An array of missing field messages or null if all fields are present.
  */
 function checkMissingFields(formData) {
+
     const formDataFieldNames = Object.keys(formData)
+
     const missingElements = Object.keys(clientFormFields).filter(fieldName => !formDataFieldNames.includes(fieldName))
+    const missingElementFields = missingElements.map(field => clientFormFields[field]).join(", ")
 
-    if (missingElements.length > 1) {
-        return [`${missingElements.map(field => clientFormFields[field]).join(", ")} are required`]
-    }
-
-    if (missingElements.length === 1) {
-        return [`${missingElements.map(field => clientFormFields[field]).join("")} is required`]
-    }
+    if (missingElements.length > 1) return [`${missingElementFields} are required`]
+    if (missingElements.length === 1) return [`${missingElementFields} is required`]
 
     return null
 }
@@ -372,7 +371,6 @@ async function deleteClient(clientId, saveData = false) {
 }
 
 // FILES SAVE TO EXCEL OR WORD IS AS MUST BEFORE CLIENT DELETION (EXCEL IS RECOMMENDED TO ALLOW FOR CLIENT RESTORATION)
-
 
 module.exports = {
     retrieveClientDocumentFilepath,
