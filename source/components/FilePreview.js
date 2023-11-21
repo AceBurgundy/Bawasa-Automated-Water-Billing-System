@@ -1,4 +1,4 @@
-import { generateUniqueId, getById } from "../assets/scripts/helper.js"
+import { getById } from "../assets/scripts/helper.js"
 
 const fileTypeIcons = {
     "application/pdf" : "pdf-icon.PNG",
@@ -9,72 +9,77 @@ const fileTypeIcons = {
     "text/csv": "sheet-icon.PNG"
 }
 
-const getFileIcon = filetype => {
-    for (let type in Object.keys(fileTypeIcons)) {
-        if (filetype.includes(type)) {
-            return fileTypeIcons[type]
-        }
-    }
-    return "default-icon.png"
-}
+const getFileIcon = fileType => Object.keys(fileTypeIcons).find(type => fileType.includes(type)) || "default-icon.png";
 
 export class FilePreview {
-    constructor(file, event, deletePreview, forEdit = false, clientId = false, ) {
 
-        this.deleteButtonId = generateUniqueId("form-field-drop-preview-delete")
-        this.imageId = generateUniqueId("form-field-drop-preview-image")
-        this.fileName = file.name
-        this.clientId = clientId
-        this.forEdit = forEdit
-        this.event = event
-        this.file = file
+    /**
+     *  The constructor function creates a preview element for a file.
+     *  Used in conjuction with DocumentBoard as DocumentBoard calls this class
+     *  to generate its preview elements
+     * 
+     *  @param {Object} props - An object containing the following properties:
+     *  @param {method} props.deletePreview - The method to delete the preview (From DocumentBoard).
+     *  @param {number} props.index - The index will be used to uniquely identify each instance of FilePreview
+     *  @param {File} props.file - The file for which the preview is created.
+     */
+    constructor(props) {
 
-        this.previewId = this.id
+        this.deletePreview = props.deletePreview
+        this.index = props.index
+        this.file = props.file
+
+        this.deleteButtonId = ["form-field-drop-preview-delete", this.index].join('-')
+        this.imageId = ["form-field-drop-preview-image", this.index].join('-')
+        this.previewId = ["form-field-drop-preview", this.index].join('-')
 
         this.template = `
-            <div id="${ this.previewId }" class="form-field__drop__preview" data-preview-file-name="${file.name}">
-                <div id="${this.deleteButtonId}" class="form-field__drop__preview__delete" data-file-name="${file.name}">
+            <div id="${ this.previewId }" class="form-field__drop__preview" data-preview-file-name="${ this.file.name }">
+                <div id="${ this.deleteButtonId }" class="form-field__drop__preview__delete">
                     Remove
                 </div>
-                <img id="${ this.imageId }" class="form-field__drop__preview__image" src="" alt="${file.name}">
-                <p class="form-field__drop__preview__text">${file.name}</p>
+                <img id="${ this.imageId }" class="form-field__drop__preview__image" src="" alt="${ this.file.name }">
+                <p class="form-field__drop__preview__text">${ this.file.name }</p>
             </div>
         `
 
         this.loadScript()
     }
 
-    toString() {
-        return this.template
-    }
-            
-    /**
-     * 
-     * @param {String} fileType - the value of the key "type" from the File object 
-     * @returns String - path to the icon image file
-     */
+    toString = () => this.template
+       
     async getFileIcon() {
+        const fileIsImage = this.file.type.includes("image/")
+        const iconFileName = getFileIcon(this.file.type)
 
-        const fileType = this.file.type
-        const fileTypeIsImage = fileType.includes("image/")
-        const targetResult = getFileIcon(fileType)
+        const getIconFilePath = async iconFileName => await window.ipcRenderer.invoke("get-icon-path", iconFileName)
 
-        const imagePath = async fileName => await window.ipcRenderer.invoke("get-icon-path", fileName)
-
-        return fileTypeIsImage ? targetResult : imagePath(getFileIcon(fileType))
-
+        // if image, return the files path as the src for the image else, use an icon
+        return fileIsImage ? this.file.path : await getIconFilePath(iconFileName)
     }
 
     loadScript() {
         setTimeout(async () => {
 
-            const image = getById(this.imageId)
+            const deleteButton = getById(this.deleteButtonId)
             const preview = getById(this.previewId)
+            const image = getById(this.imageId)
 
             if (image) image.src = await this.getFileIcon()
 
-            preview.onclick = event => {
+            deleteButton.onclick = event => {
+                event.stopPropagation()
 
+                // hide preview temporarily
+                preview.style.display = "none"
+
+                const deleted = this.deletePreview(this.file.name)
+
+                if (deleted) {
+                    preview.remove()
+                } else {
+                    preview.style.display = "block"
+                }
             }
 
         }, 0)
