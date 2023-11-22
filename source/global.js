@@ -5,7 +5,7 @@ window.addEventListener("click", event => {
     const activeElements = document.querySelectorAll(".active")
 
     activeElements.forEach(element => {
-        if (element != event.target) element.classList.remove("active")
+        if (element !== event.target) element.classList.remove("active")
     })
 })
 
