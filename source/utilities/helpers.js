@@ -16,6 +16,23 @@ async function tryCatchWrapper(callback) {
 	}
 }
 
+/**
+ * The function throws an error and logs it, with an optional custom message.
+ * 
+ * @param {Error} error - The error parameter is the error object that you want to log and throw.
+ * @param {Any|null} customMessage - The customMessage parameter is an optional parameter that allows you to provide a custom error message. 
+ * If no custom message is provided, the error message will be the same as the original error.
+ * 
+ * ```
+ * new Error(customMessage ?? error)
+ * ```
+ * @returns a new Error object.
+ */
+function throwAndLogError(error, customMessage = null) {
+    console.log(error)
+    return new Error(customMessage ?? error)
+}
+
 function formatDate(date) {
     return date ?? false ? new Date(date).toLocaleDateString("en-US", {
             year: "numeric",
