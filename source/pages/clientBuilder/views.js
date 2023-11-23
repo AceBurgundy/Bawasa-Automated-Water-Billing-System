@@ -80,10 +80,10 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
         
 		await db.transaction(async manager => {
 
+            let client = null
+
 			try {
                 
-				let client = null
-
                 try {
                     client = await createClient(formData, manager)
                 } catch (error) {
@@ -139,10 +139,12 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
 
                 await deletePicture(profilePictureName)
 				
-                try {
-                    deleteFiles(fullName, files)
-                } catch {
-                    console.log("Failed to remove a file")
+                if (client) {
+                    try {
+                        await deleteFiles(client.clientFiles)
+                    } catch {
+                        console.log("Failed to remove clients files")
+                    }    
                 }
 
                 message = error.message
