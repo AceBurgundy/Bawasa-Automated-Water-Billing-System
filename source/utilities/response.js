@@ -81,11 +81,17 @@ class Response {
 	 * @param {string} [fieldName] - The name of the field associated with the error.
 	 * @returns {Object} The constructed response object.
 	 */
-	responseError(errorMessage, fieldName) {
+	Error(errorMessage, fieldName) {
 		this.failed();
 		errorMessage && this.addToast(errorMessage);
 		fieldName && this.addFieldError(fieldName, errorMessage);
 		return this.getResponse();
+	}
+
+	Ok(successMessage = null) {
+		this.success()
+		successMessage && this.addToast(successMessage)
+		return this.getResponse()
 	}
 
 	/**
@@ -98,4 +104,6 @@ class Response {
 	}
 }
 
-module.exports = Response
+const response = new Response()
+
+module.exports = response
