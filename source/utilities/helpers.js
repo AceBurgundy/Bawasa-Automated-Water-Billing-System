@@ -28,7 +28,7 @@ async function tryCatchWrapper(callback) {
  */
 function throwAndLogError(error, customMessage = null) {
     console.log(error)
-    return new Error(customMessage ?? error)
+    return customMessage ? new Error(customMessage) : error
 }
 
 function formatDate(date) {
@@ -117,5 +117,6 @@ module.exports = {
     throwAndLogError,
     tryCatchWrapper, 
     joinAndResolve,
-    formatDate
+    formatDate,
+    emitEvent
 }
