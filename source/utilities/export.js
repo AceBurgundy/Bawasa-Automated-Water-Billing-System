@@ -1,5 +1,5 @@
 const { ipcMain, BrowserWindow, dialog } = require("electron")
-const { tryCatchWrapper, formatDate } = require("./helpers")
+const { tryCatchWrapper, formatDate, joinAndResolve, throwAndLogError, emitEvent } = require("./helpers")
 const response = require("./response")
 const ExcelJS = require('exceljs')
 const { log } = require("console")
@@ -15,6 +15,11 @@ const ClientFile = require("../../models/ClientFile")
 const ClientBill = require("../../models/ClientBill")
 const Client = require("../../models/Client")
 const User = require("../../models/User")
+
+ipcMain.handle("export-record", async (event, args) => {    
+    const { id } = args
+    return await exportRecord(id, event)
+})
 
 const rowColor = backgroundColor => {
     return {
@@ -130,171 +135,179 @@ const getClientData = async (id) => {
 
 }
 
-ipcMain.handle("export-record", async (event, args) => {
-    
-    const { id } = args
+/**
+ * The function `exportRecord` exports client data to an Excel file, including client details and
+ * account history, and moves associated files to a specified directory.
+ * 
+ * @param id - The `id` parameter is the unique identifier of the client whose data will be exported.
+ * @param event - The `event` is the registered event listener for the event in the Electron main process which may
+ * come from a handler.
+ * 
+ * @returns a promise.
+ */
+async function exportRecord(id, event) {
 
-    return new Promise( async(resolve, reject) => {
+    if (!id) return response.Error("Client id is required for export")
 
-        try {
+    try {
 
-            const getClientResponse = await getClientData(id)
+        const getClientResponse = await getClientData(id)
 
-            if (getClientResponse.status === "failed" || !getClientResponse.clientData) {
-                reject(response.failed().addToast(getClientResponse.toast[0]).getResponse())
-            }
-            
-            const client = getClientResponse.clientData
-        
-            const { 
-                fullName, 
-                age, 
-                relationshipStatus, 
-                accountNumber,
-                meterNumber,
-                birthDate,
-                email,
-                occupation
-            } = client
-            
-            const presentAddress = client.presentAddress ?? ''
-            const mainAddress = client.mainAddress ?? ''
-            const phoneNumber = client.phoneNumbers ? client.phoneNumbers[0].phoneNumber : ''
-            const bills = client.bills
-            
-            const directoryPath = await askDirectory()
-                
-            if (!directoryPath) {
-                reject(response.failed().addToast("Directory selection canceled").getResponse())
-            }
-    
-            const workbook = new ExcelJS.Workbook()
-            
-            const worksheet = workbook.addWorksheet(`${fullName}'s Data`)
-        
-            worksheet.properties.defaultColWidth = 25.67
-            worksheet.properties.defaultRowHeight = 27.75
-        
-            worksheet.addRow([])
-            worksheet.addRow(["Client Details"])
-            worksheet.addRow([])
-    
-            worksheet.addRow([ "", "Account Number", "Meter Number", "Full Name", "Relationship Status", "Birth Date", "Age", "Email", "Occupation", "Present Address", "Main Address", "Phone Numbers" ])
-            worksheet.addRow([ "", accountNumber, meterNumber, fullName, relationshipStatus, formatDate(birthDate), age, email, occupation, presentAddress.fullAddress, mainAddress.fullAddress, phoneNumber ? ["0", phoneNumber].join('') : '' ])
-            
-            // Additional data
-            if (bills) {
-                worksheet.addRow([])
-                worksheet.addRow(["Account History"])
-                worksheet.addRow([])
-    
-                let currentIndex = 0
-    
-                const rowColors = ['FFFFE0', 'FFFACD', 'FFE4B5', 'FFDAB9']
-                const colorIndex = currentIndex % rowColors.length
-                const currentColor = rowColors[colorIndex]
-    
-                const clientBillHeaders = ["", "Bill Number", "First Reading", "Second Reading", "Consumption", "Bill Amount", "Payment Status", "Paid Amount", "Remaining Balance", "Excess", "Payment Date", "Penalty", "Due Date", "Disconnection Date" ]
-                newRow(worksheet, clientBillHeaders, currentColor)
-    
-                bills.forEach((bill, index) => {
-                
-                    currentIndex = index
-    
-                    const { billNumber, firstReading, secondReading, consumption, total, status, amountPaid, balance, excess, penalty, dueDate, disconnectionDate, partialPayments } = bill
-    
-                    billRow = [ "", billNumber, firstReading ?? 0, secondReading ?? 0, consumption ?? 0, total ?? 0, status, amountPaid ?? 0, balance ?? 0, excess ?? 0, penalty ?? 0, formatDate(dueDate), formatDate(disconnectionDate), "" ]
-    
-                    worksheet.addRow([])
-    
-                    newRow(worksheet, billRow, currentColor)
-    
-                    if (partialPayments.length > 0) {
-    
-                        worksheet.addRow([])
-    
-                        const partialPaymentHeaders = ['', '', '', '', '', 'Partial Payments', 'Amount Paid', 'Payment Date']
-                        newRow(worksheet, partialPaymentHeaders, currentColor, false)
-                                        
-                        // Add partial payment data rows with background color
-                        partialPayments.forEach(partialPayment => {
-                            const { amountPaid, paymentDate } = partialPayment
-                            const rowValues = ['', '', '', '', '', '', amountPaid, paymentDate ? formatDate(paymentDate) : '']
-                            newRow(worksheet, rowValues, currentColor, false)
-                        })
-                    }
-                })
-            }
-    
-            worksheet.eachRow({ includeEmpty: false }, row => {
-                row.alignment = {
-                    vertical: 'middle',
-                    horizontal: 'center',
-                    wrapText: true,
-                }
-            })
-    
-            const firstColumn = worksheet.getColumn(1)
-            firstColumn.width = 10
-    
-            firstColumn.eachCell({ includeEmpty: true }, cell => {
-                cell.style = {}
-                cell.alignment = {
-                    vertical: 'middle',
-                    horizontal: 'center',
-                    wrapText: true,
-                }
-            })
-    
-            const fullDirectoryPath = `${directoryPath}\\${fullName}'s record`
-            
-            fs.ensureDir(fullDirectoryPath, error => {
-                if (error) {
-                    console.log(error)
-                    reject(response.failed().addToast(`Error in creating new folder for ${fullName}'s export data`).getResponse())
-                }
-            })
-
-            // Write the workbook to a file
-            await workbook.xlsx.writeFile(`${fullDirectoryPath}\\${fullName}'s account history.xlsx`)
-        
-            if (client.files.length > 0) {
-    
-                const destinationFilePath = `${fullDirectoryPath}\\Files`
-
-                fs.ensureDir(destinationFilePath, error => {
-                    if (error) {
-                        console.log(error)
-                        reject(response.failed().addToast(`Error in creating files folder for ${fullName}'s export data`).getResponse())
-                    }
-                })
-
-                const filesToMove = client.files.map(async (file) => {
-    
-                    const filePath = path.join(path.resolve(__dirname, "../../source/assets/files/"), file.name)
-                    const newFilePath = path.join(`${destinationFilePath}`, file.name)
-            
-                    const fileExists = await fs.pathExists(filePath)
-            
-                    if (fileExists) {
-                        await fs.copy(filePath, newFilePath)
-                    } else {
-                        console.log(`File ${file.name} from ${filePath} cannot be found`)
-                    }
-                    
-                })
-            
-                await Promise.all(filesToMove)
-            }
-    
-            resolve(response.success().addToast("File backup successful").getResponse())
-
-        } catch (error) {
-            console.error(`Something went wrong: ${error}`)
-            reject(response.failed().addToast("Failed to export client data").getResponse())
+        if (getClientResponse.status === "failed" || !getClientResponse.clientData) {
+            return response.Error(getClientResponse.toast[0])
         }
-    })
+        
+        const client = getClientResponse.clientData
+    
+        const { 
+            fullName, 
+            age, 
+            relationshipStatus, 
+            accountNumber,
+            meterNumber,
+            birthDate,
+            email,
+            occupation
+        } = client
+        
+        const presentAddress = client.presentAddress ?? ''
+        const mainAddress = client.mainAddress ?? ''
+        const phoneNumber = client.phoneNumbers ? client.phoneNumbers[0].phoneNumber : ''
+        const bills = client.bills
+        
+        let directoryPath = await askDirectory()
 
- 
+        if (!directoryPath) return response.Error("Directory selection canceled")
 
-})
+        const workbook = new ExcelJS.Workbook()
+        
+        const worksheet = workbook.addWorksheet(`${fullName}'s Data`)
+        event.sender.send("export", "Creating new excel worksheet")
+
+        worksheet.properties.defaultColWidth = 25.67
+        worksheet.properties.defaultRowHeight = 27.75
+    
+        worksheet.addRow([])
+        worksheet.addRow(["Client Details"])
+        worksheet.addRow([])
+
+        worksheet.addRow([ "", "Account Number", "Meter Number", "Full Name", "Relationship Status", "Birth Date", "Age", "Email", "Occupation", "Present Address", "Main Address", "Phone Numbers" ])
+        worksheet.addRow([ "", accountNumber, meterNumber, fullName, relationshipStatus, formatDate(birthDate), age, email, occupation, presentAddress.fullAddress, mainAddress.fullAddress, phoneNumber ? ["0", phoneNumber].join('') : '' ])
+        
+        // Additional data
+        if (bills) {
+            worksheet.addRow([])
+            worksheet.addRow(["Account History"])
+            worksheet.addRow([])
+
+            let currentIndex = 0
+
+            const rowColors = ['FFFFE0', 'FFFACD', 'FFE4B5', 'FFDAB9']
+            const colorIndex = currentIndex % rowColors.length
+            const currentColor = rowColors[colorIndex]
+
+            const clientBillHeaders = ["", "Bill Number", "First Reading", "Second Reading", "Consumption", "Bill Amount", "Payment Status", "Paid Amount", "Remaining Balance", "Excess", "Payment Date", "Penalty", "Due Date", "Disconnection Date" ]
+            newRow(worksheet, clientBillHeaders, currentColor)
+            emitEvent("export", "Adding bills data")
+
+            bills.forEach((bill, index) => {
+            
+                currentIndex = index
+
+                const { billNumber, firstReading, secondReading, consumption, total, status, amountPaid, balance, excess, penalty, dueDate, disconnectionDate, partialPayments } = bill
+
+                billRow = [ "", billNumber, firstReading ?? 0, secondReading ?? 0, consumption ?? 0, total ?? 0, status, amountPaid ?? 0, balance ?? 0, excess ?? 0, penalty ?? 0, formatDate(dueDate), formatDate(disconnectionDate), "" ]
+
+                worksheet.addRow([])
+
+                newRow(worksheet, billRow, currentColor)
+
+                if (partialPayments.length > 0) {
+
+                    worksheet.addRow([])
+
+                    const partialPaymentHeaders = ['', '', '', '', '', 'Partial Payments', 'Amount Paid', 'Payment Date']
+                    newRow(worksheet, partialPaymentHeaders, currentColor, false)
+                                    
+                    // Add partial payment data rows with background color
+                    partialPayments.forEach(partialPayment => {
+                        const { amountPaid, paymentDate } = partialPayment
+                        const rowValues = ['', '', '', '', '', '', amountPaid, paymentDate ? formatDate(paymentDate) : '']
+                        newRow(worksheet, rowValues, currentColor, false)
+                    })
+                }
+            })
+        }
+
+        worksheet.eachRow({ includeEmpty: false }, row => {
+            row.alignment = {
+                vertical: 'middle',
+                horizontal: 'center',
+                wrapText: true,
+            }
+        })
+
+        const firstColumn = worksheet.getColumn(1)
+        firstColumn.width = 10
+
+        firstColumn.eachCell({ includeEmpty: true }, cell => {
+            cell.style = {}
+            cell.alignment = {
+                vertical: 'middle',
+                horizontal: 'center',
+                wrapText: true,
+            }
+        })
+
+        const fullDirectoryPath = `${directoryPath}\\${fullName}'s record`
+        
+        fs.ensureDir(fullDirectoryPath, error => {
+            if (error) {
+                console.log(error);
+                return response.Error(`Error in creating new folder for ${fullName}'s export data`)
+            }
+        })
+
+        // Write the workbook to a file
+        await workbook.xlsx.writeFile(`${fullDirectoryPath}\\${fullName}'s account history.xlsx`)
+    
+        if (client.files.length > 0) {
+
+            const destinationFilePath = `${fullDirectoryPath}\\Files`
+
+            fs.ensureDir(destinationFilePath, error => {
+                if (error) {
+                    console.log(error);
+                    return response.Error(`Error in creating files folder for ${fullName}'s export data`)
+                }
+            })
+
+            emitEvent("export", "Moving client files")
+            const filesToMove = client.files.map(async file => {
+
+                const currentFilePath = joinAndResolve([__dirname, "../../source/assets/files/"], file.name)
+                const newFilePath = path.join(`${destinationFilePath}`, file.name)
+        
+                const fileExists = await fs.pathExists(currentFilePath).catch(() => false)
+        
+                if (fileExists) {
+                    await fs.copy(currentFilePath, newFilePath)
+                } else {
+                    console.log(`File ${file.name} from ${currentFilePath} cannot be found`)
+                }
+                
+            })
+        
+            await Promise.all(filesToMove)
+        }
+
+        return response.Ok("Client data exported")
+
+    } catch (error) {
+        console.log(error);
+        return response.Error("Failed to export client data")
+    }
+
+}
+
+module.exports = exportRecord
