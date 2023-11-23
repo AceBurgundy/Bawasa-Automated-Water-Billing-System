@@ -19,6 +19,7 @@ const {
     joinAndResolve,
     throwAndLogError, 
 } = require("../../utilities/helpers")
+const exportRecord = require("../../utilities/export")
 
 const clientFormFields = {
     presentAddressPostalCode: "Present Address Postal Code",
@@ -506,15 +507,20 @@ async function saveFiles(client, files, manager) {
 }
 
 /**
- * Deletes files especially if client wasnt saved
- * @param {Array} files - An array of files to save.
- * @returns {Object} - A response object.
+ * The function `deleteFiles` asynchronously deletes multiple files and logs an error if any deletion
+ * fails.
+ * 
+ * @param files - The `files` parameter is an array of file names or file paths that you want to
+ * delete.
+ * @returns The function `deleteFiles` returns a promise.
  */
-async function deleteFiles(fullName, files) {
-
+async function deleteFiles(files) {
     if (files.length <= 0) return
 
-    const mappedFileDeletionPromises = files.map(file => deleteFile(file))
+    const mappedFileDeletionPromises = files.map(file => 
+        deleteFile(file).catch(error => console.error(`Error in deleting file: ${error}`))
+    )
+
     await Promise.all(mappedFileDeletionPromises)
 }
 
@@ -555,9 +561,15 @@ async function deleteFile(fileName) {
  *   console.error('Failed to delete client:', response.getError());
  * }
  */
-async function deleteClient(clientId, saveData = false) {
+async function deleteClient(clientId, event) {
 
     if (!clientId) return response.Error("Client id not found")
+
+    const exportResponse = await exportRecord(clientId, event)
+
+    if (exportResponse.status === "failed") {
+        return exportResponse
+    }
 
     const client = Client.findByPk(clientId, {
         include: "clientFiles"
@@ -565,33 +577,22 @@ async function deleteClient(clientId, saveData = false) {
 
     if (!client) return response.Error("Failed to delete client record")
 
-    if (client.clientFiles.length > 0) {
-
-        client.clientFiles.forEach(async file => {
-
-            const filePath = retrieveClientDocumentFilepath(file.name)
-
-            tryCatchWrapper(async () => {
-                const fileExists = await fs.pathExists(filePath)
-
-                if (!fileExists) {
-                    await fs.remove(filePath)
-                } else {
-                    console.log(`File ${file.name} does cannot be found`)
-                }
-            })
-        })
+    try {
+        await deleteFiles(client.fullName, client.clientFiles)
+    } catch (error) {
+        console.log(error)
+        return response.Error("Failed to delete client")
     }
 
     try {
         await client.destroy()
-        return response.Ok().addToast("Client deleted succesfully").getResponse()
     } catch (error) {
-        return response.failed().addToast("Failed to delete client").getResponse()
+        return response.Error("Failed to delete client")
     }
-}
 
-// FILES SAVE TO EXCEL OR WORD IS AS MUST BEFORE CLIENT DELETION (EXCEL IS RECOMMENDED TO ALLOW FOR CLIENT RESTORATION)
+    return response.Ok().addToast("Client deleted succesfully")
+    
+}
 
 module.exports = {
     retrieveClientDocumentFilepath,
