@@ -11,8 +11,6 @@ async function tryCatchWrapper(callback) {
 		return await callback()
 	} catch (error) {
 		console.log(error)
-		console.log(`\n${error.name}\n`)
-		console.log(`${error.message}`)
 	}
 }
 
@@ -49,7 +47,7 @@ function formatDate(date) {
  * @param {(string|string[])} joinParams - The path or paths to join.
  * @returns {string} The joined and resolved path.
  */
-export function joinAndResolve(resolveParams, joinParams) {
+function joinAndResolve(resolveParams, joinParams) {
     return path.join(path.resolve(...[].concat(resolveParams)), ...[].concat(joinParams));
 }
 
@@ -59,7 +57,7 @@ export function joinAndResolve(resolveParams, joinParams) {
  * @function
  * @returns {Promise<string>} The generated account number.
  */
-const generateNextAccountOrBillNumber = async function (type) {
+async function generateNextAccountOrBillNumber(type) {
 
 	const isClient = type === "Client"
 
@@ -82,16 +80,22 @@ const generateNextAccountOrBillNumber = async function (type) {
     if (numberSection === 9999 || numberSection === 999999999) {
         const lastLetterCharCode = letterSection.charCodeAt(letterSection.length - 1);
         
-        lastLetterCharCode === 90
-            ? (nextLetter = isClient ? "AA" : "AAAA")
-            : (nextLetter = "A" + String.fromCharCode(lastLetterCharCode + 1))
+        if (lastLetterCharCode !== 90) {
+            nextLetter = "A" + String.fromCharCode(lastLetterCharCode + 1)
+        }
     } else {
         nextNumber = String((isClient ? "0000" : "000000000") + (numberSection + 1)).slice(-nextNumber.length)
         nextLetter = letterSection
     }
 
-	return `${nextNumber}-${nextLetter}`
+	return [nextNumber, nextLetter].join('-')
 
 }
 
-module.exports = { tryCatchWrapper, formatDate, generateNextAccountOrBillNumber }
+module.exports = { 
+    generateNextAccountOrBillNumber,
+    throwAndLogError,
+    tryCatchWrapper, 
+    joinAndResolve,
+    formatDate
+}
