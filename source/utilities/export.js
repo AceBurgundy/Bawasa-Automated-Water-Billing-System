@@ -1,6 +1,6 @@
 const { ipcMain, BrowserWindow, dialog } = require("electron")
 const { tryCatchWrapper, formatDate } = require("./helpers")
-const Response = require("./response")
+const response = require("./response")
 const ExcelJS = require('exceljs')
 const { log } = require("console")
 const fs = require("fs-extra")
@@ -54,8 +54,6 @@ const askDirectory = async () => {
 
 ipcMain.handle("full-user-data", async (event, args) => {
 
-    const response = new Response()
-
     const { id } = args
 
     if (!id) return response.failed().addToast("User id not found").getResponse()
@@ -81,8 +79,6 @@ ipcMain.handle("full-user-data", async (event, args) => {
 })
 
 const getClientData = async (id) => {
-
-    const response = new Response()
 
     if (!id) return response.failed().addToast("Client id if not found").getResponse()
 
@@ -135,8 +131,6 @@ const getClientData = async (id) => {
 }
 
 ipcMain.handle("export-record", async (event, args) => {
-
-    const response = new Response()
     
     const { id } = args
 

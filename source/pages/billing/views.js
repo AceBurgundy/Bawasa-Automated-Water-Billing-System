@@ -1,9 +1,9 @@
 
 
 
-const { connectionStatusTypes } = require("../../utilities/constants")
 const { tryCatchWrapper, generateNextAccountOrBillNumber } = require("../../utilities/helpers")
-const Response = require("../../utilities/response")
+const { connectionStatusTypes } = require("../../utilities/constants")
+const response = require("../../utilities/response")
 const { ipcMain } = require("electron")
 
 const ClientConnectionStatus = require("../../../models/ClientConnectionStatus")
@@ -23,8 +23,6 @@ const Client = require("../../../models/Client")
  * @returns {Promise<Object>} - A promise that resolves to the handler response.
  */
 ipcMain.handle("accounts", async (event, args) => {
-
-    const response = new Response()
 
 	return tryCatchWrapper(async () => {
 
@@ -82,8 +80,6 @@ ipcMain.handle("accounts", async (event, args) => {
  * @returns {Promise<Object>} - A promise that resolves to the handler response.
  */
 ipcMain.handle("get-bill", async (event, args) => {
-
-    const response = new Response()
 
     const { billId, clientId } = args
     
@@ -150,7 +146,6 @@ ipcMain.handle("get-bill", async (event, args) => {
  */
 ipcMain.handle("print-bill", async (event, args) => {
     const { clientId } = args
-    const response = new Response()
 
     if (!clientId) return response.failed().addToast("Missing client id").getResponse()
 
@@ -173,7 +168,6 @@ ipcMain.handle("print-bill", async (event, args) => {
 ipcMain.handle("new-bill", async (event, args) => {
 
     const { clientId, monthlyReading, billId } = args
-    const response = new Response()
 
     if (!clientId) {
         return response.failed().addToast("Missing client id").getResponse()
@@ -252,7 +246,6 @@ ipcMain.handle("new-bill", async (event, args) => {
 ipcMain.handle("pay-bill", async (event, args) => {
 
     const { amount, billId } = args
-    const response = new Response()
 
     const amountPaid = parseFloat(amount)
 

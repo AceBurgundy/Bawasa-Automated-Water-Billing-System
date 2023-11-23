@@ -1,6 +1,7 @@
 const { validateFormData } = require("../../utilities/validations")
 const { tryCatchWrapper } = require("../../utilities/helpers")
-const Response = require("../../utilities/response")
+const response = require("../../utilities/response")
+
 const { ipcMain } = require("electron")
 const { Op } = require('sequelize')
 const bcrypt = require("bcrypt")
@@ -62,8 +63,6 @@ const userFormFields = {
  * @returns {Promise<Object>} A response object indicating the operation's status.
  */
 ipcMain.handle("edit-user", async (event, data) => {
-
-	const response = new Response()
 
 	const { formData, profilePicture } = data.formDataBuffer
 	const userId = data.userId
@@ -315,8 +314,6 @@ async function checkDuplicateUser(formData, forEdit = false, userId = null) {
  */
 function savePicture(profilePicture) {
 
-	const response = new Response()
-
 	const randomString = crypto.randomBytes(32).toString("hex")
 	const hash = bcrypt.hashSync(randomString, 10).replace(/[/+\$\.]/g, "")
 	let imagePath = null
@@ -396,8 +393,6 @@ function checkMissingFields(formData) {
  * }
  */
 async function deleteUser(userId, saveData = false) {
-
-	const response = new Response()
 
 	const user = User.findByPk(userId, {
 		include: "userFiles"

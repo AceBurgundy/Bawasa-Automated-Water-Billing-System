@@ -1,18 +1,15 @@
 const { validateFormData, isEmail, isEmpty } = require("../../utilities/validations")
-const Response = require("../../utilities/response")
+const response = require("../../utilities/response")
 const session = require("../../utilities/session")
 const { ipcMain } = require("electron")
 const bcrypt = require("bcrypt")
 const crypto = require("crypto")
-
 const UserPhoneNumber = require("../../../models/UserPhoneNumber")
 const RecoveryCode = require("../../../models/RecoveryCode")
 const User = require("../../../models/User")
 const { tryCatchWrapper } = require("../../utilities/helpers")
 
 ipcMain.handle("reset-password", async (event, formData) => {
-
-    const response = new Response()
 
     if (Object.keys(formData).length === 0) {
         console.error("Form data seems to be empty")
@@ -91,8 +88,6 @@ ipcMain.handle("reset-password", async (event, formData) => {
 
 ipcMain.handle("change-password", async (event, args) => {
 
-    const response = new Response()
-
     if (!args.email) {
         console.log("line 97");
         return response.failed().addToast("Email is required to change password").getResponse()
@@ -140,8 +135,6 @@ ipcMain.handle("change-password", async (event, args) => {
 })
   
 ipcMain.handle("login", async (event, formData) => {
-
-    const response = new Response()
 
     if (Object.keys(formData).length === 0) {
         console.error("Form data seems to be empty")
@@ -216,8 +209,6 @@ ipcMain.handle("login", async (event, formData) => {
 })
 
 ipcMain.handle("register", async (event, formData) => {
-
-    const response = new Response()
 
     if (Object.keys(formData).length === 0) {
         console.error("Form data seems to be empty")
@@ -342,8 +333,6 @@ async function generateAccessKey() {
 }
 
 async function generateRecoveryCodes(userId) {
-
-    const response = new Response();
 
     if (!userId) {
         console.error("Missing user id for generating recovery codes")

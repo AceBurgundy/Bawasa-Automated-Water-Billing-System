@@ -1,8 +1,7 @@
-// collapse
 
 const { connectionStatusTypes } = require("../../../source/utilities/constants")
 const { tryCatchWrapper } = require("../../../source/utilities/helpers")
-const Response = require("../../../source/utilities/response")
+const response = require("../../../source/utilities/response")
 const { ipcMain } = require("electron")
 
 // models
@@ -22,8 +21,6 @@ const Client = require("../../../models/Client")
 ipcMain.handle("clients", async (event, table) => {
 
     return tryCatchWrapper(async () => {
-
-        const response = new Response()
 
         const clientWhereClause = null
 
@@ -123,8 +120,6 @@ ipcMain.handle("get-client", async (event, args) => {
 
     const { clientId } = args
 
-    const response = new Response()
-
     if (!clientId) {
         return response.failed().addToast("Client id not found").getResponse()
     }
@@ -149,7 +144,6 @@ ipcMain.handle("get-client", async (event, args) => {
 ipcMain.handle("reconnect-client", async (event, args) => {
 
     const { clientId, paidAmount } = args
-    const response = new Response()
 
     if (!clientId) {
         return response.failed().addToast("Client id not found").getResponse()
