@@ -9,12 +9,16 @@ window.addEventListener("click", event => {
     })
 })
 
+window.ipcRenderer.on("export", (event, progressMessage) => {
+    makeToastNotification(progressMessage);
+});
+
 // window.ipcRenderer.on("count", (event, count) => {
 //     makeToastNotification(count);
 // });
 
-// // for view
-// IPC_MAIN.handle("count-up-to-10", async event => {
+// for view
+// ipc_main.handle("count-up-to-10", async event => {
 
 //     const response = new Response()
 
