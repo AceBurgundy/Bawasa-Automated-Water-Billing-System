@@ -1,199 +1,116 @@
-
-
-
-const { tryCatchWrapper, generateNextAccountOrBillNumber } = require("../../utilities/helpers")
 const { connectionStatusTypes } = require("../../utilities/constants")
+
 const response = require("../../utilities/response")
 const { ipcMain } = require("electron")
 
-const ClientConnectionStatus = require("../../../models/ClientConnectionStatus")
-const PartialPayment = require("../../../models/PartialPayment")
-const ClientBill = require("../../../models/ClientBill")
 const Client = require("../../../models/Client")
+
+const {
+    calculatePartialPaymentsTotal,
+    getBillWithPartialPayments,
+    processZeroPaymentBill,
+    getPreviousBillExcess,
+    insertSecondReading,
+    handleUnderpaidBill,
+    getBillAndStatus,
+    handleUnpaidBill,
+    createNewBill,
+    getAllClients,
+    getBillById
+} = require("./functions")
 
 // ClientBill.destroy({
 // 	where: {}
 // })
 
-/**
- * Retrieves a list of bills with associated client data.
- *
- * @param {Electron.Event} event - The IPC event object.
- * @param {any} args - Arguments for the handler.
- * @returns {Promise<Object>} - A promise that resolves to the handler response.
- */
-ipcMain.handle("accounts", async (event, args) => {
+// Retrieves a list of bills with associated client data.
+ipcMain.handle("accounts", async event => {
 
-	return tryCatchWrapper(async () => {
-
-        const accounts = await tryCatchWrapper(async () => {
-            return await Client.findAll({
-                include: [
-                    {
-                        model: ClientBill,
-                        as: "bills",
-                        include: [
-                            {
-                                model: PartialPayment,
-                                as: "partialPayments"
-                            },
-                        ],
-                    },
-                    {
-                        model: ClientConnectionStatus,
-                        as: "connectionStatuses",
-                        attributes: ["status"],
-                        separate: true,
-                        order: [["createdAt", "DESC"]],
-                        limit: 1
-                    },
-                ],
-                order: [
-                    [
-                        {
-                            model: ClientBill,
-                            as: "bills"
-                        },
-                        "createdAt",
-                        "DESC"
-                    ],
-                ]
-            })
-        })
+    const accounts = await getAllClients()
         
-
-        if (accounts.length > 0) {
-            return response.success().addObject("data", JSON.stringify(accounts)).getResponse()
-        } else {
-            return response.failed().addObject("message", "No accounts yet").getResponse()
-        }
-
-	})
+    if (accounts && accounts.length > 0) {
+        return response.success().addObject("data", JSON.stringify(accounts)).getResponse()
+    } else {
+        return response.Error("No accounts yet")
+    }
 
 })
 
-/**
- * Retrieves a the bill of a client.
- *
- * @param {Electron.Event} event - The IPC event object.
- * @param {any} args - Arguments for the handler.
- * @returns {Promise<Object>} - A promise that resolves to the handler response.
- */
+// Retrieves the the bill of a client.
 ipcMain.handle("get-bill", async (event, args) => {
 
     const { billId, clientId } = args
     
     if (!billId) {
-        return response.failed().addToast("Bill id not found").getResponse()
+        return response.Error("Bill id not found")
     }
 
     if (!clientId) {
-        return response.failed().addToast("Client id not found").getResponse()
+        return response.Error("Client id not found")
     }
 
-    return tryCatchWrapper(async () => {
+    const bill = await getBillAndStatus(clientId)
 
-		const clientBill = await tryCatchWrapper(async () => {
-            return await Client.findByPk(clientId, {
-                include: [
-                    {
-                        model: ClientBill,
-                        as: "bills",
-                        include: [
-                            { 
-                                model: PartialPayment,
-                                as: "partialPayments"
-                            }
-                        ]
-                    },
-                    {
-                        model: ClientConnectionStatus,
-                        as: "connectionStatuses",
-                        attributes: ["status"],
-                        separate: true,
-                        order: [['createdAt', 'DESC']],
-                        limit: 1
-                    }
-                ],
-                order: [
-                    [
-                        {
-                            model: ClientBill,
-                            as: "bills"
-                        }, 
-                        'createdAt', 'DESC'
-                    ]
-                ]
-            })
-        })
+    if (!bill) {
+        return response.Error("Cannot find clients bill")
+    }
 
-        if (clientBill) {
-            return response.success().addObject("data", JSON.stringify(clientBill)).getResponse()
-        } else {
-            return response.failed().addObject("message", "Cannot find clients bill").getResponse()
-        }
-
-	})
-
+    return response.success().addObject("data", JSON.stringify(bill)).getResponse()
 })
 
-/**
- * Prints the bill of the client
- * 
- * @param {Electron.Event} event - The IPC event object.
- * @param {any} args - Arguments for the handler
- * @returns {Promise<Object>} - A promise that resolves to the handler response
- */
 ipcMain.handle("print-bill", async (event, args) => {
+
     const { clientId } = args
 
-    if (!clientId) return response.failed().addToast("Missing client id").getResponse()
+    if (!clientId) return response.Error("Missing client id")
 
-    const clientBill = await tryCatchWrapper(async () => {
-        return await Client.findByPk(clientId)
-    })
+    let clientBill = null
+    let message = "Cannot find clients bill"
+
+    try {
+        clientBill = await Client.findByPk(clientId)
+    } catch (error) {
+        console.log(error)
+        return response.Error(message)
+    }
 
     if (!clientBill) {
-        return response.failed().addObject("message", "Cannot find clients bill").getResponse()
+        return response.Error(message)
     }
+
+    // MISSING CODE TO PRINT RECEIPT
 })
 
-/**
- * Handles the creation or update of a new bill for a client.
- *
- * @param {Electron.Event} event - The IPC event object.
- * @param {any} args - Arguments for the handler.
- * @returns {Promise<Object>} - A promise that resolves to the handler response.
- */
 ipcMain.handle("new-bill", async (event, args) => {
 
     const { clientId, monthlyReading, billId } = args
 
     if (!clientId) {
-        return response.failed().addToast("Missing client id").getResponse()
+        return response.Error("Missing client id")
     }
 
     if (!monthlyReading) {
-        return response.failed().addToast("Missing monthly reading").getResponse()
+        return response.Error("Missing monthly reading")
     }
 
-    const client = await getClientWithBills(clientId)
+    const client = await getBillAndStatus(clientId)
 
     if (!client) {
-        return response.failed().addToast("Cannot find client").getResponse()
+        return response.Error("Cannot find client")
     }
+
+    const hasConnectionStatus = client.connectionStatuses.length > 0
+    const latestNotConnected = client.connectionStatuses[0].status !== connectionStatusTypes.Connected
 
     /**
      * return if the client doesn't have any connection status records yet or the latest connection status the client (if they have any) is not "connected" 
      * which indicates that the client may currently be "due for disconnection" or is "disconnected"
      */
-    if (client.connectionStatuses.length > 0) {
-        if (client.connectionStatuses[0].status !== connectionStatusTypes.Connected) {
-            return response.failed().addToast(`Set the clients status to "Connected" first`).getResponse()
-        }
+    if (hasConnectionStatus && latestNotConnected) {
+        return response.Error(`Set the clients status to "Connected" first`)
     }
 
-    const clientBill = await getClientBillById(billId)
+    const clientBill = await getBillById(billId)
 
     const previousBillExcess = await getPreviousBillExcess(billId)
 
@@ -201,454 +118,105 @@ ipcMain.handle("new-bill", async (event, args) => {
 
     if (clientBill) {
         const latestBill = clientBill.toJSON()
-        latestBillAlreadyPaid = latestBill.status === "paid" || latestBill.status === "overpaid" && latestBill.secondReading !== null
+
+        const billPaid = latestBill.status === "paid"
+        const billOverpaid = latestBill.status === "overpaid"
+        const hasSecondReading = latestBill.secondReading !== null
+
+        const OverpaidWithSecondReading = billOverpaid && hasSecondReading
+
+        latestBillAlreadyPaid = billPaid || OverpaidWithSecondReading
     }
 
-    if (clientBill && !latestBillAlreadyPaid && clientBill.secondReading !== null) {
-        return response.failed().addToast("Current bill must be paid first before proceeding").getResponse()
+    const NotPaidWithSecondReading = !latestBillAlreadyPaid && clientBill.secondReading !== null
+
+    if (clientBill && NotPaidWithSecondReading) {
+        return response.Error("Current bill must be paid first before proceeding")
     }
 
-    if (!clientBill || latestBillAlreadyPaid) {
-        const newBill = await createNewBill(client.id, parseFloat(monthlyReading).toFixed(2))
+    const noBillOrAlreadyPaid = !clientBill || latestBillAlreadyPaid
+    
+    if (noBillOrAlreadyPaid) {
 
-		return newBill
-			? response.success().addToast("New client bill created").addObject("billId", newBill.id).getResponse()
-			: response.failed().addToast("New client bill creation failed").getResponse()
-	
+        const monthlyReading = parseFloat(monthlyReading).toFixed(2)
+        
+        let newBill = await createNewBill(client.id, monthlyReading)
+
+        if (!newBill) {
+            return response.Error("New client bill creation failed")
+        }
+
+        return response
+                .success()
+                .addToast("New client bill created")
+                .addObject("billId", newBill.id)
+                .getResponse()
+    
     } else {
 
+        // Bill updates for 2nd reading or exact payment
+
         if (!billId) {
-            return response.failed().addToast("Bill id not found").getResponse()
+            return response.Error("Bill id not found")
         }
 
-        const bill = await getClientBillById(billId)
+        const bill = await getBillById(billId)
 
-        if (bill) {
-
-			//Assumes that there is no water consumption thus, no bill
-            if (parseFloat(monthlyReading) === bill.firstReading) {
-                return updateBillWithNoPayment(bill, response)
-			}
-
-			// Update bill with it's second reading
-            return updateBillWithSecondReading(bill, parseFloat(monthlyReading).toFixed(2), previousBillExcess, response)
+        if (!bill) {
+            return response.Error("Bill not found")
         }
+
+        //If first reading matches new reading, then there is nothing to pay
+        const nothingToPay = bill.firstReading === parseFloat(monthlyReading)
+
+        if (nothingToPay) {
+            return await processZeroPaymentBill(bill)
+        } else {
+            return await insertSecondReading(bill, monthlyReading, previousBillExcess)
+        }
+            
     }
+
 })
 
-/**
- * Handles payment for a client's bill, including partial payments.
- *
- * @param {Electron.Event} event - The IPC event object.
- * @param {any} args - Arguments for the handler.
- * @returns {Promise<Object>} - A promise that resolves to the handler response.
- */
 ipcMain.handle("pay-bill", async (event, args) => {
 
     const { amount, billId } = args
 
+    if (!amount) {
+        return response.Error("Missing payment amount")
+    }
+    
+    if (!billId) {
+        return response.Error("Bill id missing")
+    }
+
     const amountPaid = parseFloat(amount)
 
-    console.log(amount, billId);
-
-    if (!amountPaid) {
-        return response.failed().addToast("Missing payment amount").getResponse()
-    }
-
-    if (!billId) {
-        return response.failed().addToast("Bill id missing").getResponse()
-    }
-
-    const bill = await getClientBillWithPartialPayments(billId)
+    const billQuery = await getBillWithPartialPayments(billId)
     
-    if (!bill) {
-        return response.failed().addToast("Cannot find bill").getResponse()
+    if (!billQuery) {
+        return response.Error("Cannot find bill")
     }
 
-    const billJSON = bill.toJSON()
-    const totalPartialPayments = calculateTotalPartialPayments(billJSON)
+    const bill = billQuery.toJSON()
 
-    if (billJSON.status === "paid") {
-        return response.failed().addToast("Bill had already been paid").getResponse()
-    }
+    const totalPartialPayments = calculatePartialPaymentsTotal(bill)
 
-    if (billJSON.status === "underpaid") {
-        return await handleUnderpaidBill(bill, totalPartialPayments, amountPaid, response)
+    switch (bill.status) {
+        
+        case "paid":
+            return response.Error("Bill had already been paid")
+        
+        case "underpaid":
+            return await handleUnderpaidBill(bill, totalPartialPayments, amountPaid)
+    
+        case "unpaid":
+            return await handleUnpaidBill(billQuery, bill, amountPaid, bill.clientId)
+        
+        default:
+            return response.Error("Wrong bill status type");
+
     }
-	
-	if (billJSON.status === "unpaid") {
-		return await handleUnpaidBill(bill, billJSON, amountPaid, bill.clientId, response)
-	}
 
 })
-
-// utility functions
-
-/**
- * Retrieves a client along with their associated bills.
- *
- * @param {number} clientId - The ID of the client to retrieve.
- * @returns {Promise<Object|null>} - A promise that resolves to the client data or null if not found.
- */
-async function getClientWithBills(clientId) {
-    return await tryCatchWrapper(async () => {
-        return await Client.findByPk(clientId, {
-            include: [
-                { 
-                    model: ClientBill, 
-                    as: "bills",
-                    order: [ [ 'createdAt', 'DESC' ]]
-                },
-                { 
-                    model: ClientConnectionStatus, 
-                    as: "connectionStatuses",
-                    order: [ [ 'createdAt', 'DESC' ]]
-                }
-            ]
-        })
-    })
-}
-
-/**
- * Retrieves a client bill by its ID.
- *
- * @param {number} billId - The ID of the client bill to retrieve.
- * @returns {Promise<Object|null>} - A promise that resolves to the client bill data or null if not found.
- */
-async function getClientBillById(billId) {
-    return await tryCatchWrapper(async () => {
-        return await ClientBill.findByPk(billId)
-    })
-}
-
-/**
- * Retrieves the payment excess from the previous bill.
- *
- * @param {number} billId - The ID of the current bill.
- * @returns {Promise<number|null>} - A promise that resolves to the previous bill's payment excess or null if not found.
- */
-async function getPreviousBillExcess(billId) {
-    const bill = await getClientBillById(billId - 1)
-    return bill ? bill.toJSON().excess : null
-}
-
-/**
- * Creates a new bill for a client with the specified first reading.
- *
- * @param {number} clientId - The ID of the client for whom the bill is created.
- * @param {string} firstReading - The first reading value.
- * @returns {Promise<Object|null>} - A promise that resolves to the created bill or null if creation fails.
- */
-async function createNewBill(clientId, firstReading) {
-    return await tryCatchWrapper(async () => {
-        return await ClientBill.create({
-            clientId: clientId,
-            billNumber: await generateNextAccountOrBillNumber(),
-            firstReading: parseFloat(firstReading).toFixed(2)
-        })
-    })
-}
-
-/**
- * Updates a bill with no payment and sets relevant fields.
- *
- * @param {Object} bill - The bill object to update.
- */
-function updateBillWithNoPayment(bill, response) {
-    try {
-		bill.secondReading = bill.firstReading
-		bill.consumption = 0
-		bill.total = 0
-		bill.status = "paid"
-		bill.save()
-		return response.success().addToast("No payments as water consumption is 0").getResponse()
-	} catch (error) {
-		console.log(`Error at ${updateBillWithNoPayment.name}`)
-		return response.success().addToast("Failed on updating clients bill").getResponse()
-	}
-}
-
-/**
- * Updates a bill with the second reading and performs calculations.
- *
- * @param {Object} bill - The bill object to update.
- * @param {string} monthlyReading - The monthly reading value.
- * @param {number|null} previousBillExcess - The payment excess from the previous bill.
- */
-function updateBillWithSecondReading(bill, monthlyReading, previousBillExcess, response) {
-
-	try {
-		bill.secondReading = parseFloat(monthlyReading).toFixed(2)
-		bill.consumption = parseFloat(monthlyReading).toFixed(2) - bill.firstReading
-		bill.total = previousBillExcess !== null ? (bill.consumption * 5) - previousBillExcess : bill.consumption * 5
-		const currentDate = new Date()
-		const twoWeeksFromNow = new Date(currentDate.getTime() + (14 * 24 * 60 * 60 * 1000))
-        bill.dueDate = twoWeeksFromNow
-	
-		const fiveDaysFromDisconnectionDate = new Date(twoWeeksFromNow.getTime() + (5 * 24 * 60 * 60 * 1000))
-		bill.disconnectionDate = fiveDaysFromDisconnectionDate
-	
-        // const oneDayFromNow = new Date(currentDate.getTime() + (1 * 24 * 60 * 60 * 1000)) // Add 1 day (24 hours)
-        // bill.disconnectionDate = oneDayFromNow // Set disconnection date to tomorrow
-
-		bill.save()
-		return response.success().addToast(previousBillExcess !== null ? `Client bill updated with ${previousBillExcess} deduction from previous payment` : "Client bill updated").getResponse()
-
-	} catch(error) {
-		console.log(`Error at ${updateBillWithSecondReading.name}`)
-		return response.failed().addToast("Failed on updating clients 2nd reading").getResponse()
-	}
-
-}
-
-/**
- * Retrieves a client bill along with its associated partial payments.
- *
- * @param {number} billId - The ID of the client bill to retrieve.
- * @returns {Promise<Object|null>} - A promise that resolves to the client bill data with partial payments or null if not found.
- */
-async function getClientBillWithPartialPayments(billId) {
-    return await tryCatchWrapper(async () => {
-        return await ClientBill.findByPk(billId, {
-            include: [
-                { 
-                    model: PartialPayment,
-                    as: "partialPayments" 
-                }
-            ]
-        })
-    })
-}
-
-/**
- * Calculates the total amount of partial payments for a bill.
- *
- * @param {Object} billJSON - The client bill data.
- * @returns {number} - The total amount of partial payments.
- */
-function calculateTotalPartialPayments(billJSON) {
-    return billJSON.partialPayments.reduce((total, partialPayment) => total + partialPayment.amountPaid, 0)
-}
-
-/**
- * Handles underpaid bill scenarios for payment.
- *
- * @param {Object} bill - The client bill object.
- * @param {number} totalPartialPayments - The total amount of partial payments.
- * @param {number} amountPaid - The payment amount for the current payment.
- * @param {Object} response - The response object to update.
- */
-async function handleUnderpaidBill(bill, totalPartialPayments, amountPaid, response) {
-    const newPaymentAmount = totalPartialPayments + amountPaid
-
-    if (newPaymentAmount === bill.total) {
-        const lastPartialPayment = createLastPartialPayment(bill, amountPaid)
-
-		if (!lastPartialPayment) {
-			return response.failed().addToast("Failed on creating creating bills last partial payment").getResponse()
-		}
-
-        bill.status = "paid"
-        bill.balance = 0
-        responseMessage = "Remaining balance paid"
-
-        const clientRecentStatus = await tryCatchWrapper(async () => {
-            return await ClientConnectionStatus.findOne({
-                where: { 
-                    clientId: bill.clientId
-                },
-                attributes: ['status'],
-                order: [
-                    ['createdAt', 'DESC']
-                ]
-            })
-        })
-
-        if (clientRecentStatus.status !== connectionStatusTypes.Connected) {
-            const reconnected = await reconnectClient(bill.clientId, clientRecentStatus.status)
-            
-            responseMessage = reconnected && "Remaining balance paid and client reconnected"
-        }
-    } 
-	
-	if (newPaymentAmount < bill.total) {
-        const newPartialPayment = createNewPartialPayment(bill, amountPaid)
-		
-		if (!newPartialPayment) {
-			return response.failed().addToast("Failed on creating creating the bills' last partial payment").getResponse()
-		}
-
-        bill.balance = bill.total - newPaymentAmount
-        responseMessage = "Remaining balance has been updated"
-    }
-	
-	if (newPaymentAmount > bill.total) {
-        const lastPartialPayment = createLastPartialPayment(bill, amountPaid)
-
-		if (!lastPartialPayment) {
-			return response.failed().addToast("Failed on creating creating the bills' last partial payment").getResponse()
-		}
-		
-		bill.status = "overpaid"
-        bill.excess = newPaymentAmount - bill.total
-        bill.balance = 0
-        responseMessage = "Remaining balance paid and excess amount saved"
-
-        const clientRecentStatus = await tryCatchWrapper(async () => {
-            return await ClientConnectionStatus.findOne({
-                where: { 
-                    clientId: bill.clientId
-                },
-                attributes: ['status'],
-                order: [
-                    ['createdAt', 'DESC']
-                ]
-            })
-        })
-
-        if (clientRecentStatus.status !== connectionStatusTypes.Connected) {
-            const reconnected = await reconnectClient(bill.clientId, clientRecentStatus.status)
-            
-            responseMessage = reconnected && "Remaining balance paid, excess saved and client reconnected"
-        }
-    }
-
-    bill.amountPaid = newPaymentAmount
-    bill.save()
-    return response.success().addToast(responseMessage).getResponse()
-}
-
-/**
- * Handles fully paid bill scenario.
- *
- * @param {Object} bill - The client bill object.
- * @param {Object} billJSON - The client bill objects toJSON version.
- * @param {number} amountPaid - The payment amount for the first payment.
- * @param {Object} response - The response object to update.
-*/
-async function handleUnpaidBill(bill, billJSON, amountPaid, clientId, response) {
-
-	if (billJSON.total === amountPaid) {
-		bill.amountPaid = bill.total
-		bill.status = "paid"
-		bill.balance = 0
-
-        responseMessage = "Bill successfully paid"
-
-        const clientRecentStatus = await tryCatchWrapper(async () => {
-            return await ClientConnectionStatus.findOne({
-                where: { 
-                    clientId: clientId
-                },
-                attributes: ['status'],
-                order: [
-                    ['createdAt', 'DESC']
-                ]
-            })
-        })
-
-        if (clientRecentStatus.status !== connectionStatusTypes.Connected) {
-            const reconnected = await reconnectClient(clientId, clientRecentStatus.status)
-            responseMessage = reconnected && "Bill paid and client reconnected"
-        }
-
-	}
-	
-	if (amountPaid < billJSON.total) {
-		const firstPartialPayment = await createNewPartialPayment(bill, amountPaid)
-			
-		if (!firstPartialPayment) {
-			return response.failed().addToast("Failed creating new partial payment").getResponse()
-		}
-		
-		bill.status = "underpaid"
-		bill.balance = bill.total - amountPaid
-		bill.amountPaid = amountPaid
-		responseMessage = "New remaining balance has been set"
-	}
-
-	if (amountPaid > billJSON.total) {
-		bill.status = "overpaid"
-		bill.amountPaid = bill.total
-		bill.excess = amountPaid - bill.total
-		responseMessage = "Bill paid and excess saved"
-
-        const clientRecentStatus = await tryCatchWrapper(async () => {
-            return await ClientConnectionStatus.findOne({
-                where: { 
-                    clientId: clientId
-                },
-                attributes: ['status'],
-                order: [
-                    ['createdAt', 'DESC']
-                ]
-            })
-        })
-
-        if (clientRecentStatus.status !== connectionStatusTypes.Connected) {
-            const reconnected = await reconnectClient(clientId, clientRecentStatus.status)
-            
-            responseMessage = reconnected && "Bill paid, excess recorded and client reconnected"
-        }
-	}
-
-	bill.save()
-	return response.success().addToast(responseMessage).getResponse()
-}
-
-/**
- * Creates a new partial payment record.
- *
- * @param {Object} bill - The client bill object.
- * @param {number} amountPaid - The payment amount for the current payment.
- * @returns {Promise<Object|null>} - A promise that resolves to the created partial payment or null if creation fails.
- */
-async function createNewPartialPayment(bill, amountPaid) {
-    return await tryCatchWrapper(async () => {
-        return await PartialPayment.create({
-            clientBillId: bill.id,
-            amountPaid: amountPaid
-        })
-    })
-}
-
-/**
- * Creates a last partial payment record for an underpaid bill.
- *
- * @param {Object} bill - The client bill object.
- * @param {number} amountPaid - The payment amount for the current payment.
- * @returns {Promise<Object|null>} - A promise that resolves to the created partial payment or null if creation fails.
- */
-async function createLastPartialPayment(bill, amountPaid) {
-    return await tryCatchWrapper(async () => {
-        return await PartialPayment.create({
-            clientBillId: bill.id,
-            amountPaid: amountPaid
-        })
-    })
-}
-
-/**
- * Reconnects the client by adding a new "connected" status
- * @param {string} clientId - The id of the client to be reconnected
- * @param {string} connectionStatus - The connection status of the client
- * @returns {Object} - a status of success and a message
- */
-async function reconnectClient(clientId, connectionStatus) {
-
-    return await tryCatchWrapper(async () => {
-
-        if (connectionStatus === connectionStatusTypes.DueForDisconnection) {
-
-            await ClientConnectionStatus.create({
-                clientId: clientId,
-                status: connectionStatusTypes.Connected
-            })
-
-            return true
-        } else {
-            return false
-        }
-    })
-}
-
