@@ -140,14 +140,14 @@ export default class BillForm {
             makeToastNotification(response.toast[0])
             clearAndHideDialog()
 
-            const getResponse = await window.ipcRenderer.invoke("get-bill", { billId: response.billId ?? this.billId, clientId: this.clientId })
+            const getBill = await window.ipcRenderer.invoke("get-bill", { billId: response.billId ?? this.billId, clientId: this.clientId })
 
-            if (getResponse.status === "failed") {
-                getResponse.toast[0] && makeToastNotification(getResponse.toast[0])
+            if (getBill.status === "failed") {
+                makeToastNotification(getBill.toast[0])
                 return
             }
 
-            const updatedBill = JSON.parse(getResponse.data)
+            const updatedBill = JSON.parse(getBill.data)
 
             const originalRow = getById(this.rowId)
 

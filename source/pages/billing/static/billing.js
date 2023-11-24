@@ -9,8 +9,7 @@ import {
     transition, 
     makeToastNotification,
     getById,
-    queryElements,
-    tryCatchWrapper
+    queryElements
 } from "../../../assets/scripts/helper.js"
 
 /**
@@ -20,24 +19,18 @@ export default async function renderBillingSection() {
 
 	const user = await window.ipcRenderer.invoke("current_user")
 
-    let accounts = null
-    let responseMessage = null
+    let accounts = []
+    let message = null
 
-    try {
-        
-        const { status, data, message } = await window.ipcRenderer.invoke("accounts")
-        
-        if (message) {
-            responseMessage = message
-        }
+    const getClients = await window.ipcRenderer.invoke("accounts")
 
-        accounts = status === "success" ? JSON.parse(data) : []
-
-    } catch (error) {
-        
+    if (getClients.status === "failed") {
+        message = getClients.toast[0]
+    } else {
+        accounts = JSON.parse(getClients.data)
     }
 
-    const template = billingTable(accounts, user, responseMessage)
+    const template = billingTable(accounts, user, message)
 
 	getById("container").innerHTML += template
 
