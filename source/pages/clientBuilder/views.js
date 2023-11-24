@@ -72,7 +72,6 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
         return response.failed().addFieldError(field, message).getResponse()
     }
 
-	let message = ""
 	let fullName = null
 	let profilePictureName = null
 
