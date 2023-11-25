@@ -1,9 +1,9 @@
 
-import DocumentBoard from "../../../components/DocumentBoard.js"
-import InputCapture from "../../../components/InputCapture.js"
 import { renderClientSection } from "../../clients/static/clients.js"
 import renderBillingSection from "../../billing/static/billing.js"
+import DocumentBoard from "../../../components/DocumentBoard.js"
 import { renderProfile } from "../../profile/static/profile.js"
+import InputCapture from "../../../components/InputCapture.js"
 import { getTemplate } from "../templates/clientBuilder.js"
 import "../../../utilities/constants.js"
 
@@ -50,29 +50,40 @@ export async function renderClientBuilder(edit, clientObject) {
             break
 		}
 	}
-
-	const capture = new InputCapture("clientProfile", forEdit, clientData?.profilePicture )
-	queryElement(".content__form-box__group__left").parentElement.innerHTML += capture
-
+	
 	const clientId = forEdit && clientData ? clientData.id : null
-	queryElement(".files").innerHTML = new DocumentBoard("clientFiles", forEdit, clientId, "Client Documents")
+
+	const imageCaptureBox = queryElement(".content__form-box__group__left")
+	const fileUploadBox = queryElement(".files")
+
+	const filesClipBoardComponent = new DocumentBoard("clientFiles", forEdit, clientId, "Client Documents")
+	const captureProfileComponent = new InputCapture("clientProfile", forEdit, clientData?.profilePicture )
+	
+	imageCaptureBox.parentElement.innerHTML += captureProfileComponent
+	fileUploadBox.innerHTML = filesClipBoardComponent
+
+	const mergePresentAndMainAddressToggle = getById("mergePresentAndMainPrompt")
+	const submitButton = getById("client-register-submit-button")
+	const clientBuilderForm = getById("client-form")
 
 	// Handle form submission
-	getById("client-register-submit-button").addEventListener("click", event => {
+	submitButton.onclick = event => {
+		
 		event.preventDefault()
-		if (forEdit && clientData !== null) {
-			handleFormSubmit(forEdit, clientData.id)
-		} else {
-			handleFormSubmit()
-		}
-	})
+
+		const forEditingClient = forEdit && clientData !== null
+		const submitArguments = forEditingClient ? [...forEdit, clientData.id] : []
+		handleFormSubmit(submitArguments)
+	}
 
 	// Handle merging addresses
 	let duplicateAddress = false
 
     //clears all input if duplicate address was unchecked else refills their values
-    getById("mergePresentAndMainPrompt").addEventListener("change", event => {
+    mergePresentAndMainAddressToggle.onchange = event => {
+
 		duplicateAddress = event.target.checked
+	
 		const addressType = duplicateAddress ? "present" : "main"
         const inputFields = queryElements(`input[name^='${addressType}']`)
 
@@ -81,30 +92,33 @@ export async function renderClientBuilder(edit, clientObject) {
 			const targetInput = queryElement(`input[name='${targetName}']`)
 			targetInput.value = duplicateAddress ? input.value : ""
 		})
-	})
+	}
       
     /*
         if duplicate address is checked,
         any values placed inside present address fields also duplicates to main address fields 
     */
-    getById("client-form").addEventListener("keyup", ({ target }) => {
+    clientBuilderForm.onkeyup = ({ target }) => {
 		if (duplicateAddress) {
 			const targetName = target.getAttribute("name").replace("present", "main")
 			queryElement(`input[name='${targetName}']`).value = target.value
 		}
-	})
+	}
 
 	async function handleFormSubmit(forEdit = false, clientId = null) {
 
-		const form = getById("client-form")
+		const form = clientBuilderForm
 		const formData = getFormData(form)
 
 		const invalidElements = queryElements(".invalid")
 
-		if (invalidElements.length > 0) return makeToastNotification("Fix errors first")
+		if (invalidElements.length > 0) {
+			makeToastNotification("Fix errors first")
+			return
+		}
 
-		const imageData = capture.imageData
-		const documentsArray = extractFileData(fileCapture.getFiles())
+		const submittedFilesList = extractFileData(filesClipBoardComponent.getFiles())
+		const capturedPhoto = captureProfileComponent.imageData
 		
 		let response = null
 		
@@ -113,7 +127,7 @@ export async function renderClientBuilder(edit, clientObject) {
 			response = await window.ipcRenderer.invoke("edit-client", {
 				formDataBuffer: {
 					formData: formData,
-					profilePicture: imageData.image
+					profilePicture: capturedPhoto.image
 				},
 				clientId: clientId
 			})
@@ -122,31 +136,30 @@ export async function renderClientBuilder(edit, clientObject) {
 			
 			response = await window.ipcRenderer.invoke("add-client", {
 				formData: formData,
-				image: imageData.image,
-				files: documentsArray
+				image: capturedPhoto.image,
+				files: submittedFilesList
 			})
 
 		}
 
 		if (response.status === "success") {
-
 			response.toast.forEach(toast => makeToastNotification(toast))
 			transition(renderClientSection)
-
-		} else {
-
-			if (response.fieldErrors) {
-				Object.entries(response.fieldErrors).forEach(([name, error]) => {
-					const dashedName = camelToDashed(name)
-					const cleanName = dashedName.includes("-") ? dashedName.split("-").join(" ") : dashedName
-					const cleanErrorMessage = toSentenceCase([cleanName, error[0]].join(" "))
-					getById(`${dashedName}-field__info__error`).textContent = error[0]
-					makeToastNotification(cleanErrorMessage)
-				})
-			}
-
-			response.toast.forEach(toast => makeToastNotification(toast))
+			return
 		}
+		
+		if (response.fieldErrors) {
+			Object.entries(response.fieldErrors).forEach(([name, error]) => {
+				const dashedName = camelToDashed(name)
+				const cleanName = dashedName.includes("-") ? dashedName.split("-").join(" ") : dashedName
+				const cleanErrorMessage = toSentenceCase([cleanName, error[0]].join(" "))
+				getById(`${dashedName}-field__info__error`).textContent = error[0]
+				makeToastNotification(cleanErrorMessage)
+			})
+		}
+
+		response.toast.forEach(toast => makeToastNotification(toast))
+		
 	}
 }
 
