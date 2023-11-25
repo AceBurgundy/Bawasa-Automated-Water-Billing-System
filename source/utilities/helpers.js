@@ -1,6 +1,8 @@
 const Client = require("../../models/Client")
 const ClientBill = require("../../models/ClientBill")
 
+const path = require("path")
+
 /**
  * Wraps a callback function in a try-catch block for error handling.
  * @function

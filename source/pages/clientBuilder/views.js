@@ -1,11 +1,4 @@
-// Database
-const ClientConnectionStatus = require("../../../models/ClientConnectionStatus")
-const ClientPhoneNumber = require("../../../models/ClientPhoneNumber")
-const ClientAddress = require("../../../models/ClientAddress")
-const Client = require("../../../models/Client")
-
 // Utilities
-const { connectionStatusTypes } = require("../../utilities/constants")
 const { validateFormData } = require("../../utilities/validations")
 const response = require("../../utilities/response")
 const { db } = require("../../utilities/sequelize")
@@ -13,7 +6,6 @@ const { db } = require("../../utilities/sequelize")
 // API
 const { ipcMain } = require("electron")
 const fs = require("fs-extra")
-const path = require("path")
 
 const { 
     throwAndLogError,
