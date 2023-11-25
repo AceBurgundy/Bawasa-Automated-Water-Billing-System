@@ -10,7 +10,11 @@ const { db } = require("../../utilities/sequelize")
 
 const { ipcMain } = require("electron")
 const bcrypt = require("bcrypt")
-const crypto = require("crypto")
+
+const { 
+    generateRecoveryCodes,
+    generateAccessKey
+} = require("./functions")
 
 ipcMain.handle("reset-password", async (event, formData) => {
 
@@ -175,10 +179,10 @@ ipcMain.handle("login", async (event, formData) => {
         return response.Error(`Missing fields: ${joinedMissingFields}`)
     }
 
-    const validateFormData = validateFormData(formData)
+    const validateFormDataResponse = validateFormData(formData)
 
-    if (validateFormData.status === false) {
-        const { field, message } = validateFormData
+    if (validateFormDataResponse.status === false) {
+        const { field, message } = validateFormDataResponse
         return response.failed().addFieldError(field, message).getResponse()
     }
 
@@ -250,10 +254,10 @@ ipcMain.handle("register", async (event, formData) => {
         return response.Error(`Missing fields: ${joinedMissingFields}`)
     }
 
-    const validateFormData = validateFormData(formData)
+    const validateFormDataResponse = validateFormData(formData)
 
-    if (validateFormData.status === false) {
-        const { field, message } = validateFormData
+    if (validateFormDataResponse.status === false) {
+        const { field, message } = validateFormDataResponse
         return response.failed().addFieldError(field, message).getResponse()
     }
 
@@ -338,40 +342,3 @@ ipcMain.handle("register", async (event, formData) => {
 
 })
 
-async function generateAccessKey() {
-    const randomString = crypto.randomBytes(32).toString("hex")
-    const hash = bcrypt.hashSync(randomString, 10)
-    return hash.slice(0, 64)
-}
-
-async function generateRecoveryCodes(userId, manager) {
-    
-    const characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const promises = [];
-    const codes = []
-
-    for (let outer = 0; outer < 12; outer++) {
-
-        const code = Array.from({ length: 8 }, () => characters[Math.floor(Math.random() * characters.length)]).join('');
-
-        codes.push(code)
-
-        const insertNewCodePromise = RecoveryCode.create({
-            code: await bcrypt.hash(code, 10),
-            userId: userId
-        }, { transaction: manager })
-
-        promises.push(insertNewCodePromise);
-    }
-
-    try {
-
-        await Promise.all(promises);
-        return response.success().addObject("recoveryCodes", codes).getResponse();
-    
-    } catch (error) {
-        console.log(error);
-        return response.Error(`Failed to add recovery codes`)
-    }
-
-}
