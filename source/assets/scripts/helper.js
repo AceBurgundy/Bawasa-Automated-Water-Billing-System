@@ -142,10 +142,10 @@ export const generateHTML = template => {
  * console.log(dashedString) // Output: "user-name"
  */
 export const camelToDashed = inputString => {
-    if (/^[a-z][a-zA-Z0-9]*$/.test(inputString)) {
-        return inputString.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()
-    } else {
-        return inputString
+
+    if (typeof inputString !== "string") {
+        console.error("camelToDashed only accepts strings as arguments")
+        return
     }
 }
 
