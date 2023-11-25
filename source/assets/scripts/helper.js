@@ -147,6 +147,12 @@ export const camelToDashed = inputString => {
         console.error("camelToDashed only accepts strings as arguments")
         return
     }
+
+    const inCamelCase = /^[a-z][a-zA-Z0-9]*$/.test(inputString)
+    if (!inCamelCase) return inputString
+    
+    const andSeparateBigAndLowerCaseWithDash = [/([a-z])([A-Z])/g, "$1-$2"]
+    return inputString.replace([...andSeparateBigAndLowerCaseWithDash]).toLowerCase()
 }
 
 /**
