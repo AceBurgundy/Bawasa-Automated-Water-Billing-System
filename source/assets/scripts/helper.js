@@ -1,5 +1,5 @@
 export function transition(callback) {
-    const box = document.getElementById("container")
+    const box = getById("container")
     callback()
 
     setTimeout(() => {
@@ -20,39 +20,46 @@ export function transition(callback) {
 
 /**
  * Creates a toast notification element and appends it to the flashes container.
- * @param {string} message - The message content of the notification.
+ * @param {Any|Array} message - The message or list of messages which will be rendered.
  */
 export function makeToastNotification(message) {
-    if (!message || (typeof message === "string" && !message.trim())) {
+
+    if (Array.isArray(message)) {
+        message.forEach(messageItem => makeToastNotification(messageItem))
+        return
+    }
+
+    if (message === null || message === undefined || message.toString().trim().length <= 0) {
         console.error("Toast notification requires a non-empty message")
         return
     }
 
-    let flashes = document.getElementById("flashes")
+    let toastBox = getById("flashes")
 
-    if (!flashes) {
-        const newFlashes = document.createElement("div")
-        newFlashes.setAttribute("id", "flashes")
-        document.body.insertBefore(newFlashes, document.body.firstChild || null)
-        flashes = newFlashes
+    if (!toastBox) {
+        const newBox = document.createElement("div")
+        newBox.id = "flashes"
+        document.body.insertBefore(newBox, document.body.firstChild || null)
+        toastBox = newBox
     }
 
-    const newToast = document.createElement("dialog")
-    newToast.classList.add("message")
-    newToast.textContent = message
-    flashes.append(newToast)
-    newToast.show()
+    const toast = document.createElement("dialog")
+    toast.classList.add("message")
+    toast.textContent = message
+
+    toastBox.append(toast)
+    toast.show()
 
     setTimeout(() => {
-        newToast.classList.add("close")
-        setTimeout(() => newToast.remove(), 500)
+        toast.classList.add("close")
+        setTimeout(() => toast.remove(), 500)
     }, 5000)
 }
 
 /**
  *
- * @param {String} data - The data from the sequelize object the needed to be shown
- * @param {String} placeholder - A placeholder that replaces the data if the data is null or undefined. Default: ""
+ * @param {string} data - The data from the sequelize object the needed to be shown
+ * @param {string} placeholder - A placeholder that replaces the data if the data is null or undefined. Default: ""
  * @returns string
  */
 export const showData = (data, placeholder = "") => (data ?? false ? data : placeholder)
@@ -74,6 +81,8 @@ export function formatDate(date) {
 
 /**
  * Wraps a callback function in a try-catch block for error handling.
+ * 
+ * @async
  * @function
  * @param {Function} callback - The callback function to wrap.
  */
@@ -119,12 +128,14 @@ export function queryElements(tag) {
 
 /**
  *
- * @param {String} template - The template literal to be converted to HTML
+ * @param {string} template - The template literal to be converted to HTML
  * @returns {HTMLElement} - The HTML element generated from the template.
  */
 export const generateHTML = template => {
+
     const bufferElement = document.createElement("div")
     bufferElement.innerHTML = template
+    
     template = bufferElement.firstElementChild
     bufferElement.remove()
 
@@ -181,12 +192,10 @@ export function getFormData(formElement) {
 /**
  * Fixed strings to follow basic sentence casing.
  *
- * @param {String} sentence - Sentence to be transformed to sentence case.
- * @returns {String} new sentence
+ * @param {string} sentence - Sentence to be transformed to sentence case.
+ * @returns {string} new sentence
  */
-export const toSentenceCase = sentence => {
-    return sentence.charAt(0).toUpperCase() + sentence.slice(1).toLowerCase()
-}
+export const toSentenceCase = sentence => sentence.charAt(0).toUpperCase() + sentence.slice(1).toLowerCase()
 
 const dialog = queryElement("dialog")
 const background = getById("dialog-backdrop")
@@ -220,11 +229,18 @@ export const clearAndHideDialog = () => {
 /**
  * Generates a unique input element id attribute value
  *
+ * @param {string} name - The string that will be joined to a random number
  * @returns the new input element id
  */
 export const generateUniqueId = name => {
+
+    if (typeof name !== "string") {
+        console.error("generateUniqueId only accepts strings as arguments")
+        return
+    }
+
     const randomNumber = Math.floor(Math.random() * 100) + 1
     const id = [name, randomNumber].join("-")
 
-    return document.body.contains(getById(id)) ? generateUniqueId() : id
+    return getById(id) ? generateUniqueId() : id
 }
