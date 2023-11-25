@@ -9,9 +9,9 @@ window.addEventListener("click", event => {
     })
 })
 
-window.ipcRenderer.on("export", (event, progressMessage) => {
-    makeToastNotification(progressMessage);
-});
+// window.ipcRenderer.on("export", (event, progressMessage) => {
+//     makeToastNotification(progressMessage);
+// });
 
 // window.ipcRenderer.on("count", (event, count) => {
 //     makeToastNotification(count);

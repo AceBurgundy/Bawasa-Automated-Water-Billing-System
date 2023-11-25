@@ -80,23 +80,6 @@ export function formatDate(date) {
 }
 
 /**
- * Wraps a callback function in a try-catch block for error handling.
- * 
- * @async
- * @function
- * @param {Function} callback - The callback function to wrap.
- */
-export async function tryCatchWrapper(callback) {
-    try {
-        return await callback()
-    } catch (error) {
-        console.log(error)
-        console.log(`\n${error.name}\n`)
-        console.log(`${error.message}`)
-    }
-}
-
-/**
  * Retrieves an HTML element by its ID.
  *
  * @param {string} id - The ID of the HTML element to retrieve.
@@ -204,9 +187,12 @@ const background = getById("dialog-backdrop")
  * FIlls dialog innerHTML
  */
 export const fillAndShowDialog = template => {
+
     dialog.innerHTML = template
+
     background.style.display = "block"
     background.classList.add("open")
+
     dialog.show()
 }
 
@@ -214,15 +200,21 @@ export const fillAndShowDialog = template => {
  * Clears the dialog then closes it
  */
 export const clearAndHideDialog = () => {
+    
     dialog.classList.add("closing")
+    
     background.classList.add("closing")
     background.classList.remove("open")
+    
     setTimeout(() => {
+    
         dialog.close()
         dialog.innerHTML = ""
         dialog.classList.remove("closing")
+    
         background.classList.remove("closing")
         background.style.display = "none"
+    
     }, 520)
 }
 
@@ -234,7 +226,7 @@ export const clearAndHideDialog = () => {
  */
 export const generateUniqueId = name => {
 
-    if (typeof name !== "string") {
+    if (name === null || name === undefined || typeof name !== "string") {
         console.error("generateUniqueId only accepts strings as arguments")
         return
     }
