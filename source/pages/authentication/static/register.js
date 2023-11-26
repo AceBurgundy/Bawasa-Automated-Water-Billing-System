@@ -27,7 +27,7 @@ export default function loadRegister() {
         registerElement.classList.add("active")
     }, 500)
 
-    window.onclick = async (event) => {
+    window.onclick = async event => {
 
         switch (event.target.id) {
 
@@ -78,8 +78,8 @@ async function registerUser() {
         const fieldNames = Object.keys(fieldErrors)
 
         fieldNames.forEach(fieldName => {
-            const fieldElementId = `${camelToDashed(fieldName)}-field__info__error`
-            getById(fieldElementId).textContent = fieldErrors[fieldName]
+            const fieldElementErrorId = `${camelToDashed(fieldName)}-field__info__error`
+            getById(fieldElementErrorId).textContent = fieldErrors[fieldName]
         })
 
     }

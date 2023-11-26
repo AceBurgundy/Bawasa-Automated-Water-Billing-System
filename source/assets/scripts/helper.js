@@ -20,7 +20,8 @@ export function transition(callback) {
 
 /**
  * Creates a toast notification element and appends it to the flashes container.
- * @param {Any|Array} message - The message or list of messages which will be rendered.
+ * @function
+ * @param {String|Array<string>} message - The message or list of messages which will be rendered.
  */
 export function makeToastNotification(message) {
 
@@ -60,7 +61,7 @@ export function makeToastNotification(message) {
  *
  * @param {string} data - The data from the sequelize object the needed to be shown
  * @param {string} placeholder - A placeholder that replaces the data if the data is null or undefined. Default: ""
- * @returns string
+ * @returns {string}
  */
 export const showData = (data, placeholder = "") => (data ?? false ? data : placeholder)
 
