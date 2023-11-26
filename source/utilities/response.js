@@ -1,7 +1,7 @@
 /**
  * A utility class for constructing response objects with standardized properties.
  * @class
- * @public
+ * @private
  */
 class Response {
 
@@ -20,10 +20,14 @@ class Response {
 	/**
 	 * Creates a new Response instance with default properties.
 	 * @constructor
-	 */
+	 * @property {string} status - The status of the response.
+	 * @property {Array<string>} toast - An array to store toast messages.
+	 * @property {Object<string, string>} fieldErrors - An object to store field-specific errors.
+	 * @property {string|null} elementName - The name attribute of an HTMLElement or null if not applicable.
+	*/
 	constructor() {
 		this.response = {
-			status: Response.SUCCESS,
+			status: Response.SUCCESS, // Type for status not provided in the code snippet.
 			toast: [],
 			fieldErrors: {},
 			elementName: null,
@@ -33,7 +37,7 @@ class Response {
 	/**
 	 * Sets the response status to "failed".
 	 * @method
-	 * @returns {Response} - The Response instance.
+	 * @returns {Response}
 	 */
 	failed() {
 		this.response.status = Response.FAILED;
@@ -43,7 +47,7 @@ class Response {
 	/**
 	 * Sets the response status to "success".
 	 * @method
-	 * @returns {Response} - The Response instance.
+	 * @returns {Response}
 	 */
 	success() {
 		this.response.status = Response.SUCCESS;
@@ -54,7 +58,7 @@ class Response {
 	 * Adds a toast message to the response.
 	 * @method
 	 * @param {string} message - The message to be added.
-	 * @returns {Response} - The Response instance.
+	 * @returns {Response}
 	 */
 	addToast(message) {
 		this.response.toast.push(message);
@@ -66,7 +70,7 @@ class Response {
 	 * @method
 	 * @param {string} fieldName - The name of the field associated with the error.
 	 * @param {string} errorMessage - The error message to be added.
-	 * @returns {Response} - The Response instance.
+	 * @returns {Response}
 	 */
 	addFieldError(fieldName, errorMessage) {
 		if (!this.response.fieldErrors[fieldName]) {
@@ -81,7 +85,7 @@ class Response {
 	 * @method
 	 * @param {string} key - The key to be added or updated.
 	 * @param {any} value - The value associated with the key.
-	 * @returns {Response} - The Response instance.
+	 * @returns {Response}
 	 */
 	addObject(key, value) {
 		this.response[key] = value;
@@ -93,7 +97,7 @@ class Response {
 	 * @method
 	 * @param {string} errorMessage - The general error message to be added.
 	 * @param {string} fieldName - The name of the field associated with the error.
-	 * @returns {Response} - The Response instance.
+	 * @returns {Response}
 	 */
 	Error(errorMessage, fieldName) {
 		this.failed();
@@ -106,7 +110,7 @@ class Response {
 	 * Shorter way to return response by returning response.success() with a response.toast().
 	 * @method
 	 * @param {string|null} message - The general success message to be added.
-	 * @returns {Response} - The Response instance.
+	 * @returns {Response}
 	 */
 	Ok(message = null) {
 		this.success();
@@ -120,7 +124,7 @@ class Response {
 	 * @param {string} key - The key to be added.
 	 * @param {string} value - The value for the key.
 	 * @throws {Error} When no key value is added, or either the key or value is missing.
-	 * @returns {Response} - The Response instance.
+	 * @returns {Response}
 	 */
 	ErrorWithData = (key, value) => {
 
@@ -147,7 +151,7 @@ class Response {
 	 * @param {string} key - The key to be added.
 	 * @param {string} value - The value for the key.
 	 * @throws {Error} When no key value is added, or either the key or value is missing.
-	 * @returns {Response} - The Response instance.
+	 * @returns {Response}
 	 */
 	OkWithData = (key, value) => {
 
@@ -162,7 +166,7 @@ class Response {
 		if (key && !value) {
 			throw new Error("A response key must have a value");
 		}
-		
+
 		this.success();
 		this.addObject(key, value);
 		return this.getResponse();
