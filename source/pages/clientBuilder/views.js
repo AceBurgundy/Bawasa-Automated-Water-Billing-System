@@ -1,6 +1,6 @@
 // Utilities
 const { validateFormData } = require("../../utilities/validations")
-const response = require("../../utilities/response")
+const Response = require("../../utilities/Response")
 const { db } = require("../../utilities/sequelize")
 
 // API
@@ -8,28 +8,23 @@ const { ipcMain } = require("electron")
 const fs = require("fs-extra")
 
 const { 
-    throwAndLogError,
     joinAndResolve
 } = require("../../utilities/helpers")
 
 // Functions
 const { 
-    retrieveClientDocumentFilepath,
-    updateClientProfilePicture,
-    createNewConnectionStatus,
-    updateClientPhoneNumber,
     retrieveClientForEdit,
-    createNewPhoneNumber,
+    updateProfilePicture,
     updateClientRecord,
     checkDuplicateData,
     checkMissingFields,
+    updatePhoneNumber,
     getClientFiles,
-    deletePicture,
     createClient,
+    getFilePath,
     savePicture,
-    deleteFiles,
-    saveFiles,
     deleteFile,
+    saveFiles,
 } = require("./functions")
 
 const PROFILE_PATH = "../../assets/images/clients/profile/"
@@ -42,114 +37,75 @@ ipcMain.handle("add-client", async (event, formDataBuffer) => {
     const files = formDataBuffer.files
 
     if (formData === null || Object.keys(formData).length <= 0) {
-        return response.Error("Client details are missing")
+        return new Response().Error("Client details are missing")
     }
 
     const clientDuplicate = await checkDuplicateData(formData)
 
     if (clientDuplicate.hasDuplicate) {
-        return response.Error(clientDuplicate.message)
+        return new Response().Error(clientDuplicate.message)
     }
 
     const missingFields = checkMissingFields(formData)
 
     if (missingFields) {
-        return response.Error(missingFields)
+        return new Response().Error(missingFields)
     }
 
     const validateResponse = validateFormData(formData)
 
     if (validateResponse.status === false) {
         const { field, message } = validateResponse
-        return response.failed().addFieldError(field, message).getResponse()
+        return new Response().ErrorWithData(field, message)
     }
 
-	let fullName = null
-	let profilePictureName = null
+    let profilePictureFileName = null
 
-	try {
+    try {
         
 		await db.transaction(async manager => {
 
-            let client = null
+            const client = await createClient(formData, manager)
 
-			try {
-                
-                try {
-                    client = await createClient(formData, manager)
-                } catch (error) {
-                    throwAndLogError(error, "Failed to add new client")
-                }
-	
-                fullName = client.fullName
+            await saveFiles(client, files, manager)
 
-				try {
-                    await saveFiles(client, files, manager)
-                } catch (error) {
-                    let message = "Client not added. Error in saving client's documents"
-                    if (error.message.includes("dest")) {
-                        message = [newFileName, "already exists. Rename the file and try again."].join(' ')
-                    }
-                    throwAndLogError(error, message)
-                }
-	
-				// Create a new client phone number record.
-				try {
-					await createNewPhoneNumber(client.id, formData.phoneNumber, manager)
-				} catch (error) {
-					throwAndLogError(error,"Failed to add phone number to new client")
-				}
-	
-                try {
-					await createNewConnectionStatus(client.id, formData.phoneNumber, manager)
-				} catch (error) {
-                    if (error.name === "SequelizeValidationError") {
-                        throw new Error(error.message.split(': ')[1] + " please choose the correct connection status")
-                    } else {
-                        throw new Error("Client not saved. Failed to add connection status to new client")
-                    }
-				}
-	
-                try {
-                    client.profilePicture = await savePicture(profilePicture)
-                } catch (error) {
-                    try {
-                        if (fs.existsSync(imagePath)) {
-                            await fs.unlink(imagePath)
-                        }
-                    } catch (error) {
-                        console.log("Failed to delete recently inserted image")
-                    }
-                    throw new Error(error, "Client not added. Caused by failure in saving their profile picture.")
-                }
+            const savedPictureFileName = await savePicture(profilePicture)
+            
+            client.profilePicture = savedPictureFileName
+            profilePicture = savedPictureFileName
 
-                client.profilePicture = saveImageResult.imageName
-                profilePictureName = saveImageResult.imageName
-					
-			} catch (error) {
-
-                await deletePicture(profilePictureName)
-				
-                if (client) {
-                    try {
-                        await deleteFiles(client.clientFiles)
-                    } catch {
-                        console.log("Failed to remove clients files")
-                    }    
-                }
-
-                message = error.message
-				manager.rollback()
-			}
-	
+            await client.save({ transaction: manager })
 		})
 
-    } catch (error) {
-		console.log(error);
-		return response.Error("Client not added")
-	}
+        return new Response().Ok("Client Succesfully registered")
 
-	return response.Ok("Client Succesfully registered")
+    } catch (error) {
+
+		console.log(error)
+        
+        if (profilePictureFileName) {
+            await deletePicture(profilePictureFileName)
+        }
+
+        // attempt to delete files
+        for (const file of files) {
+            
+            const filePath = getFilePath(file)
+            const fileExists = fs.existsSync(filePath)
+
+            try {
+                if (fileExists) await fs.unlink(filePath)
+            } catch (error) {
+                console.log("Failed to delete image", error)
+            }
+        }
+
+        if (error.type === "custom") {
+            return new Response(error.message)
+        }
+
+		return new Response().Error("Client not added")
+	}
 
 })
 
@@ -160,81 +116,102 @@ ipcMain.handle("edit-client", async (event, data) => {
 
     const client = retrieveClientForEdit(clientId)
 
-    if (!client) return response.Error("Client not found")
+    if (!client) {
+        return new Response().Error("Client not found")
+    }
 
-    if (!formData) return response.Error("Client details are missing")
+    if (!formData) {
+        return new Response().Error("Client details are missing")
+    }
 
     const duplicateValidation = await checkDuplicateData(formData, true, clientId)
 
     if (duplicateValidation.status === "failed") {
-        return response.Error(duplicateValidation.toast[0])
+        return new Response().Error(duplicateValidation.toast[0])
     }
 
     const missingFields = checkMissingFields(formData)
 
     if (missingFields) {
-        return response.Error(missingFields)
+        return new Response().Error(missingFields)
     }
 
     const formValidation = validateFormData(formData)
 
     if (formValidation.status === false) {
         const { field, message } = validateResponse
-        return response.failed().addFieldError(field, message).getResponse()
+        return new Response().ErrorWithData(field, message)
     }
-
+    
+    updateClientRecord(client, formData)
     const oldClientData = client.toJSON()
 
     if (profilePicture) {
-        const pictureUpdate = updateClientProfilePicture(oldClientData, profilePicture)
 
-        if (pictureUpdate.status === "success") {
-            client.profilePicture = pictureUpdate.imageFileName
+        let pictureUpdated = null
+
+        try {
+            pictureUpdated = updateProfilePicture(oldClientData, profilePicture)
+        } catch (error) {
+            console.log(error)
+            return new Response().Error("Failed to update client. Error in updating profile picture")
         }
-    }
 
-    updateClientRecord(client, formData)
-    updateClientPhoneNumber(client, formData.phoneNumber)
+        if (pictureUpdated && pictureUpdated.status === "success") {
+            client.profilePicture = pictureUpdated.imageFileName
+        }
+    }    
 
     try {
-        await client.save()
-        return response.Ok("Client succesfully updated")
+        
+        await db.transaction(async manager => {
+            await updatePhoneNumber(client, formData.phoneNumber, manager)
+            await client.save({ transaction: manager })
+        })
+        
+        return new Response().Ok("Client succesfully updated")
+
     } catch (error) {
         console.log(error)
-        return response.Error("Failed to update client")
+        const message = error.type === "phonenumber" ? error.message : "Failed to update client"
+        return new Response().Error(message)
     }
 
 })
 
 ipcMain.handle("get-files", async (event, clientId) => {
-	if (!clientId) return response.Error("Client id is required")
-	return response.success().addObject("files", getClientFiles(clientId)).getResponse()
+	if (clientId) {
+        const files = getClientFiles(clientId)
+        return new Response().OkWithData("files", files)
+    } else {
+        return new Response().Error("Client id is required")
+    }
 })
 
-ipcMain.handle("get-profile-path", async (event, imageName) => 
-    imageName ? joinAndResolve([__dirname, PROFILE_PATH], imageName) : null
-)
+ipcMain.handle("get-profile-path", async (event, imageName) => {
+    return imageName ? joinAndResolve([__dirname, PROFILE_PATH], imageName) : null
+})
 
-ipcMain.handle("get-icon-path", (event, iconName) => 
-    iconName ? joinAndResolve([__dirname, ICONS_PATH], iconName) : null
-)
+ipcMain.handle("get-icon-path", (event, iconName) => {
+    return iconName ? joinAndResolve([__dirname, ICONS_PATH], iconName) : null
+})
 
-ipcMain.handle("get-file-path", async (event, filename) => 
-    filename ? retrieveClientDocumentFilepath(filename) : null
-)
+ipcMain.handle("get-file-path", async (event, filename) => {
+    return filename ? getFilePath(filename) : null
+})
 
 ipcMain.handle("delete-file", async (event, filename) => {
 
-    if (!filename) return response.Error("Missing filename")
+    if (!filename) return new Response().Error("Missing filename")
 
     try {
         await deleteFile(filename)
+        return new Response().Ok(`${filename} deleted`)
     } catch (error) {
+        console.log(error)
         const message = error.type === "Not found" ? error.message : "Failed to delete file"
-        return response.Error(message)
+        return new Response().Error(message)
     }
-
-    return response.Ok(`${filename} deleted`)
 
 })
 

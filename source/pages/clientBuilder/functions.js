@@ -6,7 +6,7 @@ const Client = require("../../../models/Client")
 
 const { connectionStatusTypes } = require("../../utilities/constants")
 
-const response = require("../../utilities/response")
+const Response = require("../../utilities/Response")
 const { Op } = require("sequelize")
 const bcrypt = require("bcrypt")
 const crypto = require("crypto")
@@ -15,10 +15,9 @@ const path = require("path")
 
 const { 
     generateNextAccountOrBillNumber,
-    tryCatchWrapper, 
     joinAndResolve,
-    throwAndLogError, 
 } = require("../../utilities/helpers")
+
 const exportRecord = require("../../utilities/export")
 
 const clientFormFields = {
@@ -43,116 +42,155 @@ const clientFormFields = {
 
 const PROFILE_PATH = "../../assets/images/clients/profile"
 
-const retrieveClientDocumentFilepath = filename => joinAndResolve([__dirname, "../../assets/files/"], filename)
+const getFilePath = filename => joinAndResolve([__dirname, "../../assets/files/"], filename)
 
 async function createClient(formData, manager) {
 
     let client = null
 
     try {
-
+        
         client = await Client.create({
 
-                accountNumber: await generateNextAccountOrBillNumber("Client"),
-                firstName: formData.firstName,
-                middleName: formData.middleName,
-                lastName: formData.lastName,
-                extension: formData.extension,
-                relationshipStatus: formData.relationshipStatus,
-                birthDate: formData.birthDate,
-                age: formData.age,
-                email: formData.email,
-                occupation: formData.occupation,
-                profilePicture: "user.webp",
-                housePicture: "template_house.webp",
-                meterNumber: formData.meterNumber,
-                mainAddress: {
-                    street: formData.mainAddressStreet,
-                    subdivision: formData.mainAddressSubdivision,
-                    barangay: formData.mainAddressBarangay,
-                    city: formData.mainAddressCity,
-                    province: formData.mainAddressProvince,
-                    postalCode: formData.mainAddressPostalCode,
-                    details: formData.mainAddressDetails
-                },
-                presentAddress: {
-                    street: formData.presentAddressStreet,
-                    subdivision: formData.presentAddressSubdivision,
-                    barangay: formData.presentAddressBarangay,
-                    city: formData.presentAddressCity,
-                    province: formData.presentAddressProvince,
-                    postalCode: formData.presentAddressPostalCode,
-                    details: formData.presentAddressDetails
-                }
+            accountNumber: await generateNextAccountOrBillNumber("Client"),
+            firstName: formData.firstName,
+            middleName: formData.middleName,
+            lastName: formData.lastName,
+            extension: formData.extension,
+            relationshipStatus: formData.relationshipStatus,
+            birthDate: formData.birthDate,
+            age: formData.age,
+            email: formData.email,
+            occupation: formData.occupation,
+            profilePicture: "user.webp",
+            housePicture: "template_house.webp",
+            meterNumber: formData.meterNumber,
+            mainAddress: {
+                street: formData.mainAddressStreet,
+                subdivision: formData.mainAddressSubdivision,
+                barangay: formData.mainAddressBarangay,
+                city: formData.mainAddressCity,
+                province: formData.mainAddressProvince,
+                postalCode: formData.mainAddressPostalCode,
+                details: formData.mainAddressDetails
             },
-            {
-                include: [
-                    { model: ClientAddress, as: "mainAddress" },
-                    { model: ClientAddress, as: "presentAddress" }
-                ],
-                transaction: manager
+            presentAddress: {
+                street: formData.presentAddressStreet,
+                subdivision: formData.presentAddressSubdivision,
+                barangay: formData.presentAddressBarangay,
+                city: formData.presentAddressCity,
+                province: formData.presentAddressProvince,
+                postalCode: formData.presentAddressPostalCode,
+                details: formData.presentAddressDetails
             }
-        )
+        },
+        {
+            include: [
+                { model: ClientAddress, as: "mainAddress" },
+                { model: ClientAddress, as: "presentAddress" }
+            ],
+            transaction: manager
+        })
 
-        return client
-        
+        await createNewPhoneNumber(client.id, formData.phoneNumber, manager)
+        await createNewConnectionStatus(client.id, formData.phoneNumber, manager)
+
     } catch (error) {
-        throw new Error(error)
+        
+        console.log(error)
+        if (error.type === "custom") throw error
+
+        const customError = new Error("Failed to create a new client")
+        customError["type"] = "custom"
+        throw customError
     }
 
+    return client
+
 }
 
 /**
- * The function creates a new phone number for a client, with an optional manager for the transaction.
- * 
- * @param clientId - The clientId parameter is the unique identifier of the client for whom the new
- * phone number is being created. It is used to associate the phone number with the correct client in
- * the database.
- * @param phoneNumber - The `phoneNumber` parameter is the phone number that you want to create for a
- * client.
- * @param [manager=null] - The `manager` parameter is an optional parameter that represents the
- * transaction manager. It is used to specify a transaction manager when creating a new phone number
- * for a client. If a transaction manager is provided, the phone number creation will be performed
- * within the specified transaction. If no transaction manager is provided, the
+ * Creates a new phone number for a client, with an optional manager for the transaction.
+ *
+ * @async
+ * @function
+ * @param {number} clientId - The unique identifier of the client for whom the new
+ * phone number is being created.
+ * @param {string} phoneNumber - The phone number to create for the client.
+ * @param {Transaction} manager - transaction manager for performing
+ * the phone number creation within a specified transaction.
+ * @throws {Error} - Throws an error if the client is not saved or if there is an error
+ * in saving the new phone number.
  */
-async function createNewPhoneNumber(clientId, phoneNumber, manager = null) {
+async function createNewPhoneNumber(clientId, phoneNumber, manager) {
 
-    const data = { clientId : clientId, phoneNumber : phoneNumber }
-    if (manager) data["transaction"] = manager
-    
-    await ClientPhoneNumber.create(data)
+    const whereClause = { 
+        clientId: clientId, 
+        phoneNumber: phoneNumber 
+    }
+
+    try {
+        await ClientPhoneNumber.create(whereClause, { transaction: manager });
+    } catch (error) {
+        console.log(error)
+        const customError = new Error("Client not saved. Error in saving new phone number")
+        customError["type"] = "custom"
+        throw customError
+    }
 }
 
 /**
- * The function creates a new connection status for a client and saves it in the database.
- * 
- * @param clientId - The `clientId` parameter is the unique identifier for the client. It is used to
- * associate the connection status with the client.
- * @param [manager=null] - The `manager` parameter is an optional parameter that represents the
- * transaction manager. It is used to associate the connection status creation with a specific
- * transaction. If a `manager` is provided, it will be included in the `data` object that is passed to
- * the `ClientConnectionStatus.create()` method.
+ * Creates a new connection status for a client with an optional manager for the transaction.
+ *
+ * @async
+ * @function
+ * @param {number} clientId - The unique identifier of the client for whom the new
+ * connection status is being created.
+ * @param {Transaction} manager - Optional transaction manager for performing
+ * the connection status creation within a specified transaction.
+ * @throws {Error} - Throws an error if the client is not saved or if there is an error
+ * in saving the new connection status. The error message may indicate a validation error
+ * if the provided connection status type is not valid.
  */
-async function createNewConnectionStatus(clientId, manager = null) {
+async function createNewConnectionStatus(clientId, manager) {
 
-    const data = { clientId : clientId, status : connectionStatusTypes.Connected }
-    if (manager) data["transaction"] = manager
+    const whereClause = { 
+        clientId : clientId, 
+        status : connectionStatusTypes.Connected 
+    }
 
-    await ClientConnectionStatus.create(data)
+    try {
+        await ClientConnectionStatus.create(whereClause, { transaction: manager })
+    } catch (error) {
+
+        console.log(error)
+
+        const customError = new Error("Client not saved. Failed to add connection status to new client")
+        customError["type"] = "custom"
+
+        if (error.name === "SequelizeValidationError") {
+            customError["message"] = error.message.split(': ')[1] + " please choose the correct connection status"
+        }
+
+        throw customError
+    }
 }
 
 /**
- * The function retrieves a client's information for editing, including their phone numbers, addresses,
- * and connection statuses.
- * 
- * @param clientId - The `clientId` parameter is the unique identifier of the client whose information
- * needs to be retrieved for editing.
- * @returns a promise that resolves to the client object with the specified clientId. The client object
- * includes related phone numbers, main address, present address, and connection statuses.
+ * Retrieves client information for editing, including associated phone numbers, addresses, and connection statuses.
+ *
+ * @async
+ * @function
+ * @param {number} clientId - The unique identifier of the client to retrieve for editing.
+ * @returns {Client|null} - A Promise that resolves with the retrieved client object or null if an error occurs.
  */
 async function retrieveClientForEdit(clientId) {
+
+    let client = null
+
     try {
-        const client = await Client.findByPk(clientId, {
+
+        client = await Client.findByPk(clientId, {
             include: [
                 {
                     model: ClientPhoneNumber,
@@ -168,112 +206,111 @@ async function retrieveClientForEdit(clientId) {
                 }
             ]
         })
-        return client
     } catch (error) {
-        console.log(error)
-        return null
+        console.error(error);
     }
+
+    return client
 }
 
 /**
- * The function updates a client record with data from a form, excluding the profile picture and
- * account number fields.
- * 
- * @param client - The `client` parameter is an object representing a client record. It contains
- * various properties such as `profilePicture`, `accountNumber`, `mainAddress`, `presentAddress`, and
- * other client details.
- * @param formData - An object containing the form data that needs to be updated in the client record.
- * The keys of the object represent the fields in the form, and the values represent the updated values
- * for those fields.
+ * Updates a client record with the provided form data.
+ *
+ * @function
+ * @param {Client} client - The client object to be updated.
+ * @param {Object} formData - The form data containing the fields to be updated.
  */
 function updateClientRecord(client, formData) {
 
-    // Update the client record
     for (const key in formData) {
-
-        if (!formData.hasOwnProperty(key)) continue
-
-        //skips these fields as profilePicture is updated earilier and accountNumber is a fixed value on creation
-        if (key === "profilePicture" || key === "accountNumber") continue
-
-        /**
-         * ex: if (key === "mainAddressStreet") {
-         *  const addressKey = "Street"
-         *  const modifiedAddressKey = "street"
-         *  client.mainAddress["street"] = value of mainAddrressStreet key
-         * }
-         */
-        if (key.includes("mainAddress")) {
-            const addressKey = key.replace("mainAddress", "")
-            const modifiedAddressKey = addressKey.charAt(0).toLowerCase() + addressKey.slice(1)
-            client.mainAddress[modifiedAddressKey] = formData[key]
-            continue
-        }
-
-        if (key.includes("presentAddress")) {
-            const addressKey = key.replace("presentAddress", "")
-            client.presentAddress[addressKey] = formData[key]
-            continue
-        }
-
-        client[key] = formData[key]
-    }
-
-}
-
-/**
- * The function `updateClientPhoneNumber` adds a new phone number to a client's list of phone numbers
- * if it doesn't already exist.
- * 
- * @param client - The `client` parameter is an object that represents a client. It likely has
- * properties such as `id`, `name`, and `phoneNumbers`. The `phoneNumbers` property is an array of
- * objects, where each object represents a phone number associated with the client. Each phone number
- * object has a
- * @param phoneNumberInputValue - The `phoneNumberInputValue` parameter is the new phone number that
- * you want to add to the client's phone numbers.
- */
-function updateClientPhoneNumber(client, phoneNumberInputValue) {
-
-    const newPhoneNumberNotExists = client.phoneNumbers.filter(eachRecord => eachRecord.phoneNumber === phoneNumberInputValue).length <= 0
-
-    if (newPhoneNumberNotExists) {
-        tryCatchWrapper(async () => {
-            await ClientPhoneNumber.create({ clientId: client.id, phoneNumber: phoneNumberInputValue })
-        })
-    }
-}
-
-/**
- * The function updates a client's profile picture by saving the new picture, deleting the old picture
- * if it exists, and returning a success response with the new image file name.
- * 
- * @param oldClientData - An object containing the old client data, including the current profile
- * picture path.
- * @param profilePicture - The `profilePicture` parameter is the new profile picture that the client
- * wants to update. It could be an image file or any data representing the picture.
- * @returns a response object.
- */
-function updateClientProfilePicture(oldClientData, profilePicture) {
-
-    const saveStatus = savePicture(profilePicture)
-    if (saveStatus.status === "failed") return response.Error(saveStatus.message)
-
-    if (oldClientData.profilePicture) {
-        const oldProfilePicturePath = joinAndResolve(
-            path.resolve(__dirname, "../../assets/images/clients/profile/"),
-            oldClientData.profilePicture
-        )
         
-        fs.unlink(oldProfilePicturePath, error => {
-            if (error) {
-                console.error("Error deleting client old profile picture:", error)
-                return response.Error("Failed to add new client")
-            }
-        })
+        // Skips these fields as profilePicture is updated earlier and accountNumber is a fixed value on creation
+        if (key === "profilePicture" || key === "accountNumber") continue;
+
+        // Updates main address fields
+        if (key.includes("mainAddress")) {
+            const addressKey = key.replace("mainAddress", "");
+            const modifiedAddressKey = addressKey.charAt(0).toLowerCase() + addressKey.slice(1);
+            client.mainAddress[modifiedAddressKey] = formData[key];
+            continue;
+        }
+
+        // Updates present address fields
+        if (key.includes("presentAddress")) {
+            const addressKey = key.replace("presentAddress", "");
+            client.presentAddress[addressKey] = formData[key];
+            continue;
+        }
+
+        // Updates other client fields
+        client[key] = formData[key];
+    }
+}
+
+/**
+ * Updates a client's phone number by adding a new phone number if it does not already exist.
+ *
+ * @function
+ * @param {Client} client - The client object.
+ * @param {string} phoneNumberInputValue - The new phone number to be added.
+ */
+async function updatePhoneNumber(client, phoneNumberInputValue, manager) {
+
+    const alreadyExists = client.phoneNumbers.filter(eachRecord => {
+        return eachRecord.phoneNumber === phoneNumberInputValue
+    }).length > 0
+
+    if (alreadyExists) {
+        const error = new Error("Failed to update client. Phonenumber already exists")
+        error.type = "phonenumber"
+        throw error
     }
 
-    return response.success().addObject("imageFileName", saveStatus.imageName)
+    const whereClause = { 
+        clientId: client.id, 
+        phoneNumber: phoneNumberInputValue 
+    }
+
+    await ClientPhoneNumber.create(whereClause, { transaction: manager })
+
 }
+
+/**
+* Updates a client's profile picture by saving the new picture, deleting the old picture
+* if it exists, and returning a success Response object with the new image file name.
+* @function
+* @param {Object} oldClientData - An object containing the old client data, including the current profile
+* picture path.
+* @param {string|Buffer} profilePicture - The new profile picture data. It could be an image file or any data
+* representing the picture.
+* @returns {Response} - A new Response object representing the result of the update operation.
+*/
+async function updateProfilePicture(oldClientData, profilePicture) {
+
+    try {
+        await savePicture(profilePicture)
+    } catch (error) {
+        return new Response().Error(error.message)
+    }
+
+   if (oldClientData.profilePicture) {
+
+        const oldProfilePicturePath = joinAndResolve(
+           path.resolve(__dirname, "../../assets/images/clients/profile/"),
+           oldClientData.profilePicture
+       )
+
+       fs.unlink(oldProfilePicturePath, error => {
+           if (error) {
+               console.error("Error deleting client old profile picture:", error)
+               return new Response().Error("Failed to add new client")
+           }
+       })
+   }
+
+   return new Response().OkWithData("imageFileName", saveStatus.imageName)
+}
+
 
 /**
  * Checks for duplicate client records based on provided form data.
@@ -301,17 +338,24 @@ async function checkDuplicateData(formData, forEdit = false, clientId = null) {
             }
         }
 
-        const duplicates = await tryCatchWrapper(async () =>
-            field === "phone-number"
-                ? await ClientPhoneNumber.findAndCountAll({ where })
-                : await Client.findAndCountAll({ where })
-        )
+        let duplicates = null
 
-        if (duplicates.count > 0) {
-            return response.Error(`Client with the same ${field.split("-").join(" ")} is already registered`)
+        try {
+            
+            if (field === "phone-number") {
+                await ClientPhoneNumber.findAndCountAll({ where })
+            } else {
+                await Client.findAndCountAll({ where })
+            }
+        } catch (error) {
+            console.log(error)
         }
 
-        return response.Ok()
+        if (duplicates.count > 0) {
+            return new Response().Error(`Client with the same ${field.split("-").join(" ")} is already registered`)
+        }
+
+        return new Response().Ok()
     }
 
     const duplicateChecks = [
@@ -367,33 +411,43 @@ async function checkDuplicateData(formData, forEdit = false, clientId = null) {
         if (duplicateValidation.status === "failed") return duplicateValidation
     }
 
-    return response.Ok()
+    return new Response().Ok()
 }
 
 /**
  * Saves a client's profile picture to the filesystem.
  * @function
  * @param {Object} profilePicture - The profile picture data to be saved.
- * @returns {Object} A response object indicating the status of the operation.
+ * @returns {Object} A new Response() object indicating the status of the operation.
  */
 async function savePicture(profilePicture) {
 	
+    const takenFromInput = Boolean(profilePicture.fromInput)
+
     const randomString = crypto.randomBytes(32).toString("hex")
     const hash = bcrypt.hashSync(randomString, 10).replace(/[/+\$\.]/g, "").slice(0,32)
 
-    const imageFormat = profilePicture.fromInput ? profilePicture.format : ".png"
+    const imageFormat = takenFromInput ? profilePicture.format : ".png"
 
     const imageName = [hash, imageFormat].join(".")
     const imagePath = path.join(__dirname, PROFILE_PATH, imageName)
 
-    if (profilePicture.fromInput) {
-        fs.writeFileSync(imagePath, fs.readFileSync(profilePicture.path))
-    } else {
-        const base64Image = profilePicture.base64.split("base64,").pop()
-        await fs.promises.writeFile(imagePath, base64Image, { encoding: "base64" });
-    }
+    try {
 
-    return imageName
+        if (takenFromInput) {
+            fs.writeFileSync(imagePath, fs.readFileSync(profilePicture.path))
+        } else {
+            const base64Image = profilePicture.base64.split("base64,").pop()
+            await fs.promises.writeFile(imagePath, base64Image, { encoding: "base64" })
+        }
+
+        return imageName
+
+    } catch (error) {
+        console.log(error)
+        throw Error("Failed in saving clients profile picture")        
+    }
+    
 }
 
 /**
@@ -412,7 +466,7 @@ async function deletePicture(imageName) {
         try {
             await fs.unlink(imagePath)
         } catch (error) {
-            console.log("Failed to delete image", error);
+            console.log("Failed to delete image", error)
         }
     }
 }
@@ -438,106 +492,111 @@ function checkMissingFields(formData) {
 
 /**
  * Gets the files for a client.
+ * @async
  * @param {number} clientId - The client id to associate the files with.
- * @returns {Object|null} - A response object or null.
+ * @returns {ClientFile|null} A ClientFile object or null.
  */
-function getClientFiles(clientId) {
+async function getClientFiles(clientId) {
 
-	return tryCatchWrapper(async() => {
-
-		const clientFiles = await ClientFile.findAll({
+    try {
+        
+        const clientFiles = await ClientFile.findAll({
 			attributes: ['name'],
 			where: {
 				clientId: clientId
 			}
 		})
 
-		if (clientFiles) {
-            return clientFiles.map(file => {
-                return {
-                    path: path.join(path.resolve(__dirname, "../../assets/files/"), file.name),
-                    fileName: file.name
-                }
-            })    
-        }
+        return clientFiles.map(file => {
+            return { path: getFilePath(file.name), fileName: file.name }
+        })
 
-	})
+    } catch (error) {
+        console.log(error)
+    }
+
+    return null
 
 }
 
 /**
- * The function `saveFiles` is an asynchronous function that takes in a client object, an array of
- * files, and a manager object as parameters, and it saves the files to a destination folder while also
- * creating corresponding records in the database.
- * 
- * @param client - The `client` parameter is an object that represents a client. It likely has
- * properties such as `id` and `fullName`.
- * @param files - An array of files that need to be saved. Each file object should have the following
- * properties:
- * @param manager - The `manager` parameter is an instance of a transaction manager. It is used to
- * ensure that all database operations within the `saveFiles` function are executed within a single
- * transaction. This helps maintain data consistency and allows for easy rollback in case of any
- * errors.
- * @returns a response object. If the files array is empty, it returns an "Ok" response. If there is an
- * error during the file saving process, it returns an "Error" response with the error message.
- * Otherwise, it returns an "Ok" response.
+ * Saves files associated with a client.
+ * @async
+ * @function
+ * @param {Client} client - The client object.
+ * @param {Array<Object>} files - Array of file objects to be saved.
+ * @param {TransactionManager} manager - The transaction manager for database operations.
+ * @throws {Error} - Throws an error if the file saving process fails.
  */
 async function saveFiles(client, files, manager) {
-	
+
     if (files.length <= 0) return
 
-    await Promise.all(files.map(async file => {
+    const copiedFiles = []
 
-        const newFileName = [client.fullName, file.name].join(' ')
+    try {
 
-        await ClientFile.create(
-            {
+        const saveFilePromises = files.map(async file => {
+
+            const newFileName = [client.fullName, file.name].join(' ')
+            const whereClause = {
                 clientId: client.id,
                 name: file.name
-            },
-            { transaction: manager }
-        )
+            }
 
-        const sourceFilePath = file.path
-        const destinationFilePath = path.resolve(__dirname, "../../assets/files", newFileName)
+            const endPath = getFilePath(newFileName)
 
-        await fs.copyFile(sourceFilePath, destinationFilePath)
+            await ClientFile.create(whereClause, { transaction: manager })
+            await fs.copyFile(file.path, endPath)
+            copiedFiles.push(endPath)
+        })
 
-    }))
+        await Promise.all(saveFilePromises)
+
+    } catch (error) {
+        console.log(error);
+        throw Error("Client not added. Error in saving client's documents")
+    }
 }
 
 /**
- * The function `deleteFiles` asynchronously deletes multiple files and logs an error if any deletion
- * fails.
- * 
- * @param files - The `files` parameter is an array of file names or file paths that you want to
- * delete.
- * @returns The function `deleteFiles` returns a promise.
+ * Deletes multiple files.
+ * @async
+ * @function
+ * @param {Array<string>} files - Array of file paths to be deleted.
+ * @throws {Error} - Throws an error if any file deletion operation fails.
  */
 async function deleteFiles(files) {
+
     if (files.length <= 0) return
 
-    const mappedFileDeletionPromises = files.map(file => 
-        deleteFile(file).catch(error => console.error(`Error in deleting file: ${error}`))
-    )
+    const fileDeletionPromises = files.map(file => {
+        deleteFile(file)
+            .catch(error => {
+                return console.error(`Error in deleting file: ${error}`)
+            })
+    })
 
-    await Promise.all(mappedFileDeletionPromises)
+    await Promise.all(fileDeletionPromises)
 }
 
 /**
- * The function `deleteFile` deletes a file from a specified file path.
- * 
- * @param {String} fileName - The name of the file to delete
- * assuming that the fileName is from ClientFile.name.
+ * Deletes a file by its name.
+ * @async
+ * @function
+ * @param {string} fileName - The name of the file to be deleted.
+ * @throws {Error} - Throws an error if the file does not exist or if the deletion fails.
  */
 async function deleteFile(fileName) {
-    const filePath = path.resolve(__dirname, "../../assets/files", fileName)
+
+    const filePath = getFilePath(fileName)
     const fileExists = fs.existsSync(filePath)
 
     const error = new Error("File does not exist")
     error.type = "Not found"
 
     if (!fileExists) throw error
+
     await fs.unlink(filePath)
 }
 
@@ -546,24 +605,28 @@ async function deleteFile(fileName) {
  * If the client's one-to-many associations have cascade set to true on delete,
  * this function will also delete their records on that data.
  *
+ * @async
+ * @function
  * @param {number} clientId - The unique identifier of the client to delete.
+ * @param {Event} event - The event triggering the client deletion.
  * @returns {Promise<Response>} A Promise that resolves with a Response object
  * representing the result of the delete operation. The Response object can be
  * used to check the success or failure of the operation.
- *
- * @async
+ * @throws {Error} - Throws an error if the client id is not found or if the deletion fails.
  * @example
- * const clientId = 123;
- * const response = await deleteClient(clientId);
+ * ```
+ * const clientId = 123
+ * const response = await deleteClient(clientId, event)
+ * 
  * if (response.status === "success") {
- *   console.log('Client deleted successfully.');
+ *   console.log('Client deleted successfully.')
  * } else {
- *   console.error('Failed to delete client:', response.getError());
+ *   console.error('Failed to delete client:', [...response.toast])
  * }
+ * ```
  */
 async function deleteClient(clientId, event) {
-
-    if (!clientId) return response.Error("Client id not found")
+    if (!clientId) throw new Error("Client id not found")
 
     const exportResponse = await exportRecord(clientId, event)
 
@@ -571,34 +634,34 @@ async function deleteClient(clientId, event) {
         return exportResponse
     }
 
-    const client = Client.findByPk(clientId, {
+    const client = await Client.findByPk(clientId, {
         include: "clientFiles"
     })
 
-    if (!client) return response.Error("Failed to delete client record")
+    if (!client) throw new Error("Failed to delete client record")
 
     try {
-        await deleteFiles(client.fullName, client.clientFiles)
+        await deleteFiles(client.clientFiles)
     } catch (error) {
-        console.log(error)
-        return response.Error("Failed to delete client")
+        console.error(error)
+        throw new Error("Failed to delete client files")
     }
 
     try {
         await client.destroy()
     } catch (error) {
-        return response.Error("Failed to delete client")
+        console.error(error)
+        throw new Error("Failed to delete client")
     }
 
-    return response.Ok().addToast("Client deleted succesfully")
-    
+    return new Response().Ok().addToast("Client deleted successfully")
 }
 
 module.exports = {
-    retrieveClientDocumentFilepath,
-    updateClientProfilePicture,
+    getFilePath,
+    updateProfilePicture,
     createNewConnectionStatus,
-    updateClientPhoneNumber,
+    updatePhoneNumber,
     retrieveClientForEdit,
     createNewPhoneNumber,
     checkDuplicateData,
