@@ -49,6 +49,7 @@ class Response {
 
 	/**
 	 * Adds a field-specific error message to the response.
+	 * 
 	 * @function
 	 * @param {string} fieldName - The name of the field associated with the error.
 	 * @param {string} errorMessage - The error message to be added.
@@ -64,6 +65,7 @@ class Response {
 
 	/**
 	 * Adds or updates a key-value pair in the response object.
+	 * 
 	 * @function
 	 * @param {string} key - The key to be added or updated.
 	 * @param {any} value - The value associated with the key.
@@ -83,22 +85,86 @@ class Response {
 	 */
 	Error(errorMessage, fieldName) {
 		this.failed();
-		errorMessage && this.addToast(errorMessage);
-		fieldName && this.addFieldError(fieldName, errorMessage);
+		if (fieldName) this.addFieldError(fieldName, errorMessage);
+		if (errorMessage) this.addToast(errorMessage);
 		return this.getResponse();
 	}
 
-	Ok(successMessage = null) {
+	/**
+	 * Shorter way to return response by returning response.success() with a response.toast()
+	 * 
+	 * @function
+	 * @param {string|null} message - The general success message to be added.
+	 * @returns {Response} The constructed response object.
+	 */
+	Ok(message = null) {
 		this.success()
-		successMessage && this.addToast(successMessage)
+		if (message) this.addToast(message)
 		return this.getResponse()
 	}
 
 	/**
-	 * Retrieves the constructed response object.
-	 * @function
-	 * @returns {Object} The constructed response object.
+	 * @function ErrorWithData
+	 * 
+	 * @description 
+	 * Shorter way to return response with data by returning 
+	 * response.failed() with a response.addObject()
+	 * 
+	 * @param {string} key - The key to be added.
+	 * @param {string} value - The value for the key.
+	 * @throws {Exception} When no key value is added, or either the key or value is missing
+     * @returns {Response} The constructed response object.
 	 */
+	ErrorWithData = (key, value) => {
+
+		if (!key && !value) {
+			throw new Error("A response with data method must have a key : value for the data")
+		}
+
+		if (!key && value) {
+			throw new Error("A response value must have a key")
+		}
+
+		if (key && !value) {
+			throw new Error("A response key must have a value")
+		}
+
+		this.failed()
+		this.addObject(key, value)
+		return this.getResponse()
+	}
+
+	/**
+	 * @function OkWithData
+	 * 
+	 * @description
+	 * Shorter way to return response with data by returning 
+	 * response.success() with a response.addObject()
+	 * 
+	 * @param {string} key - The key to be added.
+	 * @param {string} value - The value for the key.
+	 * @throws {Exception} When no key value is added, or either the key or value is missing
+     * @returns {Response} The constructed response object.
+	 */
+    OkWithData = (key, value) => {
+
+		if (!key && !value) {
+			throw new Error("A response with data method must have a key : value for the data")
+		}
+
+		if (!key && value) {
+			throw new Error("A response value must have a key")
+		}
+
+		if (key && !value) {
+			throw new Error("A response key must have a value")
+		}
+
+		this.success()
+		this.addObject(key, value)
+		return this.getResponse()
+	}
+
 	getResponse() {
 		return this.response;
 	}
