@@ -1,4 +1,5 @@
-import { makeToastNotification, camelToDashed, getById, queryElement } from "../assets/scripts/helper.js"
+import {camelToDashed, getById, queryElement } from "../assets/scripts/helper.js"
+import { makeToastNotification } from "../assets/scripts/toast.js"
 import { FilePreview } from "./FilePreview.js"
 
 export default class DocumentBoard {

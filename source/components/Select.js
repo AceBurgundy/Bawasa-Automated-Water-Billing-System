@@ -1,4 +1,4 @@
-import { Field } from "./Field.js"
+import Field from "./Field.js"
 
 /**
  * Represents a Select field that extends the base Field class.
