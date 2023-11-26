@@ -12,10 +12,8 @@ import {
     camelToDashed
 } from "../../../assets/scripts/helper.js"
 
-
-
 /**
- * Handles user registration
+ * Loads register template and events
  */
 export default function loadRegister() {
 
