@@ -1,12 +1,26 @@
 /**
  * A utility class for constructing response objects with standardized properties.
  * @class
+ * @public
  */
 class Response {
 
-	static SUCCESS = "success"
-	static FAILED = "failed"
+	/**
+	 * Represents the success status.
+	 * @constant {string}
+	 */
+	static SUCCESS = "success";
+
+	/**
+	 * Represents the failed status.
+	 * @constant {string}
+	 */
+	static FAILED = "failed";
 	
+	/**
+	 * Creates a new Response instance with default properties.
+	 * @constructor
+	 */
 	constructor() {
 		this.response = {
 			status: Response.SUCCESS,
@@ -18,8 +32,8 @@ class Response {
 
 	/**
 	 * Sets the response status to "failed".
-	 * @function
-	 * @returns {Response} The Response instance.
+	 * @method
+	 * @returns {Response} - The Response instance.
 	 */
 	failed() {
 		this.response.status = Response.FAILED;
@@ -28,8 +42,8 @@ class Response {
 
 	/**
 	 * Sets the response status to "success".
-	 * @function
-	 * @returns {Response} The Response instance.
+	 * @method
+	 * @returns {Response} - The Response instance.
 	 */
 	success() {
 		this.response.status = Response.SUCCESS;
@@ -38,9 +52,9 @@ class Response {
 
 	/**
 	 * Adds a toast message to the response.
-	 * @function
+	 * @method
 	 * @param {string} message - The message to be added.
-	 * @returns {Response} The Response instance.
+	 * @returns {Response} - The Response instance.
 	 */
 	addToast(message) {
 		this.response.toast.push(message);
@@ -49,11 +63,10 @@ class Response {
 
 	/**
 	 * Adds a field-specific error message to the response.
-	 * 
-	 * @function
+	 * @method
 	 * @param {string} fieldName - The name of the field associated with the error.
 	 * @param {string} errorMessage - The error message to be added.
-	 * @returns {Response} The Response instance.
+	 * @returns {Response} - The Response instance.
 	 */
 	addFieldError(fieldName, errorMessage) {
 		if (!this.response.fieldErrors[fieldName]) {
@@ -65,11 +78,10 @@ class Response {
 
 	/**
 	 * Adds or updates a key-value pair in the response object.
-	 * 
-	 * @function
+	 * @method
 	 * @param {string} key - The key to be added or updated.
 	 * @param {any} value - The value associated with the key.
-	 * @returns {Response} The Response instance.
+	 * @returns {Response} - The Response instance.
 	 */
 	addObject(key, value) {
 		this.response[key] = value;
@@ -78,10 +90,10 @@ class Response {
 
 	/**
 	 * Sets the response status to "failed", adds toast and field error if provided.
-	 * @function
-	 * @param {string} [errorMessage] - The general error message to be added.
-	 * @param {string} [fieldName] - The name of the field associated with the error.
-	 * @returns {Object} The constructed response object.
+	 * @method
+	 * @param {string} errorMessage - The general error message to be added.
+	 * @param {string} fieldName - The name of the field associated with the error.
+	 * @returns {Response} - The Response instance.
 	 */
 	Error(errorMessage, fieldName) {
 		this.failed();
@@ -91,85 +103,86 @@ class Response {
 	}
 
 	/**
-	 * Shorter way to return response by returning response.success() with a response.toast()
-	 * 
-	 * @function
+	 * Shorter way to return response by returning response.success() with a response.toast().
+	 * @method
 	 * @param {string|null} message - The general success message to be added.
-	 * @returns {Response} The constructed response object.
+	 * @returns {Response} - The Response instance.
 	 */
 	Ok(message = null) {
-		this.success()
-		if (message) this.addToast(message)
-		return this.getResponse()
+		this.success();
+		if (message) this.addToast(message);
+		return this.getResponse();
 	}
 
 	/**
-	 * @function ErrorWithData
-	 * 
-	 * @description 
-	 * Shorter way to return response with data by returning 
-	 * response.failed() with a response.addObject()
-	 * 
+	 * Shorter way to return response with data by returning response.failed() with a response.addObject().
+	 * @method
 	 * @param {string} key - The key to be added.
 	 * @param {string} value - The value for the key.
-	 * @throws {Exception} When no key value is added, or either the key or value is missing
-     * @returns {Response} The constructed response object.
+	 * @throws {Error} When no key value is added, or either the key or value is missing.
+	 * @returns {Response} - The Response instance.
 	 */
 	ErrorWithData = (key, value) => {
 
 		if (!key && !value) {
-			throw new Error("A response with data method must have a key : value for the data")
+			throw new Error("A response with data method must have a key : value for the data");
 		}
 
 		if (!key && value) {
-			throw new Error("A response value must have a key")
+			throw new Error("A response value must have a key");
 		}
 
 		if (key && !value) {
-			throw new Error("A response key must have a value")
+			throw new Error("A response key must have a value");
 		}
 
-		this.failed()
-		this.addObject(key, value)
-		return this.getResponse()
+		this.failed();
+		this.addObject(key, value);
+		return this.getResponse();
 	}
 
 	/**
-	 * @function OkWithData
-	 * 
-	 * @description
-	 * Shorter way to return response with data by returning 
-	 * response.success() with a response.addObject()
-	 * 
+	 * Shorter way to return response with data by returning response.success() with a response.addObject().
+	 * @method
 	 * @param {string} key - The key to be added.
 	 * @param {string} value - The value for the key.
-	 * @throws {Exception} When no key value is added, or either the key or value is missing
-     * @returns {Response} The constructed response object.
+	 * @throws {Error} When no key value is added, or either the key or value is missing.
+	 * @returns {Response} - The Response instance.
 	 */
-    OkWithData = (key, value) => {
+	OkWithData = (key, value) => {
 
 		if (!key && !value) {
-			throw new Error("A response with data method must have a key : value for the data")
+			throw new Error("A response with data method must have a key : value for the data");
 		}
-
+		
 		if (!key && value) {
-			throw new Error("A response value must have a key")
+			throw new Error("A response value must have a key");
 		}
 
 		if (key && !value) {
-			throw new Error("A response key must have a value")
+			throw new Error("A response key must have a value");
 		}
-
-		this.success()
-		this.addObject(key, value)
-		return this.getResponse()
+		
+		this.success();
+		this.addObject(key, value);
+		return this.getResponse();
 	}
 
-	getResponse() {
-		return this.response;
-	}
+	/**
+	 * Returns the constructed response object.
+	 * @method
+	 * @returns {Object} - The response object.
+	 */
+	getResponse = () => this.response;
 }
 
-const response = new Response()
+/**
+ * Default instance of the Response class.
+ * @const {Response}
+ */
+const response = new Response();
 
-module.exports = response
+/**
+ * Exports the Response instance for external use.
+ */
+module.exports = response;
