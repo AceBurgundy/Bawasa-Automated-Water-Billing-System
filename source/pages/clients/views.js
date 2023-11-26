@@ -1,27 +1,31 @@
-
-const { connectionStatusTypes } = require("../../../source/utilities/constants")
-const { tryCatchWrapper } = require("../../../source/utilities/helpers")
-const response = require("../../../source/utilities/response")
-const { ipcMain } = require("electron")
-
 // models
 const ClientConnectionStatus = require("../../../models/ClientConnectionStatus")
 const ClientPhoneNumber = require("../../../models/ClientPhoneNumber")
 const ClientAddress = require("../../../models/ClientAddress")
-const ClientBill = require("../../../models/ClientBill")
 const Client = require("../../../models/Client")
+
+const response = require("../../../source/utilities/response")
+const { ipcMain } = require("electron")
+
+const {     
+    getClientRecentBill,
+    updatePaymentStatus,
+    reconnectClient 
+} = require("./functions")
 
 /**
  * Handles the "clients" IPC request to retrieve a list of clients with associated data.
  *
  * @param {Electron.IpcMainEvent} event - The IPC event object.
- * @param {Object} args - Arguments passed with the request.
- * @returns {Promise<Object>} A promise that resolves with a response object.
+ * @param {Object} table - The table object containing column name and column data for filtering.
+ * @param {string} table.ColumnName - The name of the column to filter.
+ * @param {string} table.columnData - The data to filter the specified column.
+ * @returns {Promise<Response>} A promise that resolves with a response object.
  */
 ipcMain.handle("clients", async (event, table) => {
 
-    return tryCatchWrapper(async () => {
-
+    try {
+        
         const clientWhereClause = null
 
         const columnMap = {
@@ -34,11 +38,11 @@ ipcMain.handle("clients", async (event, table) => {
         }
 
         if (!table.ColumnName && table.columnData) {
-            return response.failed().addObject("message", "Column data is needed").getResponse()
+            return response.ErrorWithData("message", "Column data is needed")
         }
 
         if (table.ColumnName && !table.columnData) {
-            return response.failed().addObject("message", "Column name is needed").getResponse()
+            return response.ErrorWithData("message", "Column name is needed")
         }
 
         if (table.ColumnName && table.columnData) {
@@ -100,12 +104,17 @@ ipcMain.handle("clients", async (event, table) => {
             ]
         })
 
-        if (clients.length > 0) {
-            return response.success().addObject("data", JSON.stringify(clients)).getResponse()
-        } else {
-            return response.failed().addObject("message", "No clients yet").getResponse()
+        if (!clients) {
+            return response.ErrorWithData("message", "No clients yet")
         }
-    })
+
+        const clientString = JSON.stringify(clients)
+        return response.OkWithData("data", clientString) 
+
+    } catch (error) {
+        console.log(error)
+        return response.Error("Failed to retrieve clients")
+    }
 })
   
 
@@ -114,133 +123,86 @@ ipcMain.handle("clients", async (event, table) => {
  *
  * @param {Electron.IpcMainEvent} event - The IPC event object.
  * @param {Object} args - Arguments passed with the request.
- * @returns {Promise<Object>} A promise that resolves with a response object.
+ * @property {number} args.clientId - Id of a client
+ * @returns {Promise<Response>} A promise that resolves with a response object.
  */
 ipcMain.handle("get-client", async (event, args) => {
 
     const { clientId } = args
 
     if (!clientId) {
-        return response.failed().addToast("Client id not found").getResponse()
+        return response.Error("Client id not found")
     }
 
-    const client = await getClientWithRecentBill(clientId)
+    const client = await getClientRecentBill(clientId)
     
-    if (client) {
-        return response.success().addObject("data", JSON.stringify(client)).getResponse()
-    } else {
-        return response.failed().addToast("Client not found").getResponse()
+    if (!client) {
+        return response.Error("Client not found")
     }
+
+    const clientStrings = JSON.stringify(client)
+    return response.OkWithData("data", clientStrings)
 
 })
 
 /**
- * Handles the reconnection of a client.
- *
- * @param {Electron.Event} event - The event object.
- * @param {Object} args - The arguments containing client ID and paid amount.
- * @returns {Object} - An object containing the response for the reconnection operation.
+ * Handles the "reconnect-client" IPC event asynchronously.
+ * @async
+ * @function
+ * @param {Object} event - The IPC event object.
+ * @param {Object} args - The arguments passed to the event handler.
+ * @param {string} args.clientId - The ID of the client to reconnect.
+ * @param {number} args.paidAmount - The amount paid by the client.
+ * @throws {Error} Throws an error if the client ID is not found, there is an error in creating a new connection,
+ * the payment amount does not match the recent bill, or the client reconnection fails.
+ * @returns {Promise<Response>} Returns an object with either a success or error response for client reconnection.
  */
 ipcMain.handle("reconnect-client", async (event, args) => {
 
     const { clientId, paidAmount } = args
 
     if (!clientId) {
-        return response.failed().addToast("Client id not found").getResponse()
+        return response.Error("Client id not found")
     }
 
-    const newConnection = await tryCatchWrapper(async () => {
-        return await ClientConnectionStatus.create({
-            clientId: clientId,
-            status: connectionStatusTypes.Connected
-        })
-    })
+    if (!paidAmount) {
+        return response.Error("Payment is required for reconnection")
+    }
 
-    if (!newConnection) {
-        return response.failed().addToast("Error in creating new connection").getResponse()
-    } 
+    // Attempts to reconnect client first
+    const reconnection = reconnectClient(clientId)
 
-    const client = await getClientWithRecentBill(clientId)
+    if (reconnection.status === "failed") {
+        return response.Error("Client reconnection failed")
+    }
 
-    if (client) {
+    // Attempts to process client bill if their now reconnected
+    const client = await getClientRecentBill(clientId)
 
-        const recentBill = client.Bills[0]
+    if (!client) {
+        return response.Error("Client and their latest bill was not found")
+    }
+    
+    const recentBill = client.Bills[0]
 
-        if (recentBill.total !== parseFloat(paidAmount)) {
-            return response.failed().addToast("Payment amount must be the same as bill").getResponse()
-        }
+    if (recentBill.total !== parseFloat(paidAmount)) {
+        return response.Error("Payment amount must be the same as their bill")
+    }
 
-        const result = await updateClientPaymentStatus(recentBill.id, paidAmount, 0)
+    try {
+        
+        const update = await updatePaymentStatus(recentBill.id, paidAmount, 0)
 
-        if (result.status === "success") {
-            return response.success().addToast("Client reconnected").getResponse()
+        const updated = update.status === "success"
+
+        if (updated) {
+            return response.Ok("Client reconnected")
         } else {
-            return response.failed().addToast("Client reconnection failed").getResponse()
+            return response.Error("Client reconnection failed")
         }
 
-    } else {
-        return response.failed().addToast("Client reconnection failed").getResponse()
+    } catch (error) {
+        console.log(error);
+        return response.Error("Failed in reconnecting client")
     }
-
 })
-
-/**
- * Retrieves a client with their most recent bill information.
- *
- * @param {number} clientId - The ID of the client to retrieve.
- * @returns {Promise<Object|null>} - A Promise that resolves to the client with recent bill data or null if not found.
- */
-async function getClientWithRecentBill(clientId) {
-
-    return await tryCatchWrapper(async () => {
-
-		return await Client.findByPk(clientId, {
-			include: [
-				{
-					model: ClientBill,
-					as: "Bills",
-					attributes: ["id", "total", "status", "amountPaid", "balance"],
-					order: [
-                        ["createdAt", "DESC"]
-                    ],
-					limit: 1,
-				},
-			],
-
-			order: [
-                ["createdAt", "DESC"]
-            ]
-		})
-
-	})
-}
-
-/**
- * Updates the payment status, payment amount, and remaining balance for a client bill.
- *
- * @param {number} billId - The ID of the bill to update.
- * @param {number} amountPaid - The payment amount to set.
- * @param {number} balance - The remaining balance to set.
- * @returns {Promise<Object>} - A Promise that resolves to an object indicating the status of the update operation.
- */
-async function updateClientPaymentStatus(billId, amountPaid, balance) {
-
-    return tryCatchWrapper(async () => {
-
-        const [rowsUpdated] = await ClientBill.update(
-            { 
-                status: "paid",
-                amountPaid: amountPaid,
-                balance: balance
-            },
-            {
-                where: {
-                    id: billId,
-                },
-            }
-        );
-
-        return { status: rowsUpdated > 0 ? "success" : "failed" }
-
-    })
-}
