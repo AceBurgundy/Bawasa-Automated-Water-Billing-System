@@ -22,12 +22,13 @@ class Field {
         const { flags, attributes, classes } = props;
         const { name, value } = attributes;
 
-        this.value = value
         this.dashedName = camelToDashed(name);
-        this.flags = flags || [];
-        this.attributes = attributes;
+
+        this.id = generateUniqueId(this.dashedName)
         this.classes = classes || [];
-        this.id = generateUniqueId()
+        this.attributes = attributes;
+        this.flags = flags || [];
+        this.value = value
 
         this.render();
 
@@ -35,6 +36,7 @@ class Field {
 
     /**
      * Cleans attributes by removing disallowed ones and converting them to from attribute: value -> attribute="value".
+     * @method
      * @returns {string} - An string array of cleaned attributes.
      */
     cleanAttributes() {
@@ -45,6 +47,7 @@ class Field {
 
     /**
      * Displays an error message for the field.
+     * @method
      * @param {string} message - The error message to display.
      */
     showError(message) {
@@ -57,6 +60,7 @@ class Field {
 
     /**
      * Clears the error message for the field.
+     * @method
      */
     clearError() {
         const inputElement = getById(this.id);
@@ -68,6 +72,7 @@ class Field {
 
     /**
      * Renders the label and error message for the field.
+     * @method
      * @returns {string} - A string containing the label and error message HTML.
      */
     renderLabelAndError() {
@@ -80,6 +85,7 @@ class Field {
 
     /**
      * Renders the specific field element.
+     * @method
      * @abstract
      * @throws {Error} - Throws an error if the method is not implemented by subclasses.
      * @returns {string} - A string containing the HTML for the field element.
@@ -91,6 +97,7 @@ class Field {
 
 /**
      * Renders the complete field template.
+     * @method
      * @abstract
      * @throws {Error} - Throws an error if the method is not implemented by subclasses.
      * @returns {string} - A string containing the HTML for the entire field.
@@ -113,40 +120,44 @@ class Field {
 
             const inputElement = getById(this.id)
 
-            if (document.body.contains(inputElement)) {
+            if (inputElement) {
 
                 inputElement.oninput = () => {
 
-                    if (this.validations) {
+                    const trimmedValue = inputElement.value.trim()
 
-                        for (const validate of this.validations) {
+                    if (!this.validations) return
 
-                            if (typeof validate === "function") {
+                    for (const validation of this.validations) {
 
-                                const result = validate(inputElement.value.trim())
-                                
-                                if (result.passed === false) {
-                                    this.showError(result.message)
-                                    break
-                                } else {
-                                    this.clearError()
-                                }
+                        if (typeof validation === "function") {
+
+                            const result = validation(trimmedValue)
+                            
+                            if (result.passed === false) {
+                                this.showError(result.message)
+                                break
                             }
 
-                            if ( Array.isArray(validate) && validate.length >= 2 && typeof validate[0] === "function") {
-                                const [validateFunction, ...args] = validate
+                            this.clearError()
+                            
+                        }
 
-                                const result = validateFunction( ...args, inputElement.value.trim())
+                        if (Array.isArray(validation) && validation.length >= 2 && typeof validation[0] === "function") {
 
-                                if (result.passed === false) {
-                                    this.showError(result.message)
-                                    break
-                                } else {
-                                    this.clearError()
-                                }
-                            }
+                            const [validateFunction, ...args] = validation
+                            const result = validateFunction( ...args, trimmedValue)
+
+                            if (result.passed === false) {
+                                this.showError(result.message)
+                                break
+                            } 
+
+                            this.clearError()
+                            
                         }
                     }
+
                 }
             }
         }, 0)
@@ -156,4 +167,4 @@ class Field {
 
 }
 
-export { Field };
+export default Field;
