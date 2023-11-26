@@ -1,6 +1,8 @@
 import RecoveryCodesDialog from "../templates/classes/RecoveryCodesDialog.js"
 import loadLogin from "./login.js"
 
+import { registerTemplate } from "../templates/register.js"
+
 import { 
     makeToastNotification, 
     transition,
@@ -9,7 +11,7 @@ import {
     queryElements,
     camelToDashed
 } from "../../../assets/scripts/helper.js"
-import { registerTemplate } from "../templates/register.js"
+
 
 
 /**
@@ -21,52 +23,67 @@ export default function loadRegister() {
 
     getById("container").innerHTML += template
 
-    setTimeout(() => getById("register").classList.add("active"), 500)
+    const registerElement = getById("register")
+
+    setTimeout(() => {
+        registerElement.classList.add("active")
+    }, 500)
 
     window.onclick = async (event) => {
 
-        const elementId = event.target.getAttribute("id")
+        switch (event.target.id) {
 
-        if (elementId === "to-login-prompt") {
-            transition(loadLogin)
+            case "to-login-prompt":
+                transition(loadLogin)
+            break;
+
+            case "register-button":
+                event.preventDefault()
+                await registerUser()
+            break;
+
+            default:
+                break;
         }
 
-        if (elementId === "register-button") {
-
-            event.preventDefault()
-
-            const form = getById("register-form")
-            const formData = getFormData(form)
-
-            const invalidElements = queryElements(".invalid")
-
-            if (invalidElements.length > 0)
-                return makeToastNotification("Fix errors first")
-
-            const response = await window.ipcRenderer.invoke("register", formData);
-                
-            if (response.status === "success") {
-                new RecoveryCodesDialog(response.recoveryCodes)                
-                makeToastNotification(response.toast[0])
-                transition(loadLogin);
-            
-            } else {
-            
-                response.toast.forEach(error => {
-                    makeToastNotification(error)
-                })
-            
-                if (response.hasOwnProperty("fieldErrors")) {
-
-                    const { fieldErrors } = response
-                    const fieldNames = Object.keys(fieldErrors)
-
-                    fieldNames.forEach(name => {
-                        getById(`${camelToDashed(name)}-field__info__error`).textContent = fieldErrors[name]
-                    })
-
-                }
-            }
-        }
     }
+}
+
+async function registerUser() {
+
+    const form = getById("register-form")
+    const formData = getFormData(form)
+
+    const invalidElements = queryElements(".invalid")
+
+    if (invalidElements.length > 0) {
+        makeToastNotification("Fix errors first")
+        return 
+    }
+
+    const response = await window.ipcRenderer.invoke("register", formData);
+        
+    if (response.status === "success") {
+        new RecoveryCodesDialog(response.recoveryCodes)
+        makeToastNotification(response.toast)
+        transition(loadLogin);
+        return
+    }
+    
+    makeToastNotification(response.toast)
+    
+    const responseHasFieldErrors = response.hasOwnProperty("fieldErrors")
+
+    if (responseHasFieldErrors) {
+
+        const { fieldErrors } = response
+        const fieldNames = Object.keys(fieldErrors)
+
+        fieldNames.forEach(fieldName => {
+            const fieldElementId = `${camelToDashed(fieldName)}-field__info__error`
+            getById(fieldElementId).textContent = fieldErrors[fieldName]
+        })
+
+    }
+
 }
