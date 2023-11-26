@@ -5,6 +5,7 @@ const path = require("path")
 
 /**
  * Wraps a callback function in a try-catch block for error handling.
+ * @async
  * @function
  * @param {Function} callback - The callback function to wrap.
  */
@@ -20,7 +21,7 @@ async function tryCatchWrapper(callback) {
  * The function throws an error and logs it, with an optional custom message.
  * 
  * @param {Error} error - The error parameter is the error object that you want to log and throw.
- * @param {Any|null} customMessage - The customMessage parameter is an optional parameter that allows you to provide a custom error message. 
+ * @param {string|null} customMessage - The customMessage parameter is an optional parameter that allows you to provide a custom error message. 
  * If no custom message is provided, the error message will be the same as the original error.
  * 
  * ```
@@ -43,15 +44,11 @@ function formatDate(date) {
 }
 
 /**
- * The function `emitEvent` sends a message with a key-value pair to a specified event sender.
- * 
- * @param event - The "event" parameter is the event object that is used to send the event to the
- * receiver. It is typically an instance of the EventEmitter class in Node.js.
- * @param key - The `key` parameter is a string that represents the key or identifier for the event. It
- * is used to specify the channel or topic on which the event is emitted.
- * @param value - The value parameter is the data or information that you want to send along with the
- * event. It can be any valid JavaScript value, such as a string, number, object, or array.
- * @returns nothing (undefined) if the event parameter is missing.
+ * Emits an event to the sender with a specified key and value.
+ * @function
+ * @param {Electron.Event} event - The event object from Electron.
+ * @param {string} key - The key to identify the event.
+ * @param {*} value - The value to be sent with the event.
  */
 function emitEvent(event, key, value) {
     if (!event) {
@@ -65,8 +62,8 @@ function emitEvent(event, key, value) {
 /**
  * Joins and resolves paths.
  *
- * @param {(string|string[])} resolveParams - The path or paths to resolve.
- * @param {(string|string[])} joinParams - The path or paths to join.
+ * @param {(string|Array<string>)} resolveParams - The path or paths to resolve.
+ * @param {(string|Array<string> )} joinParams - The path or paths to join.
  * @returns {string} The joined and resolved path.
  */
 function joinAndResolve(resolveParams, joinParams) {
