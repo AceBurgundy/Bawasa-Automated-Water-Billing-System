@@ -6,14 +6,14 @@ const PartialPayment = require("../../../models/PartialPayment")
 const ClientBill = require("../../../models/ClientBill")
 const Client = require("../../../models/Client")
 
-const response = require("../../utilities/response")
+const Response = require("../../utilities/Response")
 const { db } = require("../../utilities/sequelize")
 
 /**
  * Retrieves all clients with their bills and connection statuses.
  * 
  * @async
- * @returns {Promise<[Client]>} Array of client objects with bills and connection statuses.
+ * @returns {Promise<Array<Client|null>} Array of client objects with bills and connection statuses.
  */
 async function getAllClients() {
     
@@ -181,7 +181,7 @@ async function createNewBill(clientId, monthlyReading) {
  *
  * @async
  * @param {ClientBill} bill - The ClientBill object to update.
- * @returns {Promise<Response>} A response object with the result message and status.
+ * @returns {Promise<Response>} A new Response() object with the result message and status.
  */
 async function processZeroPaymentBill(bill) {
 
@@ -196,11 +196,11 @@ async function processZeroPaymentBill(bill) {
             return await bill.save({ transaction: manager })
         })
 
-		return response.Ok("No payments as water consumption is 0")
+		return new Response().Ok("No payments as water consumption is 0")
 
 	} catch (error) {
         console.log(error)
-        return response.Error("Failed to update to zero payment bill")
+        return new Response().Error("Failed to update to zero payment bill")
 	}
 }
 
@@ -211,7 +211,7 @@ async function processZeroPaymentBill(bill) {
  * @param {ClientBill} bill - The bill object to update.
  * @param {string} monthlyReading - The monthly reading value.
  * @param {number|null} previousBillExcess - The payment excess from the previous bill.
- * @returns {Promise<Response>} A response object with the result message and status.
+ * @returns {Promise<Response>} A new Response() object with the result message and status.
  */
 async function insertSecondReading(bill, monthlyReading, previousBillExcess) {
 
@@ -244,11 +244,11 @@ async function insertSecondReading(bill, monthlyReading, previousBillExcess) {
             return await bill.save({ transaction: manager })
         })
 
-        return response.Ok(message)
+        return new Response().Ok(message)
 
 	} catch(error) {
 		console.log(error)
-		return response.Error("Failed on updating clients 2nd reading")
+		return new Response().Error("Failed on updating clients 2nd reading")
 	}
 
 }
@@ -317,7 +317,7 @@ function calculatePartialPaymentsTotal(billJson) {
  * @param {ClientBill} bill - The bill object.
  * @param {number} totalPartialPayments - Total partial payments received for the bill.
  * @param {number} amountPaid - The amount paid in the current transaction.
- * @returns {Promise<Response>} A response object with the result message and status.
+ * @returns {Promise<Response>} A new Response() object with the result message and status.
  */
 async function handleUnderpaidBill(bill, totalPartialPayments, amountPaid) {
 
@@ -347,7 +347,7 @@ async function handleUnderpaidBill(bill, totalPartialPayments, amountPaid) {
                 const lastPartialPayment = createNewPartialPayment(bill, amountPaid, manager)
 
                 if (!lastPartialPayment) {
-                    return response.Error("Failed on creating creating bills last partial payment")
+                    return new Response().Error("Failed on creating creating bills last partial payment")
                 }
 
                 bill.status = "paid"
@@ -369,7 +369,7 @@ async function handleUnderpaidBill(bill, totalPartialPayments, amountPaid) {
                 const newPartialPayment = createNewPartialPayment(bill, amountPaid, manager)
                 
                 if (!newPartialPayment) {
-                    return response.Error("Failed on creating creating the bills' last partial payment")
+                    return new Response().Error("Failed on creating creating the bills' last partial payment")
                 }
 
                 bill.balance = bill.total - newPaymentAmount
@@ -380,7 +380,7 @@ async function handleUnderpaidBill(bill, totalPartialPayments, amountPaid) {
                 const lastPartialPayment = createNewPartialPayment(bill, amountPaid, manager)
 
                 if (!lastPartialPayment) {
-                    return response.Error("Failed on creating creating the bills' last partial payment")
+                    return new Response().Error("Failed on creating creating the bills' last partial payment")
                 }
                 
                 bill.excess = newPaymentAmount - bill.total
@@ -407,7 +407,7 @@ async function handleUnderpaidBill(bill, totalPartialPayments, amountPaid) {
             bill.amountPaid = newPaymentAmount
             await bill.save({ transaction : manager })
             
-            return response.Ok(message)
+            return new Response().Ok(message)
         })
         
         return result
@@ -424,7 +424,7 @@ async function handleUnderpaidBill(bill, totalPartialPayments, amountPaid) {
  * @param {Object} bill - The bill object.
  * @param {number} amountPaid - The amount paid in the current transaction.
  * @param {string} clientId - The ID of the client.
- * @returns {Promise<Response>} - An response object with the result message and status.
+ * @returns {Promise<Response>} - An new Response() object with the result message and status.
  */
 async function handleUnpaidBill(billQuery, bill, amountPaid, clientId) {
 
@@ -469,7 +469,7 @@ async function handleUnpaidBill(billQuery, bill, amountPaid, clientId) {
                 const firstPartialPayment = await createNewPartialPayment(billQuery, amountPaid, manager)
                     
                 if (!firstPartialPayment) {
-                    return response.Error("Failed creating new partial payment")
+                    return new Response().Error("Failed creating new partial payment")
                 }
                 
                 billQuery.balance = billQuery.total - amountPaid
@@ -503,8 +503,8 @@ async function handleUnpaidBill(billQuery, bill, amountPaid, clientId) {
         
             await billQuery.save({ transaction: manager })
 
-            // returns from the transaction and will be assigned to response
-            return response.Ok(message)
+            // returns from the transaction and will be assigned to new Response()
+            return new Response().Ok(message)
 
         })
 
@@ -515,7 +515,7 @@ async function handleUnpaidBill(billQuery, bill, amountPaid, clientId) {
         console.log(error.stack)
 
         const message = error.type === "payment" ? error.message : "Failed to process unpaid bill"    
-        return response.Error(message)
+        return new Response().Error(message)
     }
 
 }

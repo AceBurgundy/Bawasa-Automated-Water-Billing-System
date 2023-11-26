@@ -1,14 +1,13 @@
 import { renderClientBuilder } from "../../clientBuilder/static/clientBuilder.js"
+import { makeToastNotification } from "../../../assets/scripts/toast.js"
 import { clientTable, renderTable } from "../templates/clients.js"
 import renderBillingSection from "../../billing/static/billing.js"
 import { renderProfile } from "../../profile/static/profile.js"
 import loadLogin from "../../authentication/static/login.js"
 
 import { 
-    makeToastNotification, 
     transition, 
 	getById,
-	queryElement,
 	queryElements
 } from "../../../assets/scripts/helper.js"
 

@@ -1,10 +1,11 @@
+import { makeToastNotification } from "../../../../assets/scripts/toast.js";
+
 import { 
     clearAndHideDialog, 
     fillAndShowDialog, 
     generateHTML, 
     generateUniqueId, 
     getById, 
-    makeToastNotification, 
     showData 
 } from "../../../../assets/scripts/helper.js";
 

@@ -3,7 +3,7 @@ const ClientBill = require("../../../models/ClientBill")
 const Client = require("../../../models/Client")
 
 const { connectionStatusTypes } = require("../../utilities/constants")
-const response = require("../../utilities/response")
+const Response = require("../../utilities/Response")
 const { db } = require("../../utilities/sequelize")
 
 /**
@@ -50,8 +50,7 @@ async function getClientRecentBill(clientId) {
  * @async
  * @function reconnectClient
  * @param {string} clientId - The unique identifier of the client.
- * @throws {Error} Throws an error if the database transaction or client creation fails.
- * @returns {Promise<Object>} A Promise that resolves to a success response object or rejects with a failure response object.
+ * @returns {Promise<Response>} A Promise that resolves to a success new Response() object or rejects with a failure new Response() object.
  */
 async function reconnectClient(clientId) {
 
@@ -64,11 +63,11 @@ async function reconnectClient(clientId) {
             }, { transaction: manager })
         })
 
-        return response.success()
+        return new Response().success()
     
     } catch (error) {
         console.log(error);
-        return response.failed()
+        return new Response().failed()
     }
 
 }
@@ -97,7 +96,7 @@ async function updatePaymentStatus(billId, amountPaid, balance) {
         }, { transaction: manager })
     })
 
-    return updatedCount > 0 ? response.success() : response.failed()
+    return updatedCount > 0 ? new Response().success() : new Response().failed()
     
 }
 

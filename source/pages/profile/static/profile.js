@@ -1,3 +1,4 @@
+import { makeToastNotification } from "../../../assets/scripts/toast.js"
 
 import { renderClientSection } from "../../clients/static/clients.js"
 import renderBillingSection from "../../billing/static/billing.js"
@@ -5,7 +6,6 @@ import { getTemplate } from "../templates/profile.js"
 import "../../../utilities/constants.js"
 
 import { 
-	makeToastNotification, 
 	transition,
 	getById,
 	queryElement,

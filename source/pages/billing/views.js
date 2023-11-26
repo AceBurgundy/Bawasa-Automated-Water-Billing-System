@@ -1,6 +1,6 @@
 const { connectionStatusTypes } = require("../../utilities/constants")
 
-const response = require("../../utilities/response")
+const Response = require("../../utilities/Response")
 const { ipcMain } = require("electron")
 
 const Client = require("../../../models/Client")
@@ -29,9 +29,10 @@ ipcMain.handle("accounts", async event => {
     const accounts = await getAllClients()
         
     if (accounts && accounts.length > 0) {
-        return response.success().addObject("data", JSON.stringify(accounts)).getResponse()
+        const stringAccounts = JSON.stringify(accounts)
+        return new Response().OkWithData("data", stringAccounts)
     } else {
-        return response.Error("No accounts yet")
+        return new Response().Error("No accounts yet")
     }
 
 })
@@ -42,27 +43,28 @@ ipcMain.handle("get-bill", async (event, args) => {
     const { billId, clientId } = args
     
     if (!billId) {
-        return response.Error("Bill id not found")
+        return new Response().Error("Bill id not found")
     }
 
     if (!clientId) {
-        return response.Error("Client id not found")
+        return new Response().Error("Client id not found")
     }
 
     const bill = await getBillAndStatus(clientId)
 
     if (!bill) {
-        return response.Error("Cannot find clients bill")
+        return new Response().Error("Cannot find clients bill")
     }
 
-    return response.success().addObject("data", JSON.stringify(bill)).getResponse()
+    const stringBill = JSON.stringify(bill)
+    return new Response().OkWithData("data", stringBill)
 })
 
 ipcMain.handle("print-bill", async (event, args) => {
 
     const { clientId } = args
 
-    if (!clientId) return response.Error("Missing client id")
+    if (!clientId) return new Response().Error("Missing client id")
 
     let clientBill = null
     let message = "Cannot find clients bill"
@@ -71,11 +73,11 @@ ipcMain.handle("print-bill", async (event, args) => {
         clientBill = await Client.findByPk(clientId)
     } catch (error) {
         console.log(error)
-        return response.Error(message)
+        return new Response().Error(message)
     }
 
     if (!clientBill) {
-        return response.Error(message)
+        return new Response().Error(message)
     }
 
     // MISSING CODE TO PRINT RECEIPT
@@ -86,17 +88,17 @@ ipcMain.handle("new-bill", async (event, args) => {
     const { clientId, monthlyReading, billId } = args
 
     if (!clientId) {
-        return response.Error("Missing client id")
+        return new Response().Error("Missing client id")
     }
 
     if (!monthlyReading) {
-        return response.Error("Missing monthly reading")
+        return new Response().Error("Missing monthly reading")
     }
 
     const client = await getBillAndStatus(clientId)
 
     if (!client) {
-        return response.Error("Cannot find client")
+        return new Response().Error("Cannot find client")
     }
 
     const hasConnectionStatus = client.connectionStatuses.length > 0
@@ -107,7 +109,7 @@ ipcMain.handle("new-bill", async (event, args) => {
      * which indicates that the client may currently be "due for disconnection" or is "disconnected"
      */
     if (hasConnectionStatus && latestNotConnected) {
-        return response.Error(`Set the clients status to "Connected" first`)
+        return new Response().Error(`Set the clients status to "Connected" first`)
     }
 
     const clientBill = await getBillById(billId)
@@ -131,7 +133,7 @@ ipcMain.handle("new-bill", async (event, args) => {
     const NotPaidWithSecondReading = !latestBillAlreadyPaid && clientBill.secondReading !== null
 
     if (clientBill && NotPaidWithSecondReading) {
-        return response.Error("Current bill must be paid first before proceeding")
+        return new Response().Error("Current bill must be paid first before proceeding")
     }
 
     const noBillOrAlreadyPaid = !clientBill || latestBillAlreadyPaid
@@ -143,10 +145,10 @@ ipcMain.handle("new-bill", async (event, args) => {
         let newBill = await createNewBill(client.id, monthlyReading)
 
         if (!newBill) {
-            return response.Error("New client bill creation failed")
+            return new Response().Error("New client bill creation failed")
         }
 
-        return response
+        return new Response()
                 .success()
                 .addToast("New client bill created")
                 .addObject("billId", newBill.id)
@@ -157,13 +159,13 @@ ipcMain.handle("new-bill", async (event, args) => {
         // Bill updates for 2nd reading or exact payment
 
         if (!billId) {
-            return response.Error("Bill id not found")
+            return new Response().Error("Bill id not found")
         }
 
         const bill = await getBillById(billId)
 
         if (!bill) {
-            return response.Error("Bill not found")
+            return new Response().Error("Bill not found")
         }
 
         //If first reading matches new reading, then there is nothing to pay
@@ -184,11 +186,11 @@ ipcMain.handle("pay-bill", async (event, args) => {
     const { amount, billId } = args
 
     if (!amount) {
-        return response.Error("Missing payment amount")
+        return new Response().Error("Missing payment amount")
     }
     
     if (!billId) {
-        return response.Error("Bill id missing")
+        return new Response().Error("Bill id missing")
     }
 
     const amountPaid = parseFloat(amount)
@@ -196,7 +198,7 @@ ipcMain.handle("pay-bill", async (event, args) => {
     const billQuery = await getBillWithPartialPayments(billId)
     
     if (!billQuery) {
-        return response.Error("Cannot find bill")
+        return new Response().Error("Cannot find bill")
     }
 
     const bill = billQuery.toJSON()
@@ -206,7 +208,7 @@ ipcMain.handle("pay-bill", async (event, args) => {
     switch (bill.status) {
         
         case "paid":
-            return response.Error("Bill had already been paid")
+            return new Response().Error("Bill had already been paid")
         
         case "underpaid":
             return await handleUnderpaidBill(bill, totalPartialPayments, amountPaid)
@@ -215,7 +217,7 @@ ipcMain.handle("pay-bill", async (event, args) => {
             return await handleUnpaidBill(billQuery, bill, amountPaid, bill.clientId)
         
         default:
-            return response.Error("Wrong bill status type");
+            return new Response().Error("Wrong bill status type");
 
     }
 

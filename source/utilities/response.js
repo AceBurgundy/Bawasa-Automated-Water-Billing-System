@@ -1,7 +1,7 @@
 /**
  * A utility class for constructing response objects with standardized properties.
  * @class
- * @private
+ * @public
  */
 class Response {
 
@@ -102,7 +102,7 @@ class Response {
 	Error(errorMessage, fieldName) {
 		this.failed();
 		if (fieldName) this.addFieldError(fieldName, errorMessage);
-		if (errorMessage) this.addToast(errorMessage);
+		this.addToast(errorMessage);
 		return this.getResponse();
 	}
 
@@ -114,7 +114,7 @@ class Response {
 	 */
 	Ok(message = null) {
 		this.success();
-		if (message) this.addToast(message);
+		this.addToast(message);
 		return this.getResponse();
 	}
 
@@ -181,12 +181,6 @@ class Response {
 }
 
 /**
- * Default instance of the Response class.
- * @const {Response}
- */
-const response = new Response();
-
-/**
  * Exports the Response instance for external use.
  */
-module.exports = response;
+module.exports = Response;

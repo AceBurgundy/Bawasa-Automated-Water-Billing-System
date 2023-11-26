@@ -1,3 +1,4 @@
+import { makeToastNotification } from "../../../assets/scripts/toast.js"
 
 import { renderClientSection } from "../../clients/static/clients.js"
 import renderBillingSection from "../../billing/static/billing.js"
@@ -8,7 +9,6 @@ import { getTemplate } from "../templates/clientBuilder.js"
 import "../../../utilities/constants.js"
 
 import { 
-	makeToastNotification, 
 	transition,
 	getById,
 	queryElement,
@@ -17,7 +17,6 @@ import {
 	camelToDashed,
 	toSentenceCase
 } from "../../../assets/scripts/helper.js"
-
 /**
  * Renders and manages a client registration or edit form.
  * @param {boolean} edit - Indicates whether the form is in edit mode.

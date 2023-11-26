@@ -1,9 +1,8 @@
 const RecoveryCode = require("../../../models/RecoveryCode")
+const Response = require("../../utilities/Response")
 
-const response = require("../../utilities/response")
-
-const bcrypt = require("bcrypt")
-const crypto = require("crypto")
+const { randomBytes } = require("crypto")
+const { hashSync, hash } = require("bcrypt")
 
 /**
  * Generates a secure access key.
@@ -15,8 +14,8 @@ const crypto = require("crypto")
  * console.log(accessKey); // Output: 'generatedAccessKey'
  */
 async function generateAccessKey() {
-    const randomString = crypto.randomBytes(32).toString("hex")
-    const hash = bcrypt.hashSync(randomString, 10)
+    const randomString = randomBytes(32).toString("hex")
+    const hash = hashSync(randomString, 10)
     return hash.slice(0, 64)
 }
 
@@ -26,8 +25,8 @@ async function generateAccessKey() {
  * @async
  * @param {string} userId - The ID of the user for whom recovery codes are generated.
  * @param {Transaction} manager - The database transaction manager.
- * @returns {Response} A response object with success status and recovery codes.
- * @throws {Response} An response object with failed status if code generation or storage fails.
+ * @returns {Promise<Response>} A new Response() object with success status and recovery codes.
+ * @throws {Response} a new Response() object with failed status if code generation or storage fails.
  * @usage
  * ```
  * const userId = "user123";
@@ -54,7 +53,7 @@ async function generateRecoveryCodes(userId, manager) {
         codes.push(code)
 
         const insertNewCodePromise = RecoveryCode.create({
-            code: await bcrypt.hash(code, 10),
+            code: await hash(code, 10),
             userId: userId
         }, { transaction: manager })
 
@@ -64,11 +63,11 @@ async function generateRecoveryCodes(userId, manager) {
     try {
 
         await Promise.all(promises);
-        return response.success().addObject("recoveryCodes", codes).getResponse();
+        return new Response().OkWithData("recoveryCodes", codes)
     
     } catch (error) {
         console.log(error);
-        return response.Error(`Failed to add recovery codes`)
+        return new Response().Error(`Failed to add recovery codes`)
     }
 
 }

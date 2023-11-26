@@ -2,11 +2,12 @@ import ForgetPasswordDialog from "../templates/classes/ForgetPasswordDialog.js"
 import renderBillingSection from "../../billing/static/billing.js"
 import { loginTemplate } from "../templates/login.js"
 
+import { makeToastNotification } from "../../../assets/scripts/toast.js"
+
 import "../../../utilities/validations.js"
 import loadRegister from "./register.js"
 
 import {
-    makeToastNotification,
     queryElements,
     getFormData,
     transition,
@@ -37,6 +38,7 @@ export default async function loadLogin() {
             case "forgot-password":
                 new ForgetPasswordDialog()
             break
+            
             case "login-button":
                 event.preventDefault()
                 await loginUser()
@@ -62,6 +64,7 @@ async function loginUser() {
         
     const response = await window.ipcRenderer.invoke("login", formData)
 
+    console.log(response.toast);
     makeToastNotification(response.toast)
 
     if (response.status === "success") {

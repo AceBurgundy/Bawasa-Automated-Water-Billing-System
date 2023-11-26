@@ -1,10 +1,9 @@
 import RecoveryCodesDialog from "../templates/classes/RecoveryCodesDialog.js"
+import { makeToastNotification } from "../../../assets/scripts/toast.js"
+import { registerTemplate } from "../templates/register.js"
 import loadLogin from "./login.js"
 
-import { registerTemplate } from "../templates/register.js"
-
 import { 
-    makeToastNotification, 
     transition,
     getById,
     getFormData,

@@ -1,6 +1,6 @@
 const { validateFormData } = require("../../utilities/validations")
 const { tryCatchWrapper } = require("../../utilities/helpers")
-const response = require("../../utilities/response")
+const Response = require("../../utilities/Response")
 
 const { ipcMain } = require("electron")
 const { Op } = require('sequelize')
@@ -60,7 +60,7 @@ const userFormFields = {
  * @param {Electron.Event} event - The IPC event object.
  * @param {Object} formDataBuffer - Buffer containing form data.
  * @param {number} userId - The ID of the user being edited.
- * @returns {Promise<Object>} A response object indicating the operation's status.
+ * @returns {Promise<Response>} A new Response() object indicating the operation's status.
  */
 ipcMain.handle("edit-user", async (event, data) => {
 
@@ -82,25 +82,25 @@ ipcMain.handle("edit-user", async (event, data) => {
 	})
 
 	if (!user) {
-		return response.responseError("User not found")
+		return new Response().Error("User not found")
 	}
 
 	if (!formData) {
-		return response.responseError("User details are missing")
+		return new Response().Error("User details are missing")
 	}
 
 	const userDuplicate = await checkDuplicateUser(formData, true, userId)
-	if (userDuplicate.hasDuplicate) return response.responseError(userDuplicate.message)
+	if (userDuplicate.hasDuplicate) return new Response().Error(userDuplicate.message)
 
 	const missingFields = checkMissingFields(formData)
-	missingFields && response.responseError(missingFields)
+	missingFields && new Response().Error(missingFields)
 	
     const validateResponse = validateFormData(formData)
     
     if (validateResponse.status === false) {
         const { field, message } = validateResponse
 
-        return response.failed().addFieldError(field, message).getResponse()
+        return new Response().ErrorWithData(field, message)
     }
 	
 	const oldUserData = user.toJSON()
@@ -132,7 +132,7 @@ ipcMain.handle("edit-user", async (event, data) => {
 			})
 
 		} else {
-			return responseError(saveNewProfilePicture.message)
+			return Error(saveNewProfilePicture.message)
 		}
 
 	}
@@ -198,7 +198,7 @@ ipcMain.handle("edit-user", async (event, data) => {
 		user.save()
 	})
 
-	return response.success().addToast("User succesfully edited").getResponse()
+	return new Response().Ok("User succesfully edited")
 })
 
 /**
@@ -310,7 +310,7 @@ async function checkDuplicateUser(formData, forEdit = false, userId = null) {
  * Saves a user's profile picture to the filesystem.
  * @function
  * @param {Object} profilePicture - The profile picture data to be saved.
- * @returns {Object} A response object indicating the status of the operation.
+ * @returns {Response} A new Response() object indicating the status of the operation.
  */
 function savePicture(profilePicture) {
 
@@ -328,7 +328,7 @@ function savePicture(profilePicture) {
 			fs.writeFileSync(imagePath, fs.readFileSync(profilePicture.path))
 		} catch (error) {
 			console.log(`\n\n${error}\n\n`)
-			return response.failed().addObject("message", "Error saving user image input").getResponse()
+			return new Response().ErrorWithData("message", "Error saving user image input")
 		}
 
 	} else {
@@ -342,12 +342,12 @@ function savePicture(profilePicture) {
 		fs.writeFile(imagePath, base64Image, { encoding: "base64" }, error => {
 			if (error) {
 				console.log(`\n\n${error}\n\n`)
-				return response.failed().addObject("message", "Error saving user image capture").getResponse()
+				return new Response().ErrorWithData("message", "Error saving user image capture")
 			}
 		})
 	}
 
-	return response.success().addObject("imageName", imageName).getResponse()
+	return new Response().OkWithData("imageName", imageName)
 }
 
 /**
@@ -385,11 +385,11 @@ function checkMissingFields(formData) {
  * @async
  * @example
  * const userId = 123;
- * const response = await deleteUser(userId);
- * if (response.status === "success") {
+ * const new Response() = await deleteUser(userId);
+ * if (new Response().status === "success") {
  *   console.log('User deleted successfully.');
  * } else {
- *   console.error('Failed to delete user:', response.getError());
+ *   console.error('Failed to delete user:', new Response().getError());
  * }
  */
 async function deleteUser(userId, saveData = false) {
@@ -398,7 +398,7 @@ async function deleteUser(userId, saveData = false) {
 		include: "userFiles"
 	})
 
-	if (!user) return response.failed().addToast("Failed to delete user record").getResponse()
+	if (!user) return new Response().Error("Failed to delete user record")
 
 	if (user.userFiles.length > 0) {
 
@@ -420,9 +420,9 @@ async function deleteUser(userId, saveData = false) {
 
 	try {
         await user.destroy()
-        return response.success().addToast("User deleted succesfully")
+        return new Response().Ok("User deleted succesfully")
     } catch (error) {
-        return response.failed().addToast("Failed to delete user")
+        return new Response().Error("Failed to delete user")
     }
 	  
 }

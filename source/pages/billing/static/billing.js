@@ -1,5 +1,5 @@
 // collapse
-
+import { makeToastNotification } from "../../../assets/scripts/toast.js"
 import { renderClientSection } from "../../clients/static/clients.js"
 import { renderProfile } from "../../profile/static/profile.js"
 import loadLogin from "../../authentication/static/login.js"
@@ -7,7 +7,6 @@ import billingTable from "../templates/billing.js"
 
 import { 
     transition, 
-    makeToastNotification,
     getById,
     queryElements
 } from "../../../assets/scripts/helper.js"

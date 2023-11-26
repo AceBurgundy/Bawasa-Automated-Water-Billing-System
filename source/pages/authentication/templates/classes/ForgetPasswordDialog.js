@@ -1,3 +1,5 @@
+import { makeToastNotification } from "../../../../assets/scripts/toast.js";
+
 import Input from "../../../../components/Input.js"
 
 import {
@@ -7,22 +9,35 @@ import {
     generateUniqueId,
     getById,
     getFormData,
-    makeToastNotification
 } from "../../../../assets/scripts/helper.js"
 
 /**
- * Shows the forget password dialog to the user
+ * Represents a Forget Password Dialog for account recovery.
+ * @class
  */
 export default class ForgetPasswordDialog {
+
+    /**
+     * Creates an instance of ForgetPasswordDialog.
+     * @constructor
+     */
     constructor() {
 
         const { isEmail, isEmpty, isOverThan, hasNoSymbols } = window
 
+        /**
+         * Enum representing different states of the Forget Password Dialog.
+         * @enum {string}
+         */
         this.states = {
             VERIFY: "verify",
             RECOVER: "recover"
         }
 
+        /**
+         * Current state of the Forget Password Dialog.
+         * @member {string}
+         */
         this.currentState = this.states.VERIFY
 
         this.dialogRecoveryCodeInputId = generateUniqueId(`forget-password-form-input-box-recovery-code-input`)
@@ -34,6 +49,10 @@ export default class ForgetPasswordDialog {
         this.dialogId = generateUniqueId(`forget-password-box`)
         this.formId = generateUniqueId(`forget-password-form`)
 
+        /**
+         * Password input field for the Forget Password Dialog.
+         * @member {Input}
+         */
         this.dialogPasswordInput = new Input([isEmpty], {
             flags: ["required"],
             attributes: {
@@ -46,38 +65,57 @@ export default class ForgetPasswordDialog {
             }
         })
 
+        /**
+         * HTML template for the Forget Password Dialog.
+         * @member {string}
+         */
         this.template = `
-            <form id="${this.formId}">
-                <p id="forget-password-form-title">Account Recovery</p>
+            <form id="${this.formId}" class="forget-password-form">
+
+                <p id="forget-password-form-title">
+                    Account Recovery
+                </p>
+
+                <p id="forget-password-form__input-box__warning">
+                    A recovery code is required to proceed
+                </p>
+
                 <div id="forget-password-form__input-box">
-                    <p id="forget-password-form__input-box__warning">A recovery code is required to proceed</p>
-                    ${[
-                        new Input([isEmpty, isEmail, [isOverThan, 0, 255]], {
-                            flags: ["required"],
-                            attributes: {
-                                value: "samadriansabalo99@gmail.com",
-                                id: this.dialogEmailInputId,
-                                maxlength: "255",
-                                label: "Email",
-                                name: "email"
-                            }
-                        }),
-                        new Input([isEmpty, hasNoSymbols, [isOverThan, 0, 8]], {
-                            flags: ["required"],
-                            attributes: {
-                                id: this.dialogRecoveryCodeInputId,
-                                label: "Recovery Code",
-                                name: "recoveryCode",
-                                value: "AvkPIVI1",
-                                maxlength: "8"
-                            }
-                        })
-                    ]}
+                    ${
+                        [
+                            new Input([isEmpty, isEmail, [isOverThan, 0, 255]], {
+                                flags: ["required"],
+                                attributes: {
+                                    value: "samadriansabalo99@gmail.com",
+                                    id: this.dialogEmailInputId,
+                                    maxlength: "255",
+                                    label: "Email",
+                                    name: "email"
+                                }
+                            }),
+                            new Input([isEmpty, hasNoSymbols, [isOverThan, 0, 8]], {
+                                flags: ["required"],
+                                attributes: {
+                                    id: this.dialogRecoveryCodeInputId,
+                                    label: "Recovery Code",
+                                    name: "recoveryCode",
+                                    value: "AvkPIVI1",
+                                    maxlength: "8"
+                                }
+                            })
+                        ].join('')
+                    }
                 </div>
+                
                 <div id="forget-password-form-buttons">
-                    <button class="button-primary" id="${this.closeButtonId}">Cancel</button>
-                    <button class="button-primary" id="${this.submitButtonId}">Verify Code</button>
+                    <button class="button-primary" id="${this.closeButtonId}">
+                        Cancel
+                    </button>
+                    <button class="button-primary" id="${this.submitButtonId}">
+                        Verify Code
+                    </button>
                 </div>
+
             </form>
         `
 
@@ -85,72 +123,106 @@ export default class ForgetPasswordDialog {
         this.toString()
     }
 
+    /**
+     * Converts the Forget Password Dialog instance to its string representation and displays it.
+     * @method
+     */
     toString() {
         fillAndShowDialog(this.template)
     }
 
-    async verifyRecoveryCode() {
-        const form = getById(this.formId)
-        const formData = getFormData(form)
+    /**
+     * Verifies the recovery code and updates the dialog state accordingly.
+     * @async
+     * @method
+     * @param {Object} formData - The form data containing email and recovery code.
+     * @param {HTMLButtonElement} submitButton - The submit button element.
+     * @throws {Error} - Throws an error if the verification fails.
+     */
+    async verifyRecoveryCode(formData, submitButton) {
+
+        const warningElement = getById("forget-password-form__input-box__warning")
+        const recoveryCodeInput = getById("forget-password-form__input-box").children[1]
+
+        const passwordInput = generateHTML(this.dialogPasswordInput)
 
         const response = await window.ipcRenderer.invoke("reset-password", {
             email: formData.email,
             userRecoveryCode: formData.recoveryCode
         })
 
-        if (response.toast) makeToastNotification(response.toast[0])
+        if (response.toast) makeToastNotification(response.toast)
+        console.log(response);
 
         if (response.status === "success") {
-            getById("recovery-code-field").replaceWith(generateHTML(this.dialogPasswordInput))
+            warningElement.textContent = "Enter your new password"
+            recoveryCodeInput.replaceWith(passwordInput)
+            submitButton.textContent = "Change Password"
             this.currentState = this.states.RECOVER
-            getById(this.submitButtonId).textContent = "Change Password"
         }
+
     }
 
-    async changePassword() {
-        const form = getById(this.formId)
-        const formData = getFormData(form)
-
+    /**
+     * Changes the user's password after successful recovery code verification.
+     * @async
+     * @method
+     * @param {Object} formData - The form data containing email and new password.
+     * @param {Event} event - The click event triggering the password change.
+     * @throws {Error} - Throws an error if the password change fails.
+     */
+    async changePassword(formData, event) {
         const response = await window.ipcRenderer.invoke("change-password", {
             email: formData.email,
             password: formData.password
-        })
+        });
 
-        console.log(response);
+        if (response.toast) makeToastNotification(response.toast);
         
-        if (response.toast) makeToastNotification(response.toast[0])
-
         if (response.status === "success") {
-            clearAndHideDialog()
+            clearAndHideDialog();
+            event.preventDefault()
         }
     }
 
+    /**
+     * Loads necessary scripts for the Forget Password Dialog.
+     * @method
+     * @private
+     */
     loadScripts() {
+
         setTimeout(() => {
+
             const closeButton = getById(this.closeButtonId)
             const submitButton = getById(this.submitButtonId)
 
-            if (closeButton) {
-                closeButton.onclick = () => clearAndHideDialog()
+            closeButton.onclick = event => {
+                clearAndHideDialog();
+                event.preventDefault()
             }
 
-            if (submitButton) {
-                submitButton.onclick = async event => {
-                    event.preventDefault()
+            submitButton.onclick = async event => {
+
+                event.preventDefault()
+                const form = getById(this.formId)
+                const formData = getFormData(form)
+
+                switch (this.currentState) {
+
+                    case this.states.VERIFY:
+                        await this.verifyRecoveryCode(formData, submitButton)
+                    break;
                 
-                    switch (this.currentState) {
-                        case this.states.VERIFY:
-                                await this.verifyRecoveryCode()
-                            break;
-                    
-                        case this.states.RECOVER:
-                                await this.changePassword()
-                            break;
-                        default:
-                            break;
-                    }
-                }
+                    case this.states.RECOVER:
+                        await this.changePassword(formData, event)
+                    break;
+
+                    default:
+                        break;
+                }                
             }
+
         }, 0)
     }
 }

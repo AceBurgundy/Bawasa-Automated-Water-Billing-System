@@ -1,10 +1,10 @@
 import { renderClientBuilder } from "../../../clientBuilder/static/clientBuilder.js";
+import { makeToastNotification } from "../../../../assets/scripts/toast.js";
 import { ReconnectClientForm } from "../ReconnectClientForm.js";
 
 import { 
     generateUniqueId,
     getById,
-    makeToastNotification,
     queryElements,
     showData,
     transition 

@@ -4,7 +4,7 @@ const UserPhoneNumber = require("../../../models/UserPhoneNumber")
 const RecoveryCode = require("../../../models/RecoveryCode")
 const User = require("../../../models/User")
 
-const response = require("../../utilities/response")
+const Response = require("../../utilities/Response")
 const session = require("../../utilities/session")
 const { db } = require("../../utilities/sequelize")
 
@@ -21,33 +21,33 @@ ipcMain.handle("reset-password", async (event, formData) => {
     const formDataIsEmpty = Object.keys(formData).length === 0
 
     if (formDataIsEmpty) {
-        return response.Error("Form data seems to be empty")
+        return new Response().Error("Form data seems to be empty")
     }
 
     const { email, userRecoveryCode } = formData
 
     if (!email) {
-        return response.Error("An email is required to change your password")
+        return new Response().Error("An email is required to change your password")
     }
 
     validateResult = isEmail(email)
 
     if (!validateResult.passed) {
-        return response.Error(validateResult.message)
+        return new Response().Error(validateResult.message)
     }
 
     if (!userRecoveryCode) {
-        return response.Error("A recovery code is required to change your password")
+        return new Response().Error("A recovery code is required to change your password")
     }
 
     if (userRecoveryCode.length > 8) {
-        return response.Error("A recovery code shouldn't exceed 8 characters")
+        return new Response().Error("A recovery code shouldn't exceed 8 characters")
     }
 
     const inputRecoveryCodeHasSymbols = /[^a-zA-Z0-9]/.test(userRecoveryCode);
 
     if (inputRecoveryCodeHasSymbols) {
-        return response.Error("A recovery code must not contain any symbols")
+        return new Response().Error("A recovery code must not contain any symbols")
     }
 
     let user = null
@@ -69,15 +69,16 @@ ipcMain.handle("reset-password", async (event, formData) => {
         
     } catch (error) {
         console.log(error);
-        return response.Error("Error in searching for user")
+        return new Response().Error("Error in searching for user")
     }
 
     if (!user) {
-        return response.Error(`User with email ${formData.email} might not have been registered yet`)
+        return new Response().Error(`User with email ${formData.email} might not have been registered yet`)
     }
 
     const userRecoveryCodes = user.recoveryCodes.map(recoveryCode => recoveryCode.code)
     
+    // No need for await as it will be used inside Promise.all()
     const recoveryCodeComparisons = userRecoveryCodes.map(recoveryCode => {
         return bcrypt.compare(userRecoveryCode, recoveryCode)
     })
@@ -90,11 +91,11 @@ ipcMain.handle("reset-password", async (event, formData) => {
         const results = await Promise.all(recoveryCodeComparisons);
         const matched = results.some(result => result === true);
 
-        return matched ? response.Ok(matchFound) : response.Error(noMatches)
+        return matched ? new Response().Ok(matchFound) : new Response().Error(noMatches)
 
     } catch (error) {
         console.log(error);
-        return response.Error("Error in comparing recovery codes")        
+        return new Response().Error("Error in comparing recovery codes")        
     }
 
 })
@@ -102,11 +103,11 @@ ipcMain.handle("reset-password", async (event, formData) => {
 ipcMain.handle("change-password", async (event, args) => {
 
     if (!args.email) {
-        return response.Error("Email is required to change password")
+        return new Response().Error("Email is required to change password")
     }
 
     if (!args.password) {
-        return response.Error("New Password is required to change old password")
+        return new Response().Error("New Password is required to change old password")
     }
 
     const { email, password } = args
@@ -114,17 +115,17 @@ ipcMain.handle("change-password", async (event, args) => {
     const emptyEmailResponse = isEmpty(email)
 
     if (emptyEmailResponse.passed === "false") {
-        return response.Error("Email is required to change password")
+        return new Response().Error("Email is required to change password")
     }
 
     const anEmail = isEmail(email)
 
     if (anEmail.passed === "false") {
-        return response.Error("Email must be of type 'email' required to change password")
+        return new Response().Error("Email must be of type 'email' required to change password")
     }
 
     if (password.trim() === '') {
-        return response.Error("New Password is required to change old password")
+        return new Response().Error("New Password is required to change old password")
     }
 
     try {
@@ -136,7 +137,7 @@ ipcMain.handle("change-password", async (event, args) => {
         })
     
         if (!user) {
-            return response.Error("User not found might not have been registered")
+            return new Response().Error("User not found might not have been registered")
         }
 
         user.password = await bcrypt.hash(password, 10)
@@ -145,11 +146,11 @@ ipcMain.handle("change-password", async (event, args) => {
             await user.save({ transaction: manager })
         })
 
-        return response.Ok("Password changed successfully")
+        return new Response().Ok("Password changed successfully")
 
     } catch (error) {
         console.log(error)        
-        return response.Error("Error in updating the password")
+        return new Response().Error("Error in updating the password")
     }
 
 })
@@ -159,7 +160,7 @@ ipcMain.handle("login", async (event, formData) => {
     const formDataIsEmpty = Object.keys(formData).length === 0
 
     if (formDataIsEmpty) {
-        return response.Error("Form data seems to be empty")
+        return new Response().Error("Form data seems to be empty")
     }
 
     const fields = {
@@ -176,14 +177,14 @@ ipcMain.handle("login", async (event, formData) => {
 
     if (missingFields.length > 0) {
         const joinedMissingFields = Object.keys(missingFields).join(", ")
-        return response.Error(`Missing fields: ${joinedMissingFields}`)
+        return new Response().Error(`Missing fields: ${joinedMissingFields}`)
     }
 
     const validateFormDataResponse = validateFormData(formData)
 
     if (validateFormDataResponse.status === false) {
         const { field, message } = validateFormDataResponse
-        return response.failed().addFieldError(field, message).getResponse()
+        return new Response().ErrorWithData(field, message)
     }
 
     try {
@@ -195,13 +196,13 @@ ipcMain.handle("login", async (event, formData) => {
         })
         
         if (!user) {
-            return response.Error(`User with email ${formData.email} might not have been registered yet`)
+            return new Response().Error(`User with email ${formData.email} might not have been registered yet`)
         }
 
         const passwordMatched = await bcrypt.compare(formData.password, user.password)
 
         if (!passwordMatched) {
-            return response.Error("Password does not match")
+            return new Response().Error("Password does not match")
         }
 
         const newAccesskey = await generateAccessKey()
@@ -213,11 +214,11 @@ ipcMain.handle("login", async (event, formData) => {
 
         session.login(newAccesskey)
 
-        return response.Ok(`Welcome ${user.firstName}`)
+        return new Response().Ok(`Welcome ${user.firstName}`)
 
     } catch (error) {
         console.error(error.message)
-        return response.Error("Failed to log the user in")
+        return new Response().Error("Failed to log the user in")
     }
     
 })
@@ -227,7 +228,7 @@ ipcMain.handle("register", async (event, formData) => {
     const formDataIsEmpty = Object.keys(formData).length === 0
 
     if (formDataIsEmpty) {
-        return response.Error("Form data seems to be empty")
+        return new Response().Error("Form data seems to be empty")
     }
     
     const fields = {
@@ -251,14 +252,14 @@ ipcMain.handle("register", async (event, formData) => {
 
     if (missingFields.length > 0) {
         const joinedMissingFields = Object.keys(missingFields).join(", ")
-        return response.Error(`Missing fields: ${joinedMissingFields}`)
+        return new Response().Error(`Missing fields: ${joinedMissingFields}`)
     }
 
     const validateFormDataResponse = validateFormData(formData)
 
     if (validateFormDataResponse.status === false) {
         const { field, message } = validateFormDataResponse
-        return response.failed().addFieldError(field, message).getResponse()
+        return new Response().ErrorWithData(field, message)
     }
 
     try {
@@ -269,15 +270,15 @@ ipcMain.handle("register", async (event, formData) => {
             } 
         })
 
-        if (user) return response.Error(`User ${formData.email} is already registered`)
+        if (user) return new Response().Error(`User ${formData.email} is already registered`)
 
     } catch (error) {
         console.log(error)
-        return response.Error("Failed to find duplicated user")
+        return new Response().Error("Failed to find duplicated user")
     }
 
     formData.password = await bcrypt.hash(formData.password, 10)
-    formData["accessKey"] = await generateAccessKey()
+    formData["accessKey"] = generateAccessKey()
 
     const FAILED_RECOVERY_CODE_CREATE = "failed_recovery_code_generation"
     try {
@@ -317,7 +318,7 @@ ipcMain.handle("register", async (event, formData) => {
 
         })
 
-        return response
+        return new Response()
                 .success()
                 .addToast(`New admin ${user.firstName} added`)
                 .addObject("recoveryCodes", recoveryCodes)
@@ -328,15 +329,15 @@ ipcMain.handle("register", async (event, formData) => {
         console.log(error)
 
         if (error.type === FAILED_RECOVERY_CODE_CREATE) {
-            return response.Error(error.message)
+            return new Response().Error(error.message)
         }
 
         if (error.name === "SequelizeValidationError") {
             let errors = [...error.errors.map(error => error.message)];
-            return response.Error(errors);
+            return new Response().Error(errors);
         }        
 
-        return response.Error(error.message)
+        return new Response().Error(error.message)
 
     }
 

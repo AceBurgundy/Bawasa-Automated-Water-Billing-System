@@ -1,9 +1,10 @@
+import { makeToastNotification } from "../../../../assets/scripts/toast.js";
+
 import { 
     clearAndHideDialog, 
     fillAndShowDialog,
     generateUniqueId, 
-    getById, 
-    makeToastNotification 
+    getById 
 } from "../../../../assets/scripts/helper.js";
 
 /**
@@ -59,24 +60,18 @@ export default class RecoveryCodesDialog {
             const closeButton = getById(this.closeButtonId)
             const clipBoardBox = getById(this.clipBoardBoxId)
 
-            const exists = element => document.body.contains(element)
-
-            if (exists(closeButton)) {
-                closeButton.onclick = event => {
-                    event.preventDefault()
-                    clearAndHideDialog()
-                }
+            closeButton.onclick = event => {
+                event.preventDefault()
+                clearAndHideDialog()
             }
 
-            if (exists(clipBoardBox)) {
-                clipBoardBox.onclick = async () => {
-                    navigator.clipboard.writeText(this.recoveryCodes.join(", "))
-                        .then(() => makeToastNotification('Codes copied to clipboard.'))
-                        .catch(error => {
-                            makeToastNotification('Failed to copy codes');
-                            console.error(error)
-                        })
-                }
+            clipBoardBox.onclick = async () => {
+                navigator.clipboard.writeText(this.recoveryCodes.join(", "))
+                    .then(() => makeToastNotification('Codes copied to clipboard.'))
+                    .catch(error => {
+                        makeToastNotification('Failed to copy codes');
+                        console.error(error)
+                    })
             }
 
         }, 0);
