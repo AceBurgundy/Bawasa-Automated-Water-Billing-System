@@ -9,24 +9,24 @@
         <link rel="stylesheet" href="assets/styles/root.css">
         <link rel="stylesheet" href="assets/styles/table.css">
 
-        <link rel="stylesheet" href="pages/authentication/static/forgetPasswordDialog.css">
-        <link rel="stylesheet" href="pages/authentication/static/recoveryCodesDialog.css">
+        <link rel="stylesheet" href="pages/authentication/static/forget-password-dialog.css">
+        <link rel="stylesheet" href="pages/authentication/static/recovery-codes-dialog.css">
         <link rel="stylesheet" href="pages/authentication/static/authentication.css">
         
         <link rel="stylesheet" href="pages/billing/static/billing.css">
-        <link rel="stylesheet" href="pages/billing/static/newBill.css">
-        <link rel="stylesheet" href="pages/billing/static/payBill.css">
+        <link rel="stylesheet" href="pages/billing/static/new-bill.css">
+        <link rel="stylesheet" href="pages/billing/static/pay-bill.css">
 
-        <link rel="stylesheet" href="pages/clients/static/reconnectClientForm.css">
+        <link rel="stylesheet" href="pages/clients/static/reconnect-client-form.css">
         <link rel="stylesheet" href="pages/clients/static/clients.css">
 
-        <link rel="stylesheet" href="pages/clientBuilder/static/clientBuilder.css">
+        <link rel="stylesheet" href="pages/clientBuilder/static/client-builder.css">
         
         <!-- <script type="module" src="./global.js"></script> -->
 
         <script type="module">
-            import loadLogin from "./pages/authentication/static/Login.js"
-            document.addEventListener("DOMContentLoaded", loadLogin)            
+            import renderLogin from "./pages/authentication/renderer/main/login.js"
+            document.addEventListener("DOMContentLoaded", renderLogin)
         </script>
 
     </head>

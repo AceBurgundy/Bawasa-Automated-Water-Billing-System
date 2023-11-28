@@ -17,14 +17,15 @@
 }
 
 :root {
-    --text: #efe6ec;
-    --background: #160e13;
-    --borderlessInputBackground: #241e21;
-    --primary: #a77277;
-    --navHover: #422b38;
-    --navActive: #5f3e51;
-    --secondary: #2f241d;
-    --accent: #a78772;
+
+    --text: #1f230b;
+    --background: #f7f9ec;
+    --borderlessInputBackground: #e3ebb8;
+    --primary: #98d378;
+    --navHover: #86d35c;
+    --navActive: #74d441;
+    --secondary: #d1f0d5;
+    --accent: #3cb94f;
 
     --lighterPrimary: var(--primary);
     --lightestPrimary: var(--primary);
@@ -71,7 +72,7 @@ svg {
     padding: 0.5rem 0.9rem;
     font-size: 0.8rem;
     background-color: var(--primary);
-    color: var(--background);
+    color: var(--text);
     border-radius: 20px;
     border: none;
     transition: 250ms ease;

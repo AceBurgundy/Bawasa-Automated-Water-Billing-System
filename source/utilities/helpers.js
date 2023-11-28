@@ -1,5 +1,6 @@
-const Client = require("../../models/Client")
+// models
 const ClientBill = require("../../models/ClientBill")
+const Client = require("../../models/Client")
 
 const path = require("path")
 

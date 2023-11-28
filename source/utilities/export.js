@@ -1,11 +1,13 @@
-const { ipcMain, BrowserWindow, dialog } = require("electron")
-const { tryCatchWrapper, formatDate, joinAndResolve, throwAndLogError, emitEvent } = require("./helpers")
-const response = require("./response")
+// utilties
+const { formatDate, joinAndResolve, emitEvent } = require("./helpers")
+const Response = require("./Response")
+
+const { ipcMain, dialog } = require("electron")
 const ExcelJS = require('exceljs')
-const { log } = require("console")
 const fs = require("fs-extra")
 const path = require("path")
 
+// models
 const ClientPhoneNumber = require("../../models/ClientPhoneNumber")
 const UserPhoneNumber = require("../../models/UserPhoneNumber")
 const PartialPayment = require("../../models/PartialPayment")
@@ -59,12 +61,15 @@ const askDirectory = async () => {
 
 ipcMain.handle("full-user-data", async (event, args) => {
 
-    const { id } = args
+    if (!args.id) {
+        return new Response().Error("User id not found")
+    }
 
-    if (!id) return response.failed().addToast("User id not found").getResponse()
+    let user = null
 
-	const user = await tryCatchWrapper(async () => {		
-		return await User.findByPk(id, {
+    try {
+        
+        user = await User.findByPk(args.id, {
 			include: [
 				{ 
 					model: UserPhoneNumber, 
@@ -75,20 +80,25 @@ ipcMain.handle("full-user-data", async (event, args) => {
 				{ model: UserAddress, as: "presentAddress" }
 			]
 		})
-	})
 
-	if (!user) {
-		return response.responseError("User not found")
-	}
+    } catch (error) {
+        console.log(error);
+        return new Response().Error("User not found")
+    }
 
+    return user
+    
 })
 
 const getClientData = async (id) => {
 
-    if (!id) return response.failed().addToast("Client id if not found").getResponse()
+    if (!id) return new Response().Error("Client id if not found")
 
-    const client = await tryCatchWrapper(async () => {		
-        return await Client.findByPk(id, {
+    let client = null
+
+    try {
+        
+        client = await Client.findByPk(id, {
             include: [
                 { 
                     model: ClientPhoneNumber, 
@@ -125,13 +135,12 @@ const getClientData = async (id) => {
                 }
             ]
         })
-    })    
+    } catch (error) {
+        console.log(error)
+        return new Response().Error("Client not found")
+    }
 
-	if (!client) {
-		return response.responseError("Client not found")
-	}
-
-    return response.success().addObject("clientData", client).getResponse()
+    return new Response().OkWithData("clientData", client)
 
 }
 
@@ -147,17 +156,17 @@ const getClientData = async (id) => {
  */
 async function exportRecord(id, event) {
 
-    if (!id) return response.Error("Client id is required for export")
+    if (!id) return new Response().Error("Client id is required for export")
 
     try {
 
-        const getClientResponse = await getClientData(id)
+        const getClientData = await getClientData(id)
 
-        if (getClientResponse.status === "failed" || !getClientResponse.clientData) {
-            return response.Error(getClientResponse.toast[0])
+        if (getClientData.status === "failed" || !getClientData.clientData) {
+            return new Response().Error(getClientData.toast[0])
         }
         
-        const client = getClientResponse.clientData
+        const client = getClientData.clientData
     
         const { 
             fullName, 
@@ -177,7 +186,7 @@ async function exportRecord(id, event) {
         
         let directoryPath = await askDirectory()
 
-        if (!directoryPath) return response.Error("Directory selection canceled")
+        if (!directoryPath) return new Response().Error("Directory selection canceled")
 
         const workbook = new ExcelJS.Workbook()
         
@@ -264,7 +273,7 @@ async function exportRecord(id, event) {
         fs.ensureDir(fullDirectoryPath, error => {
             if (error) {
                 console.log(error);
-                return response.Error(`Error in creating new folder for ${fullName}'s export data`)
+                return new Response().Error(`Error in creating new folder for ${fullName}'s export data`)
             }
         })
 
@@ -278,7 +287,7 @@ async function exportRecord(id, event) {
             fs.ensureDir(destinationFilePath, error => {
                 if (error) {
                     console.log(error);
-                    return response.Error(`Error in creating files folder for ${fullName}'s export data`)
+                    return new Response().Error(`Error in creating files folder for ${fullName}'s export data`)
                 }
             })
 
@@ -301,11 +310,11 @@ async function exportRecord(id, event) {
             await Promise.all(filesToMove)
         }
 
-        return response.Ok("Client data exported")
+        return new Response().Ok("Client data exported")
 
     } catch (error) {
         console.log(error);
-        return response.Error("Failed to export client data")
+        return new Response().Error("Failed to export client data")
     }
 
 }

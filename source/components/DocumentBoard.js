@@ -2,12 +2,22 @@ import {camelToDashed, getById, queryElement } from "../assets/scripts/helper.js
 import { makeToastNotification } from "../assets/scripts/toast.js"
 import { FilePreview } from "./FilePreview.js"
 
+/**
+ * Represents a document board for handling file uploads.
+ *
+ * @class
+ * @public
+ */
 export default class DocumentBoard {
+    
     /**
-     * Creates a file drop element
+     * Creates a file drop element.
+     *
+     * @constructor
      * @param {string} name - The name of the field input field.
-     * @param {boolean} forEdit - Indicates whether the form is for editing.
-     * @param {string|null} clientId - The id of the client (forEdit must be true)
+     * @param {boolean|null} forEdit - Indicates whether the form is for editing.
+     * @param {string|null} clientId - The id of the client (forEdit must be true).
+     * @param {string} title - The title of the document board.
      */
     constructor(name, forEdit, clientId, title) {
 
@@ -86,9 +96,9 @@ export default class DocumentBoard {
     }
 
     /**
-     * updates the uploadedFiles array from the input:type hidden element
-     * 
-     * @param {boolean} noThumbnails - Whether the icons must be updated or not
+     * Updates the uploadedFiles array from the input:type hidden element.
+     *
+     * @param {boolean} noThumbnails - Whether the icons must be updated or not.
      * @returns {void}
      */
     updateInputFiles(noThumbnails = false) {
@@ -110,6 +120,13 @@ export default class DocumentBoard {
         
     }
 
+    /**
+     * Displays thumbnails for uploaded files.
+     *
+     * @param {HTMLDivElement} addNewFileMessage - The element displaying the "Drop files or click here to upload documents" message.
+     * @param {HTMLLabelElement} dropElement - The drop zone element.
+     * @returns {void}
+     */
     displayThumbnail(addNewFileMessage, dropElement) {
         
         const didUpload = this.uploadedFiles.length > 0
@@ -128,6 +145,23 @@ export default class DocumentBoard {
         })
     }
 
+    /**
+     * Gets the uploaded files.
+     *
+     * @returns {Array<File>} - An array of File objects representing the uploaded files.
+     */
+    getFiles() {
+        return this.uploadedFiles
+    }
+
+    /**
+     * Deletes a file preview.
+     *
+     * @async
+     * @function
+     * @param {string} fileName - The name of the file to be deleted.
+     * @returns {boolean} - Returns true if the file is successfully deleted, false otherwise.
+     */
     async deletePreview(fileName) {
         const fileIndex = this.uploadedFiles.findIndex(uploadFile => uploadFile.name === fileName);
 
@@ -156,6 +190,12 @@ export default class DocumentBoard {
         return false;
     }
 
+    /**
+     * Loads scripts for the document board.
+     *
+     * @function
+     * @private
+     */
     loadScripts() {
 
         setTimeout(() => {

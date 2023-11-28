@@ -20,25 +20,20 @@ export function transition(callback) {
 
 /**
  *
- * @param {string} data - The data from the sequelize object the needed to be shown
- * @param {string} placeholder - A placeholder that replaces the data if the data is null or undefined. Default: ""
- * @returns {string}
- */
-export const showData = (data, placeholder = "") => (data ?? false ? data : placeholder)
-
-/**
- *
  * @param {Date} date - date object to be formatted
- * @returns the formatted date in format "MMM DD, YYYY"
+ * @returns {Date.toLocaleDateString|null} the formatted date in format "MMM DD, YYYY" or null
  */
 export function formatDate(date) {
-    return date ?? false
-        ? new Date(date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric"
-          })
-        : ""
+
+    if (date === null || date === undefined) {
+        return null
+    }
+    
+    return new Date(date).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+    })
 }
 
 /**
@@ -107,8 +102,8 @@ export const camelToDashed = inputString => {
     const inCamelCase = /^[a-z][a-zA-Z0-9]*$/.test(inputString)
     if (!inCamelCase) return inputString
     
-    const andSeparateBigAndLowerCaseWithDash = [/([a-z])([A-Z])/g, "$1-$2"]
-    return inputString.replace([...andSeparateBigAndLowerCaseWithDash]).toLowerCase()
+    const dashSeparatedWords = [/([a-z])([A-Z])/g, "$1-$2"]
+    return inputString.replace([...dashSeparatedWords]).toLowerCase()
 }
 
 /**
@@ -196,5 +191,5 @@ export const generateUniqueId = name => {
     const randomNumber = Math.floor(Math.random() * 100) + 1
     const id = [name, randomNumber].join("-")
 
-    return getById(id) ? generateUniqueId() : id
+    return getById(id) ? generateUniqueId(name) : id
 }
