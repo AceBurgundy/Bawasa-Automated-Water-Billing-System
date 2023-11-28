@@ -1,17 +1,22 @@
 // helpers
 import { queryElements, getById, transition } from "../../../../assets/scripts/helper.js";
-import { makeToastNotification } from "../../../../assets/scripts/toast.js";
+import makeToastNotification from "../../../../assets/scripts/toast.js";
 
 // main
-import renderClientBuilder from "../../../client-builder/renderer/main/client-builder.js";
+import clientBuilder from "../../../client-builder/renderer/main/client-builder.js";
 
 // dialogs
-import { ReconnectClientForm } from "./ReconnectClientForm.js";
+import ReconnectClientForm from "./ReconnectClientForm.js";
 
 // icons
 import { icons } from "../../../../assets/scripts/icons.js";
 
-export default class ClientRow {
+/**
+ * 
+ * @class ClientRow
+ * @description a class that returns a table row for client table
+ */
+export default class {
 
     constructor(client, index) {
 
@@ -116,7 +121,7 @@ export default class ClientRow {
             const rowMenu = getById(this.rowMenuId)
 
             editButton.onclick = async () => {
-                transition(async () => await renderClientBuilder(true, this.client))
+                transition(async () => await clientBuilder(true, this.client))
             }
 
             exportButton.onclick = async () => {

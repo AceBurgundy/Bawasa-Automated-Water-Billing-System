@@ -1,5 +1,8 @@
+// helpers
 import {camelToDashed, getById, queryElement } from "../assets/scripts/helper.js"
-import { makeToastNotification } from "../assets/scripts/toast.js"
+import makeToastNotification from "../assets/scripts/toast.js"
+
+// components
 import { FilePreview } from "./FilePreview.js"
 
 /**
@@ -148,7 +151,7 @@ export default class DocumentBoard {
     /**
      * Gets the uploaded files.
      *
-     * @returns {Array<File>} - An array of File objects representing the uploaded files.
+     * @returns {Array<File>} An array of File objects representing the uploaded files.
      */
     getFiles() {
         return this.uploadedFiles
@@ -160,7 +163,7 @@ export default class DocumentBoard {
      * @async
      * @function
      * @param {string} fileName - The name of the file to be deleted.
-     * @returns {boolean} - Returns true if the file is successfully deleted, false otherwise.
+     * @returns {boolean} Returns true if the file is successfully deleted, false otherwise.
      */
     async deletePreview(fileName) {
         const fileIndex = this.uploadedFiles.findIndex(uploadFile => uploadFile.name === fileName);

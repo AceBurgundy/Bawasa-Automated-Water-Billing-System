@@ -126,7 +126,7 @@ const isValidPhoneNumber = value => {
  * @param {string|number} value - The value to be checked.
  * @param {number} start - The minimum allowed value.
  * @param {number} limit - The maximum allowed value.
- * @returns {[number, string[]]} - An array with two elements:
+ * @returns {[number, string[]]} An array with two elements:
  *   - The number of errors (0, 1, or 2).
  *   - An array of error messages (empty if no errors).
  */
@@ -153,7 +153,7 @@ const isOverThan = (start, limit, value) => {
  * Validates the provided formData object.
  *
  * @param {Object} formData - The formData object to be validated.
- * @returns {Object} - An object containing validation errors, if any.
+ * @returns {Object} An object containing validation errors, if any.
  *    @property {string} field - The field name with validation error.
  *    @property {string} error - The error message for the validation error.
  *    @property {number} count - The total number of errors found.

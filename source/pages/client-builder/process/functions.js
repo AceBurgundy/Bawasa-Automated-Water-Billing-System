@@ -123,7 +123,7 @@ async function createClient(formData, manager) {
  * @param {string} phoneNumber - The phone number to create for the client.
  * @param {Transaction} manager - transaction manager for performing
  * the phone number creation within a specified transaction.
- * @throws {Error} - Throws an error if the client is not saved or if there is an error
+ * @throws {Error} Throws an error if the client is not saved or if there is an error
  * in saving the new phone number.
  */
 async function createNewPhoneNumber(clientId, phoneNumber, manager) {
@@ -152,7 +152,7 @@ async function createNewPhoneNumber(clientId, phoneNumber, manager) {
  * connection status is being created.
  * @param {Transaction} manager - Optional transaction manager for performing
  * the connection status creation within a specified transaction.
- * @throws {Error} - Throws an error if the client is not saved or if there is an error
+ * @throws {Error} Throws an error if the client is not saved or if there is an error
  * in saving the new connection status. The error message may indicate a validation error
  * if the provided connection status type is not valid.
  */
@@ -186,7 +186,7 @@ async function createNewConnectionStatus(clientId, manager) {
  * @async
  * @function
  * @param {number} clientId - The unique identifier of the client to retrieve for editing.
- * @returns {Client|null} - A Promise that resolves with the retrieved client object or null if an error occurs.
+ * @returns {Client|null} A Promise that resolves with the retrieved client object or null if an error occurs.
  */
 async function retrieveClientForEdit(clientId) {
 
@@ -287,7 +287,7 @@ async function updatePhoneNumber(client, phoneNumberInputValue, manager) {
 * picture path.
 * @param {string|Buffer} profilePicture - The new profile picture data. It could be an image file or any data
 * representing the picture.
-* @returns {Response} - A new Response object representing the result of the update operation.
+* @returns {Response} A new Response object representing the result of the update operation.
 */
 async function updateProfilePicture(oldClientData, profilePicture) {
 
@@ -531,7 +531,7 @@ async function getClientFiles(clientId) {
  * @param {Client} client - The client object.
  * @param {Array<Object>} files - Array of file objects to be saved.
  * @param {TransactionManager} manager - The transaction manager for database operations.
- * @throws {Error} - Throws an error if the file saving process fails.
+ * @throws {Error} Throws an error if the file saving process fails.
  */
 async function saveFiles(client, files, manager) {
 
@@ -569,7 +569,7 @@ async function saveFiles(client, files, manager) {
  * @async
  * @function
  * @param {Array<string>} files - Array of file paths to be deleted.
- * @throws {Error} - Throws an error if any file deletion operation fails.
+ * @throws {Error} Throws an error if any file deletion operation fails.
  */
 async function deleteFiles(files) {
 
@@ -590,7 +590,7 @@ async function deleteFiles(files) {
  * @async
  * @function
  * @param {string} fileName - The name of the file to be deleted.
- * @throws {Error} - Throws an error if the file does not exist or if the deletion fails.
+ * @throws {Error} Throws an error if the file does not exist or if the deletion fails.
  */
 async function deleteFile(fileName) {
 
@@ -617,7 +617,7 @@ async function deleteFile(fileName) {
  * @returns {Promise<Response>} A Promise that resolves with a Response object
  * representing the result of the delete operation. The Response object can be
  * used to check the success or failure of the operation.
- * @throws {Error} - Throws an error if the client id is not found or if the deletion fails.
+ * @throws {Error} Throws an error if the client id is not found or if the deletion fails.
  * @example
  * ```
  * const clientId = 123

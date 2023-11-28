@@ -1,21 +1,22 @@
 //helpers
 import { queryElements, getFormData, transition, getById } from "../../../../assets/scripts/helper.js"
-import { makeToastNotification } from "../../../../assets/scripts/toast.js"
+import makeToastNotification from "../../../../assets/scripts/toast.js"
 
 //main
-import renderBillingSection from "../../../billing/renderer/static/billing.js"
+import billing from "../../../billing/renderer/static/billing.js"
 import renderRegister from "./register.js"
 
 //dialog
 import ForgetPasswordDialog from "../components/ForgetPasswordDialog.js"
 
 //template
-import { loginTemplate } from "../templates/login.js"
+import loginTemplate from "../templates/login.js"
 
 /**
- * Loads login template and events
+ * @function login
+ * @description Loads login template and events
  */
-export default async function renderLogin() {
+export default async function () {
 
     const template = loginTemplate()
 
@@ -28,24 +29,30 @@ export default async function renderLogin() {
 
             case "to-register-prompt":
                 transition(renderRegister)
-            break;
+                break
         
             case "forgot-password":
                 new ForgetPasswordDialog()
-            break
+                break
             
             case "login-button":
                 event.preventDefault()
                 await loginUser()
-            break;
+                break
                 
             default:
-                break;
+                break
         }
 
     }
 }
 
+/**
+ * Logs in a user using the provided form data.
+ * 
+ * @async
+ * @returns {Promise<void>} Resolves after the user login process is completed.
+ */
 async function loginUser() {
 
     const form = getById("login-form")
@@ -56,21 +63,20 @@ async function loginUser() {
         makeToastNotification("Fix errors first")
         return
     }
-        
+    
     const response = await window.ipcRenderer.invoke("login", formData)
 
-    console.log(response.toast);
+    console.log(response.toast)
     makeToastNotification(response.toast)
 
     if (response.status === "success") {
-        transition(renderBillingSection);
+        transition(billing)
         return
     }
 
     const responseHasFieldErrors = response.hasOwnProperty("fieldErrors")
 
     if (responseHasFieldErrors) {
-
         const { fieldErrors } = response
         const fieldNames = Object.keys(fieldErrors)
 
@@ -78,6 +84,5 @@ async function loginUser() {
             const fieldElementErrorId = `${name}-field__info__error`
             getById(fieldElementErrorId).textContent = fieldErrors[name]
         })
-
     }
 }

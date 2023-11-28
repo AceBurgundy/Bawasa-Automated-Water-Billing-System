@@ -16,7 +16,7 @@ const { connectionStatusTypes } = require("../../../utilities/constants")
  * @async
  * @function
  * @param {number} clientId - The ID of the client to retrieve.
- * @returns {Promise<Client|null>} - A Promise that resolves to the client with recent bill data or null if not found.
+ * @returns {Promise<Client|null>} A Promise that resolves to the client with recent bill data or null if not found.
  */
 async function getClientRecentBill(clientId) {
 

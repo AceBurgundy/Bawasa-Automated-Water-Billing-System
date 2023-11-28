@@ -10,7 +10,12 @@ import { icons } from "../../../../assets/scripts/icons.js";
 // constants
 import "../../../../utilities/constants.js";
 
-export default function getTemplate(forEdit, clientData) { 
+/**
+ * 
+ * @function clientBuilderTemplate
+ * @returns {string} template for client builder
+ */
+export default function (forEdit, clientData) { 
     
     const { 
         isBirthDate, 

@@ -8,14 +8,15 @@ import { icons } from "../../../../assets/scripts/icons.js"
 import BillingRow from "../components/BillingRow.js"
 
 /**
- * Generate a billing table HTML based on the provided billing data.
+ * Generate a billing table string HTML template based on the provided billing data.
  *
  * @async
+ * @function billingTemplate
  * @param {Array<Object>} bills - An array of billing data objects.
  * @param {string} noBillsMessage - Optional response message.
- * @returns {Promise<string>} - Generated HTML for the billing table.
+ * @returns {Promise<string>} Generated HTML for the billing table.
  */
-export default async function billingTable(bills, noBillsMessage) {
+export default async function (bills, noBillsMessage) {
                 
     const navigationObject = [
         { title: "Clients", icon: icons.usersIcon("users-icon") },
@@ -137,23 +138,29 @@ export default async function billingTable(bills, noBillsMessage) {
 const disconnected = window.connectionStatusTypes.Disconnected
 const connected = window.connectionStatusTypes.Connected
 
+/**
+ * Renders the billing table based on the provided billing data.
+ * 
+ * @param {Array} bills - An array of billing data.
+ * @param {string} noBillsMessage - The message to display when there are no billing records.
+ * @returns {string} The HTML representation of the billing table.
+ */
 export function renderTable(bills, noBillsMessage) {
 
     if (noBillsMessage) {
         return `<p style="margin: 1rem">${noBillsMessage}</p>`
     }
 
-    return bills.map((billing, index) => {
-                                        
-        const hasStatuses = billing.connectionStatuses.length > 0
-        const latest = billing.connectionStatuses[0].status
+    return bills
+        .map((billing, index) => {
+            const hasStatuses = billing.connectionStatuses.length > 0
+            const latest = billing.connectionStatuses[0].status
 
-        const status = hasStatuses ? latest : null
+            const status = hasStatuses ? latest : null
+            const clientDisconnected = !!(status !== null && status !== connected && status === disconnected)
 
-        const clientDisconnected = !!(status !== null && status !== connected && status === disconnected)
-
-        return new BillingRow(billing, clientDisconnected, index)
-
-    }).join("")
-
+            return new BillingRow(billing, clientDisconnected, index)
+        })
+        .join("")
 }
+  

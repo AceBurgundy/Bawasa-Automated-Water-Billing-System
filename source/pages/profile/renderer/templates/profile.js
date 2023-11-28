@@ -6,7 +6,14 @@ import Input from "../../../../components/Input.js"
 
 import "../../../../utilities/constants.js"
 
-export default function getTemplate(forEdit, user) { 
+/**
+ * renders profile for the current user
+ * 
+ * @function profileTemplate
+ * @param {boolean} forEdit - True if the form will be used for editing profile data, false otherwise.
+ * @param {Object} user - The current_user session data
+ */
+export default function (forEdit, user) { 
     
     const { 
         userRelationshipTypes,

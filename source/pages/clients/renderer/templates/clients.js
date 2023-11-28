@@ -1,14 +1,20 @@
+// user
 import { current_user } from "../../../../assets/scripts/user.js"
+
+// icons
 import { icons } from "../../../../assets/scripts/icons.js"
+
+// row
 import ClientRow from "../components/ClientRow.js"
 
 /**
  * Generates an HTML template for the client table section.
  *
  * @async
- * @returns {Promise<string>} - the HTML template for the client table section.
+ * @function clientTemplate
+ * @returns {Promise<string>} the HTML template for the client table section.
  */
-export default async function clientTable() {
+export default async function () {
 
     let [clients, noClientsMessage] = await retrieveClients()
 
@@ -148,7 +154,7 @@ return template
  *
  * @param {Array<Object>} clients - An array of client objects to be displayed in the table.
  * @param {string|null} noClientsMessage - A message to display when there are no clients, or null if there are clients.
- * @returns {string} - The HTML representation of the client table.
+ * @returns {string} The HTML representation of the client table.
  */
 export function renderTable(clients, noClientsMessage) {
 

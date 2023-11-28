@@ -7,7 +7,12 @@ import { icons } from "../../../../assets/scripts/icons.js";
 // form
 import BillForm from "./BillForm.js";
 
-export default class BillingRow {
+/**
+ * 
+ * @class BillingRow
+ * @description A class component which returns a string html of a billing table
+ */
+export default class {
 
     constructor(account, isDisconnected, index) {
 

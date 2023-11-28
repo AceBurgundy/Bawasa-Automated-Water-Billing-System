@@ -175,7 +175,7 @@ class Response {
 	/**
 	 * Returns the constructed response object.
 	 * @method
-	 * @returns {Object} - The response object.
+	 * @returns {Object} The response object.
 	 */
 	getResponse = () => this.response;
 }

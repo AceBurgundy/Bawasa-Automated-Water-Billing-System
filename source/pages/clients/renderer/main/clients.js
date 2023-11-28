@@ -1,24 +1,26 @@
 // helpers
 import { queryElements, transition, getById } from "../../../../assets/scripts/helper.js"
-import { makeToastNotification } from "../../../../assets/scripts/toast.js"
-
-// templates
-import clientTable, { renderTable } from "../templates/clients.js"
+import makeToastNotification from "../../../../assets/scripts/toast.js"
 
 // main
-import renderClientBuilder from "../../../client-builder/renderer/main/client-builder.js"
-import renderBillingSection from "../../../billing/renderer/main/billing.js"
-import renderLogin from "../../../authentication/renderer/main/login.js"
-import renderProfile from "../../../profile/renderer/main/profile.js"
+import clientBuilder from "../../../client-builder/renderer/main/client-builder.js"
+import billing from "../../../billing/renderer/main/billing.js"
+import login from "../../../authentication/renderer/main/login.js"
+import profile from "../../../profile/renderer/main/profile.js"
+
+// templates
+import clientTemplate, { renderTable } from "../templates/clients.js"
 
 /**
  * Renders the client section, including client data table, options, and event handlers.
  * 
- * @returns {Promise<void>} - Resolves when the client section is fully rendered.
+ * @async
+ * @function clients
+ * @returns {Promise<void>} Resolves when the client section is fully rendered.
  */
-export default async function renderClientSection() {
+export default async function () {
 
-    getById("container").innerHTML += await clientTable()
+    getById("container").innerHTML += await clientTemplate()
 
     setUpTableSearch()
     setTimeout(() => getById("section-type-container").classList.add("active"), 500)
@@ -28,19 +30,19 @@ export default async function renderClientSection() {
         switch (event.target.id) {
 
             case "billing":
-                transition(renderBillingSection)
+                transition(billing)
                 break;
             
             case "profile":
-                transition(renderProfile)
+                transition(profile)
                 break;
             
             case 'logout':
-                transition(renderLogin)
+                transition(login)
                 break;
             
             case "new-connection":
-                transition(renderClientBuilder)
+                transition(clientBuilder)
                 break;
             
             case "client-options-toggle":
@@ -91,7 +93,7 @@ function setUpTableSearch() {
  * @param {Element[]} tableRows - The table rows to be filtered.
  * @param {string} searchValue - The value to be searched.
  * @param {string} searchFilterValue - The selected filter for the search.
- * @returns {boolean} - True if validation passed, false otherwise.
+ * @returns {boolean} True if validation passed, false otherwise.
  */
 function inputAllowed(tableRows, searchValue, searchFilterValue) {
 

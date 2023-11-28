@@ -69,7 +69,7 @@ async function getAllClients() {
  *
  * @async
  * @param {string} clientId - The ID of the client.
- * @returns {Promise<Client|null>} - Returns the client object with bills and connection status, or null if not found.
+ * @returns {Promise<Client|null>} Returns the client object with bills and connection status, or null if not found.
  */
 async function getBillAndStatus(clientId) {
 
@@ -121,7 +121,7 @@ async function getBillAndStatus(clientId) {
  *
  * @async
  * @param {number} billId - The ID of the client bill to retrieve.
- * @returns {Promise<ClientBill|null>} - A promise that resolves to the client bill data or null if not found.
+ * @returns {Promise<ClientBill|null>} A promise that resolves to the client bill data or null if not found.
  */
 async function getBillById(billId) {
 
@@ -169,7 +169,7 @@ async function getPreviousBillExcess(billId) {
  * @async
  * @param {number} clientId - The ID of the client for whom the bill is created.
  * @param {string} monthlyReading - The first reading value.
- * @returns {Promise<Response>} - A promise that resolves to the created bill or null if creation fails.
+ * @returns {Promise<Response>} A promise that resolves to the created bill or null if creation fails.
  */
 async function createNewBill(clientId, monthlyReading) {
     
@@ -285,7 +285,7 @@ async function insertSecondReading(bill, monthlyReading) {
  * Retrieves a client bill along with its associated partial payments.
  *
  * @param {number} billId - The ID of the client bill to retrieve.
- * @returns {Promise<ClientBill|null>} - A promise that resolves to the client bill data with partial payments or null if not found.
+ * @returns {Promise<ClientBill|null>} A promise that resolves to the client bill data with partial payments or null if not found.
  */
 async function getBillWithPartialPayments(billId) {
     
@@ -452,7 +452,7 @@ async function handleUnderpaidBill(bill, totalPartialPayments, amountPaid) {
  * @param {Object} bill - The bill object.
  * @param {number} amountPaid - The amount paid in the current transaction.
  * @param {string} clientId - The ID of the client.
- * @returns {Promise<Response>} - An new Response() object with the result message and status.
+ * @returns {Promise<Response>} An new Response() object with the result message and status.
  */
 async function handleUnpaidBill(billQuery, bill, amountPaid, clientId) {
 
@@ -583,7 +583,7 @@ async function createNewPartialPayment(bill, amountPaid, manager) {
  * @param {string} clientId - The ID of the client.
  * @param {string} connectionStatus - The connection status.
  * @param {Transaction|null} manager - Optional Sequelize transaction manager.
- * @returns {Promise<boolean>} - Returns true if reconnection is successful, false otherwise.
+ * @returns {Promise<boolean>} Returns true if reconnection is successful, false otherwise.
  */
 async function reconnectClient(clientId, connectionStatus, manager = null) {
 

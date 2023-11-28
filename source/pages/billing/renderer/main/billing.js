@@ -1,23 +1,24 @@
 // helpers
 import { queryElements, transition, getById } from "../../../assets/scripts/helper.js"
-import { makeToastNotification } from "../../../../assets/scripts/toast.js"
+import makeToastNotification from "../../../../assets/scripts/toast.js"
 
 // main
-import renderClientSection from "../../../clients/renderer/main/clients.js"
-import renderLogin from "../../../authentication/renderer/main/login.js"
-import renderProfile from "../../../profile/renderer/main/profile.js"
+import client from "../../../clients/renderer/main/clients.js"
+import login from "../../../authentication/renderer/main/login.js"
+import profile from "../../../profile/renderer/main/profile.js"
 
 // templates
-import billingTable from "../templates/billing.js"
+import billingTemplate from "../templates/billing.js"
 
 /**
- * Renders the billing section, including the table of client accounts and statistics.
+ * @function billing
+ * @description renders the billing section, including the table of client accounts and statistics.
  */
-export default async function renderBillingSection() {
+export default async function () {
 
     const [accounts, message] = await getAccounts()
 
-    const template = await billingTable(accounts, message)
+    const template = await billingTemplate(accounts, message)
 
 	getById("container").innerHTML += template
 
@@ -36,19 +37,19 @@ export default async function renderBillingSection() {
 		switch (targetId) {
 
 			case "billing":
-				transition(renderBillingSection)
+				transition(billing)
 			    break
 			
 			case "clients":
-				transition(renderClientSection)
+				transition(client)
 			    break
 
             case "profile":
-				transition(renderProfile)
+				transition(profile)
 			    break
 
             case "logout":
-                renderLogin()
+                login()
                 break
 
 		}

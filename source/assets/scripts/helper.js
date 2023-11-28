@@ -40,7 +40,7 @@ export function formatDate(date) {
  * Retrieves an HTML element by its ID.
  *
  * @param {string} id - The ID of the HTML element to retrieve.
- * @returns {HTMLElement|null} - The HTML element with the specified ID, or null if not found.
+ * @returns {HTMLElement|null} The HTML element with the specified ID, or null if not found.
  */
 export function getById(id) {
     return document.getElementById(id)
@@ -50,7 +50,7 @@ export function getById(id) {
  * Retrieves the first HTML element that matches a CSS selector.
  *
  * @param {string} tag - The selector to query for.
- * @returns {HTMLElement|null} - The first HTML element that matches the selector, or null if not found.
+ * @returns {HTMLElement|null} The first HTML element that matches the selector, or null if not found.
  */
 export function queryElement(tag) {
     return document.querySelector(tag)
@@ -60,7 +60,7 @@ export function queryElement(tag) {
  * Retrieves a list of HTML elements that match a CSS selector.
  *
  * @param {string} tag - The selector to query for.
- * @returns {NodeList} - A list of HTML elements that match the selector.
+ * @returns {NodeList} A list of HTML elements that match the selector.
  */
 export function queryElements(tag) {
     return document.querySelectorAll(tag)
@@ -69,7 +69,7 @@ export function queryElements(tag) {
 /**
  *
  * @param {string} template - The template literal to be converted to HTML
- * @returns {HTMLElement} - The HTML element generated from the template.
+ * @returns {HTMLElement} The HTML element generated from the template.
  */
 export const generateHTML = template => {
 
@@ -110,7 +110,7 @@ export const camelToDashed = inputString => {
  * Get form data by manually iterating through form fields.
  *
  * @param {HTMLFormElement} formElement - The HTML form element to extract data from.
- * @returns {formFieldData} - A FormData like object containing the form field values.
+ * @returns {formFieldData} A FormData like object containing the form field values.
  */
 export function getFormData(formElement) {
     const formFieldData = {}

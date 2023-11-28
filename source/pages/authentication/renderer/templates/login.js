@@ -1,9 +1,16 @@
+// icons
 import { icons } from "../../../assets/scripts/icons.js"
+
+// component
 import Input from "../../../components/Input.js"
 
 const { isEmpty, isEmail, isOverThan } = window
 
-export const loginTemplate = () => {
+/**
+ * @function loginTemplate
+ * @returns {string} HTML string template of the login section 
+ */
+export default function () {
     return  `
         
         <div id="login" class="page">

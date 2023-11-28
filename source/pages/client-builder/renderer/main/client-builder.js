@@ -1,33 +1,35 @@
 // helpers
 import { toSentenceCase, queryElements, camelToDashed, queryElement, getFormData, transition, getById } from "../../../../assets/scripts/helper.js"
-import { makeToastNotification } from "../../../../assets/scripts/toast.js"
+import makeToastNotification from "../../../../assets/scripts/toast.js"
 
 // main
-import renderBillingSection from "../../../billing/renderer/main/billing.js"
-import renderClientSection from "../../../clients/renderer/main/clients.js"
-import renderProfile from "../../../profile/renderer/main/profile.js"
+import billing from "../../../billing/renderer/main/billing.js"
+import client from "../../../clients/renderer/main/clients.js"
+import profile from "../../../profile/renderer/main/profile.js"
 
 // components
 import DocumentBoard from "../../../../components/DocumentBoard.js"
 import InputCapture from "../../../../components/InputCapture.js"
 
 // templates
-import getTemplate from "../templates/client-builder.js"
+import clientBuilderTemplate from "../templates/client-builder.js"
 
 // constants
 import "../../../../utilities/constants.js"
 
 /**
  * Renders and manages a client registration or edit form.
+ * 
+ * @function clientBuilder
  * @param {boolean} edit - Indicates whether the form is in edit mode.
  * @param {object} clientObject - The client data for pre-filling the form in edit mode.
  */
-export default async function renderClientBuilder(edit, clientObject) {
+export default async function (edit, clientObject) {
 
 	let forEdit = edit || null
 	let clientData = clientObject || null
 
-	getById("container").innerHTML += getTemplate(forEdit, clientData)
+	getById("container").innerHTML += clientBuilderTemplate(forEdit, clientData)
 	setTimeout(() => getById("section-type-container").classList.add("active"), 500)
 	
 	document.onclick = event => {
@@ -36,15 +38,15 @@ export default async function renderClientBuilder(edit, clientObject) {
 
 		switch (targetId) {
 			case "billing":
-				transition(renderBillingSection)
+				transition(billing)
 				break
 			
 			case "clients":
-				transition(renderClientSection)
+				transition(client)
 				break
 
             case "profile":
-                transition(renderProfile)
+                transition(profile)
             	break
 		}
 	}
@@ -140,7 +142,7 @@ export default async function renderClientBuilder(edit, clientObject) {
 
 		if (response.status === "success") {
 			response.toast.forEach(toast => makeToastNotification(toast))
-			transition(renderClientSection)
+			transition(client)
 			return
 		}
 		

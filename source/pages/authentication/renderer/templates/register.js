@@ -1,8 +1,16 @@
-import Select from "../../../components/Select.js"
-import Input from "../../../components/Input.js"
+// icons
 import { icons } from "../../../assets/scripts/icons.js"
 
-export const registerTemplate = () => {
+// components
+import Select from "../../../components/Select.js"
+import Input from "../../../components/Input.js"
+
+/**
+ * 
+ * @function registerTemplate
+ * @returns {string} HTML string template of the register section 
+ */
+export default function () {
 
     const { 
         isBirthDate, 

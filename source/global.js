@@ -1,4 +1,4 @@
-import { makeToastNotification } from "./assets/scripts/helper.js";
+import makeToastNotification from "./assets/scripts/helper.js";
 
 window.addEventListener("click", event => {
 

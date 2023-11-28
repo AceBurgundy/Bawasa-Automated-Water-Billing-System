@@ -2,13 +2,13 @@ import { getById } from "./helper.js";
 
 /**
  * Creates a toast notification element and appends it to the flashes container.
- * @function
+ * @function makeToastNotification
  * @param {String|Array<string>} message - The message or list of messages which will be rendered.
  */
-export function makeToastNotification(message) {
+export default function (message) {
 
     if (Array.isArray(message)) {
-        message.forEach(messageItem => makeToastNotification(messageItem))
+        message.forEach(messageItem => arguments.callee(messageItem))
         return
     }
 

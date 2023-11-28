@@ -37,7 +37,7 @@ class Field {
     /**
      * Cleans attributes by removing disallowed ones and converting them to from attribute: value -> attribute="value".
      * @method
-     * @returns {string} - An string array of cleaned attributes.
+     * @returns {string} An string array of cleaned attributes.
      */
     cleanAttributes() {
         return Object.entries(this.attributes)
@@ -73,7 +73,7 @@ class Field {
     /**
      * Renders the label and error message for the field.
      * @method
-     * @returns {string} - A string containing the label and error message HTML.
+     * @returns {string} A string containing the label and error message HTML.
      */
     renderLabelAndError() {
         const { label } = this.attributes;
@@ -87,8 +87,8 @@ class Field {
      * Renders the specific field element.
      * @method
      * @abstract
-     * @throws {Error} - Throws an error if the method is not implemented by subclasses.
-     * @returns {string} - A string containing the HTML for the field element.
+     * @throws {Error} Throws an error if the method is not implemented by subclasses.
+     * @returns {string} A string containing the HTML for the field element.
      */
     renderField() {
         // This method should be implemented by subclasses (Input and Select)
@@ -99,8 +99,8 @@ class Field {
      * Renders the complete field template.
      * @method
      * @abstract
-     * @throws {Error} - Throws an error if the method is not implemented by subclasses.
-     * @returns {string} - A string containing the HTML for the entire field.
+     * @throws {Error} Throws an error if the method is not implemented by subclasses.
+     * @returns {string} A string containing the HTML for the entire field.
      */
     render() {
 

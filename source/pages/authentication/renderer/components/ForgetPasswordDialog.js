@@ -1,20 +1,15 @@
-import { makeToastNotification } from "../../../../assets/scripts/toast.js";
+// helpers
+import { clearAndHideDialog, fillAndShowDialog, generateHTML, generateUniqueId, getById, getFormData } from "../../../../assets/scripts/helper.js"
+import makeToastNotification from "../../../../assets/scripts/toast.js";
+
+// components
 import Input from "../../../../components/Input.js"
 
-import {
-    clearAndHideDialog,
-    fillAndShowDialog,
-    generateHTML,
-    generateUniqueId,
-    getById,
-    getFormData,
-} from "../../../../assets/scripts/helper.js"
-
 /**
- * Represents a Forget Password Dialog for account recovery.
- * @class
+ * @class ForgetPasswordDialog
+ * @description represents a Forget Password Dialog for account recovery.
  */
-export default class ForgetPasswordDialog {
+export default class {
 
     /**
      * Creates an instance of ForgetPasswordDialog.
@@ -136,7 +131,7 @@ export default class ForgetPasswordDialog {
      * @method
      * @param {Object} formData - The form data containing email and recovery code.
      * @param {HTMLButtonElement} submitButton - The submit button element.
-     * @throws {Error} - Throws an error if the verification fails.
+     * @throws {Error} Throws an error if the verification fails.
      */
     async verifyRecoveryCode(formData, submitButton) {
 
@@ -168,7 +163,7 @@ export default class ForgetPasswordDialog {
      * @method
      * @param {Object} formData - The form data containing email and new password.
      * @param {Event} event - The click event triggering the password change.
-     * @throws {Error} - Throws an error if the password change fails.
+     * @throws {Error} Throws an error if the password change fails.
      */
     async changePassword(formData, event) {
         const response = await window.ipcRenderer.invoke("change-password", {

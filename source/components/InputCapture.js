@@ -1,5 +1,8 @@
+// helpers
 import { camelToDashed, getById } from "../assets/scripts/helper.js"
-import { makeToastNotification } from "../assets/scripts/toast.js"
+import makeToastNotification from "../assets/scripts/toast.js"
+
+// package
 import Webcam from "../assets/scripts/Webcam.js"
 
 export default class InputCapture {

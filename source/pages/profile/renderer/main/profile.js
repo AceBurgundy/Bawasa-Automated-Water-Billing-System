@@ -1,33 +1,33 @@
 // helpers
 import { transition, getById, queryElement, queryElements, getFormData, camelToDashed, toSentenceCase } from "../../../../assets/scripts/helper.js"
-import { makeToastNotification } from "../../../../assets/scripts/toast.js"
+import makeToastNotification from "../../../../assets/scripts/toast.js"
+
+// user
+import { current_user } from "../../../../assets/scripts/user.js"
 
 // main
-import renderClientSection from "../../../clients/renderer/main/clients.js"
-import renderBillingSection from "../../../billing/renderer/main/billing.js"
+import client from "../../../clients/renderer/main/clients.js"
+import billing from "../../../billing/renderer/main/billing.js"
 
 // templates
-import getTemplate from "../templates/profile.js"
+import profileTemplate from "../templates/profile.js"
 
 // constants
 import "../../../../utilities/constants.js"
 
 /**
  * Renders and manages a user registration or edit form.
+ * 
+ * @async
+ * @function profile
  * @param {boolean} edit - Indicates whether the form is in edit mode.
 */
-export default async function renderProfile(forEdit = false) {
+export default async function (forEdit = false) {
 
-    let userData = await window.ipcRenderer.invoke("current_user")
+    const userData = await current_user()
 
-    if (Object.keys(userData).length <= 0) {
-        makeToastNotification("Cannot find user data")
-        return
-    }
-
-	getById("container").innerHTML += getTemplate(forEdit, userData)
-
-	setTimeout(() => { getById("section-type-container").classList.add("active") }, 500)
+	getById("container").innerHTML += profileTemplate(forEdit, userData)
+	setTimeout(() => getById("section-type-container").classList.add("active"), 500)
 
 	window.onclick = event => {
 		
@@ -37,22 +37,22 @@ export default async function renderProfile(forEdit = false) {
 
 		switch (elementId) {
 			case "billing":
-				transition(renderBillingSection)
-			break;
+				transition(billing)
+				break;
 			
 			case "clients":
-				transition(renderClientSection)
-			break
+				transition(client)
+				break
 
 			case "user-register-submit-button":
 				event.preventDefault()
 
 				if (targetText === "Edit") {
-					transition(async () => await renderProfile(true))
+					transition(async () => await profile(true))
 				} else {
 					handleFormSubmit(userData.id)
 				}
-			break
+				break
 		}
 
         if ((target.tagName === "INPUT" || target.tagName === "SELECT") && !forEdit) {

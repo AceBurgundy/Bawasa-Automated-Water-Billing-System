@@ -1,12 +1,12 @@
 import { clearAndHideDialog } from "../../../../assets/scripts/helper.js"
 
 /**
- * Generates a reconnection form template for a client.
- * 
+ * @class ReconnectClientForm
+ * @description generates a reconnection form dialog for a client.
  * @param {Object} client - The client data.
- * @returns {string} - The HTML template for the reconnection form.
+ * @returns {string} The HTML template for the reconnection form.
  */
-export class ReconnectClientForm {
+export default class {
 
     constructor(client) {
 

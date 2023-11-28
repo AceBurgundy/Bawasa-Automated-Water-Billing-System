@@ -1,6 +1,6 @@
 // helpers
 import { clearAndHideDialog, fillAndShowDialog, generateHTML, generateUniqueId, getById } from "../../../../assets/scripts/helper.js"
-import { makeToastNotification } from "../../../../assets/scripts/toast.js"
+import makeToastNotification from "../../../../assets/scripts/toast.js"
 
 // row
 import BillingRow from "./BillingRow.js"
@@ -8,11 +8,12 @@ import BillingRow from "./BillingRow.js"
 /**
  * Generates a ${this.billType} bill entry form template for a client's billing record.
  *
+ * @class BillForm
  * @param {Object} formData - The form data containing client details and bills.
  * @param {boolean} forNewBill - Indicates whether the form is for a ${this.billType} bill entry.
- * @returns {string} - The HTML template for the ${this.billType} bill entry form.
+ * @returns {string} The HTML template for the ${this.billType} bill entry form.
  */
-export default class BillForm {
+export default class {
 
     constructor(rowId, billType, formData, forNewBill) {
         

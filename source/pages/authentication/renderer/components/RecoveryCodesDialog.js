@@ -1,17 +1,16 @@
-import { makeToastNotification } from "../../../../assets/scripts/toast.js";
+// helpers
+import { clearAndHideDialog, fillAndShowDialog, generateUniqueId, getById } from "../../../../assets/scripts/helper.js";
+import makeToastNotification from "../../../../assets/scripts/toast.js";
+
+// icons
 import { icons } from "../../../../assets/scripts/icons.js";
 
-import { 
-    clearAndHideDialog, 
-    fillAndShowDialog,
-    generateUniqueId, 
-    getById 
-} from "../../../../assets/scripts/helper.js";
-
 /**
- * Shows a list of recovery codes for the user
+ * 
+ * @class RecoveryCodesDialog
+ * @description shows a list of recovery codes for the user
  */
-export default class RecoveryCodesDialog {
+export default class {
 
     constructor(recoveryCodes) {
         
