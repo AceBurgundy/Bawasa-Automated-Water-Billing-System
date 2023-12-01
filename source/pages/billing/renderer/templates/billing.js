@@ -1,12 +1,16 @@
+/* eslint-disable indent */
+
+// helpers
+import {sentenceToDashed} from '../../../../assets/scripts/helper.js';
+
 // user
-import { current_user } from "../../../../assets/scripts/user.js"
+import currentUser from '../../../../assets/scripts/current-user.js';
 
 // icons
-import { icons } from "../../../../assets/scripts/icons.js"
+import {icons} from '../../../../assets/scripts/icons.js';
 
 // row
-import BillingRow from "../components/BillingRow.js"
-
+import BillingRow from '../components/BillingRow.js';
 /**
  * Generate a billing table string HTML template based on the provided billing data.
  *
@@ -14,153 +18,176 @@ import BillingRow from "../components/BillingRow.js"
  * @function billingTemplate
  * @param {Array<Object>} bills - An array of billing data objects.
  * @param {string} noBillsMessage - Optional response message.
- * @returns {Promise<string>} Generated HTML for the billing table.
+ * @return {Promise<string>} Generated HTML for the billing table.
  */
-export default async function (bills, noBillsMessage) {
-                
-    const navigationObject = [
-        { title: "Clients", icon: icons.usersIcon("users-icon") },
-        { title: "Billing", icon: icons.billIcon("bill-icon") },
-        { title: "Logout", icon: icons.powerIcon("power-icon") },
-    ]
+export default async function(bills, noBillsMessage) {
+  const navigationObject = [
+    {title: 'Clients', icon: icons.usersIcon('users-icon')},
+    {title: 'Billing', icon: icons.billIcon('bill-icon')},
+    {title: 'Logout', icon: icons.powerIcon('power-icon')}
+  ];
 
-    return `
-        <section id="section-type-container" class="page">
+  return `
+    <section id='section-type-container' class='page'>
 
-        <nav>
-            <div id="nav-items">
+      <nav>
+        <div id='nav-items'>
+          ${
+            navigationObject.map(navigation => {
+              const active = navigation.title === 'Billing' ? 'active' : '';
+              return `
+                <div id='${navigation.title.toLowerCase()}' class='nav-item ${active}'>
+                    <div>${navigation.icon}</div>
+                    <p>${navigation.title}</p>
+                </div>
+              `;
+            }).join('\n')
+          }
+        </div>
+        <div id='profile' class='nav-item'>
+            <div>${icons.userIcon('user-icon')}</div>
+            <p>Profile</p>
+        </div>
+      </nav>
+
+      <section>
+
+        <div id='clients-section' class='content'>
+
+          <div class='content__top'>
+            <div>
+            <img src='assets/images/Logo.png' alt=''>
+              <p class='content__top-title'>
                 ${
-                    navigationObject.map(navigation => {
-                        return `
-                            <div id="${ navigation.title.toLowerCase() }" class="nav-item ${ navigation.title === "Billing" ? "active" : "" }">
-                                <div>${ navigation.icon }</div>
-                                <p>${ navigation.title }</p>
-                            </div>
-                        `        
-                    }).join("\n")
+                await currentUser() ?
+                  `Welcome, ${await currentUser().firstName}` :
+                  `Welcome User`
                 }
+              </p>
             </div>
-            <div id="profile" class="nav-item">
-                <div>${ icons.userIcon("user-icon") }</div>
-                <p>Profile</p>
+            <img src='assets/images/Logo.png' alt=''>
+          </div>
+
+          <div class='content__center'>
+
+            <div class='content__center-left'>
+              <p class='content__center-left__section-title'>
+                Billing
+              </p>
+              <p class='content__center-left__section-description'>
+                Check the latest reports and updates
+              </p>
             </div>
-        </nav>
 
-        <section>
+            <div class='content__center-right'>
 
-            <div id="clients-section" class="content">
-
-                <div class="content__top">
-                    <div>
-                        <img src="assets/images/Logo.png" alt="">
-                        <p class="content__top-title">
-                            ${ await current_user() ? `Welcome, ${await current_user().firstName}` : `Welcome User` }
+              <div id='statistics'>
+                ${
+                  ['Paid', 'Unpaid', 'Overpaid'].map(statistic => {
+                    return `
+                      <div class='statistics__child'>
+                        <p>
+                          <span id='${statistic.toLowerCase()}-clients'></span>
+                          ${statistic}
                         </p>
-                    </div>
-                    <img src="assets/images/Logo.png" alt="">
-                </div>
-                <div class="content__center">
-                    <div class="content__center-left">
-                        <p class="content__center-left__section-title">Billing</p>
-                        <p class="content__center-left__section-description">Check the latest reports and updates</p>
-                    </div>
-                    <div class="content__center-right">
+                      </div>    
+                    `;
+                  }).join('\n')
+                }
+              </div>
 
-                        <div id="statistics">
-                            ${
-                                ["Paid", "Unpaid", "Overpaid"].map(statistic => {
-                                    return `
-                                        <div class="statistics__child">
-                                            <p>
-                                                <span id="${ statistic.toLowerCase() }-clients"></span>
-                                                ${ statistic }
-                                            </p>
-                                        </div>    
-                                    `
-                                }).join("\n")
-                            }
-                        </div>
-                        
-                        <div id="search-box">
-                            <input
-                                id="billing-search-box-input"
-                                type="text"
-                                class="borderless-input search-box-input"
-                                placeholder="Search recent bill by meter or account number">
+              <div id='search-box'>
+                <input
+                    id='billing-search-box-input'
+                    type='text'
+                    class='borderless-input search-box-input'
+                    placeholder='Search recent bill by meter or account number'>
 
-                            <select id="billing-search-box-filter" class="search-box-filter">
-                                <option selected disable>Search by</option>
-                                ${
-                                    [ "Account Number", "Meter Number", "Full Name" ].map(selectOption => {
-                                        const split = selectOption.split(' ')
-                                        const newValue = split.length >= 2 ? [split[0].toLowerCase(), split[1]].join('') : selectOption
-                                        return `
-                                            <option value="${ newValue }">${ selectOption }</option>
-                                        `
-                                    }).join("\n")
-                                }
-                            </select>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div class="content__bottom">
-
-                    <div id="table-data">
-
-                        <div id="table-data-title">
-                            <p>Billing</p>
-                        </div>
-
-                        <div id="table-data-headers" class="account">
-                        ${
-                            [ "Account #", "Name", "Meter Number", "1st Reading", "2nd Reading", "Consumed", "Bill", "Due Date", "Status", "Penalty", "Excess", "Balance", "Total Paid", "Disconnection Date", "Menu" ].map(header => {
-                                return `
-                                    <div class="table-data-headers__item">
-                                        <p>${ header }</p>
-                                    </div>
-                                `
-                            }).join("\n")
-                        }
-                        </div>
-                        <div id="table-data-row">
-                            ${
-                                renderTable(bills, noBillsMessage)
-                            }
-                        </div>
-                </div>
+                <select id='billing-search-box-filter' class='search-box-filter'>
+                  <option selected disable>Search by</option>
+                  ${
+                    ['Account Number', 'Meter Number', 'Full Name'].map(option => {
+                      return `
+                        <option value='${sentenceToDashed(option)}'>
+                          ${option}
+                        </option>
+                      `;
+                    }).join('\n')
+                  }
+                </select>
+              </div>
             </div>
-        </section>
-    `
+          </div>
+          
+          <div class='content__bottom'>
+            <div id='table-data'>
+              <div id='table-data-title'>
+                <p>Billing</p>
+              </div>
+              <div id='table-data-headers' class='account'>
+                ${
+                  [
+                    'Account #',
+                    'Name',
+                    'Meter Number',
+                    '1st Reading',
+                    '2nd Reading',
+                    'Consumed',
+                    'Bill',
+                    'Due Date',
+                    'Status',
+                    'Penalty',
+                    'Excess',
+                    'Balance',
+                    'Total Paid',
+                    'Disconnection Date',
+                    'Menu'
+                  ].map(header => {
+                    return `
+                      <div class='table-data-headers__item'>
+                        <p>${header}</p>
+                      </div>
+                    `;
+                  }).join('\n')
+                }
+              </div>
+              <div id='table-data-row'>
+                ${ renderTable(bills, noBillsMessage) }
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </section>
+  `;
 }
 
-const disconnected = window.connectionStatusTypes.Disconnected
-const connected = window.connectionStatusTypes.Connected
+const disconnected = window.connectionStatusTypes.Disconnected;
+const connected = window.connectionStatusTypes.Connected;
 
 /**
  * Renders the billing table based on the provided billing data.
- * 
+ *
  * @param {Array} bills - An array of billing data.
  * @param {string} noBillsMessage - The message to display when there are no billing records.
- * @returns {string} The HTML representation of the billing table.
+ * @return {string} The HTML representation of the billing table.
  */
 export function renderTable(bills, noBillsMessage) {
+  if (noBillsMessage) {
+    return `<p style='margin: 1rem'>${noBillsMessage}</p>`;
+  }
 
-    if (noBillsMessage) {
-        return `<p style="margin: 1rem">${noBillsMessage}</p>`
-    }
+  return bills
+      .map((billing, index) => {
+        const hasStatuses = billing.connectionStatuses.length > 0;
+        const latest = billing.connectionStatuses[0].status;
 
-    return bills
-        .map((billing, index) => {
-            const hasStatuses = billing.connectionStatuses.length > 0
-            const latest = billing.connectionStatuses[0].status
+        const status = hasStatuses ? latest : null;
+        const statusNotDisconnected = status !== connected && status === disconnected;
+        const clientDisconnected = status !== null && statusNotDisconnected;
 
-            const status = hasStatuses ? latest : null
-            const clientDisconnected = !!(status !== null && status !== connected && status === disconnected)
-
-            return new BillingRow(billing, clientDisconnected, index)
-        })
-        .join("")
+        return new BillingRow(billing, clientDisconnected, index);
+      })
+      .join('');
 }
-  
+

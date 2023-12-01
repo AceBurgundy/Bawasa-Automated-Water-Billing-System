@@ -1,7 +1,7 @@
 const userRelationshipTypes = {
-    Single: "Single",
-    Married: "Married",
-    RatherNotSay: "Rather not say",
+    Single: 'Single',
+    Married: 'Married',
+    RatherNotSay: 'Rather not say',
 }
 
 /**
@@ -12,12 +12,12 @@ const userRelationshipTypes = {
  */
 const isEmpty = value => {
 
-    if (value === null) return { passed: false, message: `${isEmpty.name} validation cannot work without a value`}
+    if (value === null) return {passed: false, message: `${isEmpty.name} validation cannot work without a value`}
     
-    return value === "" ?
-        { passed: false, message: "Cannot be empty" }
+    return value === '' ?
+        {passed: false, message: 'Cannot be empty'}
     :
-        { passed: true }
+        {passed: true}
 }
 
 /**
@@ -28,17 +28,17 @@ const isEmpty = value => {
  */
 const isEmail = value => {
 
-    if (value === null) return { passed: false, message: `${isEmail.name} validation cannot work without a value`}
+    if (value === null) return {passed: false, message: `${isEmail.name} validation cannot work without a value`}
 
-    if (!value.includes("@")) {
-        return { passed: false, message: "Missing '@'" }
-    }
+    if (!value.includes('@')) {
+        return {passed: false, message: 'Missing '@''}
+   }
 
-    if (!value.includes(".")) {
-        return { passed: false, message: "Missing 'domain (.domain)'" }
-    }
+    if (!value.includes('.')) {
+        return {passed: false, message: 'Missing 'domain (.domain)''}
+   }
 
-    return { passed: true }
+    return {passed: true}
 }
 
 /**
@@ -50,12 +50,12 @@ const isEmail = value => {
  */
 const notIn = (list, value) => {
 
-    if (value === null) return { passed: false, message: `${notIn.name} validation cannot work without a value`}
+    if (value === null) return {passed: false, message: `${notIn.name} validation cannot work without a value`}
 
     return !list.includes(value) ?
-        { passed: false, message: `${value} not among the choices` }
+        {passed: false, message: `${value} not among the choices`}
     :
-        { passed: true }
+        {passed: true}
 
 }
 
@@ -67,7 +67,7 @@ const notIn = (list, value) => {
  */
 const hasNoSymbols = value => {
     
-    if (!value) return { passed: false, message: `${hasNoSymbols.name} validation cannot work without a value`}
+    if (!value) return {passed: false, message: `${hasNoSymbols.name} validation cannot work without a value`}
     
     const regex = /[^a-zA-Z0-9]/g;
 
@@ -75,10 +75,10 @@ const hasNoSymbols = value => {
     const result = !regex.test(String(value).trim());
 
     if (!result) {
-        return { passed: false, message: "String contains symbols" }
-    }
+        return {passed: false, message: 'String contains symbols'}
+   }
 
-    return { passed: true }
+    return {passed: true}
 }
 
 
@@ -90,14 +90,14 @@ const hasNoSymbols = value => {
  */
 const isBirthDate = value => {
 
-    if (value === null) return { passed: false, message: `${isBirthDate.name} validation cannot work without a value`}
+    if (value === null) return {passed: false, message: `${isBirthDate.name} validation cannot work without a value`}
 
     const enteredDate = new Date(value)
     
     return isNaN(enteredDate.getTime()) ?
-        { passed: false, message: "Please enter a valid birthdate mm/dd/yyyy" }
+        {passed: false, message: 'Please enter a valid birthdate mm/dd/yyyy'}
     :
-        { passed: true }
+        {passed: true}
 
 }
 
@@ -109,14 +109,14 @@ const isBirthDate = value => {
  */
 const isValidPhoneNumber = value => {
 
-    if (value === null) return { passed: false, message: ` ${isValidPhoneNumber.name} validation cannot work without a value`}
+    if (value === null) return {passed: false, message: ` ${isValidPhoneNumber.name} validation cannot work without a value`}
 
     const phoneNumberRegex = /^\d{10}$/
 
     return !phoneNumberRegex.test(value) ?
-        { passed: false, message: `${value} is not a valid phone number`}
+        {passed: false, message: `${value} is not a valid phone number`}
     :
-        { passed: true }
+        {passed: true}
 
 }
 
@@ -132,20 +132,20 @@ const isValidPhoneNumber = value => {
  */
 const isOverThan = (start, limit, value) => {
 
-    if (value === null) return { passed: false, message: `${isOverThan.name} validation cannot work without a value`}
+    if (value === null) return {passed: false, message: `${isOverThan.name} validation cannot work without a value`}
 
-    const { passed } = isEmpty(value)
+    const {passed} = isEmpty(value)
 
-    if (!passed) return { passed: false, message: passed.message }
+    if (!passed) return {passed: false, message: passed.message}
 
     const number = isNaN(parseInt(value)) ? value.length : value
 
     return number > limit ?
-        { passed: false, message: `Cannot be greater than ${limit}` }
+        {passed: false, message: `Cannot be greater than ${limit}`}
     : number < start ?
-        { passed: false, message: `Cannot be lesser than ${start}` }
+        {passed: false, message: `Cannot be lesser than ${start}`}
     :   
-        { passed: true }
+        {passed: true}
 
 }
 
@@ -162,7 +162,7 @@ function validateFormData(formData) {
 
     let errors = {
         status: true,
-    }
+   }
 
     const longestRelationshipOption = Object
         .values(userRelationshipTypes)
@@ -224,12 +224,12 @@ function validateFormData(formData) {
         mainAddressPostalCode: [[isEmpty], [isOverThan, 5, 9999]],
 
         mainAddressDetails: [[isEmpty], [isOverThan, 5, 255]],
-    }
+   }
 
     const entries = Object.entries(formData)
 
     for (const [key, dirtyValue] of entries) {
-        if (typeof dirtyValue !== "object") {
+        if (typeof dirtyValue !== 'object') {
             const value = dirtyValue.trim()
 
             if (key in validations) {
@@ -237,20 +237,20 @@ function validateFormData(formData) {
                     const response = validator(...args, value)
 
                     if (response.passed === false) {
-                        errors["status"] = false
-                        errors["field"] = key
-                        errors["message"] = response.message
+                        errors['status'] = false
+                        errors['field'] = key
+                        errors['message'] = response.message
                         break
-                    }
-                }
-            }
-        }
-    }
+                   }
+               }
+           }
+       }
+   }
 
     return errors
 }
 
-if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
     module.exports = {
         isEmpty,
         isEmail,
@@ -259,7 +259,7 @@ if (typeof module !== "undefined" && typeof module.exports !== "undefined") {
         isValidPhoneNumber,
         validateFormData,
         hasNoSymbols
-    }
+   }
 } else {
     window.isEmpty = isEmpty
     window.isEmail = isEmail

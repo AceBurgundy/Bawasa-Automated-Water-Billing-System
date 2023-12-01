@@ -1,116 +1,120 @@
 // models
-const ClientConnectionStatus = require("../../../../models/ClientConnectionStatus")
-const ClientPhoneNumber = require("../../../../models/ClientPhoneNumber")
-const ClientAddress = require("../../../../models/ClientAddress")
-const ClientFile = require("../../../../models/ClientFile")
-const Client = require("../../../../models/Client")
+const ClientConnectionStatus = require('../../../../models/ClientConnectionStatus');
+const ClientPhoneNumber = require('../../../../models/ClientPhoneNumber');
+const ClientAddress = require('../../../../models/ClientAddress');
+const ClientFile = require('../../../../models/ClientFile');
+const Client = require('../../../../models/Client');
 
 // constants
-const { connectionStatusTypes } = require("../../../utilities/constants")
+const {connectionStatusTypes} = require('../../../utilities/constants');
 
 // utilities
-const exportRecord = require("../../../utilities/export")
-const Response = require("../../../utilities/Response")
+const exportRecord = require('../../../utilities/export');
+const Response = require('../../../utilities/Response');
 
-const { 
-    generateNextAccountOrBillNumber,
-    joinAndResolve,
-} = require("../../../utilities/helpers")
+const {
+  generateNextAccountOrBillNumber,
+  joinAndResolve
+} = require('../../../utilities/helpers');
 
-const { Op } = require("sequelize")
-const bcrypt = require("bcrypt")
-const crypto = require("crypto")
-const fs = require("fs-extra")
-const path = require("path")
+const {Op} = require('sequelize');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const fs = require('fs-extra');
+const path = require('path');
 
+// eslint-disable-next-line no-unused-vars
+const requiredFormFields = {
+  presentAddressPostalCode: 'Present Address Postal Code',
+  presentAddressBarangay: 'Present Address Barangay',
+  presentAddressProvince: 'Present Address Province',
+  mainAddressPostalCode: 'Main Address Postal Code',
+  mainAddressBarangay: 'Main Address Barangay',
+  mainAddressProvince: 'Main Address Province',
+  presentAddressCity: 'Present Address City',
+  relationshipStatus: 'Relationship Status',
+  mainAddressCity: 'Main Address City',
+  phoneNumber: 'Phone Number',
+  middleName: 'Middle Name',
+  occupation: 'Occupation',
+  firstName: 'First Name',
+  birthDate: 'Birthdate',
+  lastName: 'Last Name',
+  email: 'Email',
+  age: 'Age'
+};
 
-const clientFormFields = {
-    presentAddressPostalCode: "Present Address Postal Code",
-    presentAddressBarangay: "Present Address Barangay",
-    presentAddressProvince: "Present Address Province",
-    mainAddressPostalCode: "Main Address Postal Code",
-    mainAddressBarangay: "Main Address Barangay",
-    mainAddressProvince: "Main Address Province",
-    presentAddressCity: "Present Address City",
-    relationshipStatus: "Relationship Status",
-    mainAddressCity: "Main Address City",
-    phoneNumber: "Phone Number",
-    middleName: "Middle Name",
-    occupation: "Occupation",
-    firstName: "First Name",
-    birthDate: "Birthdate",
-    lastName: "Last Name",
-    email: "Email",
-    age: "Age"
-}
+const PROFILE_PATH = '../../assets/images/clients/profile';
 
-const PROFILE_PATH = "../../assets/images/clients/profile"
+const getFilePath = filename => joinAndResolve([__dirname, '../../assets/files/'], filename);
 
-const getFilePath = filename => joinAndResolve([__dirname, "../../assets/files/"], filename)
-
+/**
+ * Creates a new client with the provided form data using Sequelize models.
+ * @async
+ * @function
+ * @param {object} formData - The form data for creating the client.
+ * @param {object} manager - The Sequelize transaction manager for atomic operations.
+ * @throws {Error} Throws a custom error if the creation fails.
+ * @return {Promise<object>} A Promise that resolves to the created client.
+ */
 async function createClient(formData, manager) {
+  let client = null;
 
-    let client = null
+  try {
+    client = await Client.create({
 
-    try {
-        
-        client = await Client.create({
+      accountNumber: await generateNextAccountOrBillNumber('Client'),
+      firstName: formData.firstName,
+      middleName: formData.middleName,
+      lastName: formData.lastName,
+      extension: formData.extension,
+      relationshipStatus: formData.relationshipStatus,
+      birthDate: formData.birthDate,
+      age: formData.age,
+      email: formData.email,
+      occupation: formData.occupation,
+      profilePicture: 'user.webp',
+      housePicture: 'template_house.webp',
+      meterNumber: formData.meterNumber,
+      mainAddress: {
+        street: formData.mainAddressStreet,
+        subdivision: formData.mainAddressSubdivision,
+        barangay: formData.mainAddressBarangay,
+        city: formData.mainAddressCity,
+        province: formData.mainAddressProvince,
+        postalCode: formData.mainAddressPostalCode,
+        details: formData.mainAddressDetails
+      },
+      presentAddress: {
+        street: formData.presentAddressStreet,
+        subdivision: formData.presentAddressSubdivision,
+        barangay: formData.presentAddressBarangay,
+        city: formData.presentAddressCity,
+        province: formData.presentAddressProvince,
+        postalCode: formData.presentAddressPostalCode,
+        details: formData.presentAddressDetails
+      }
+    },
+    {
+      include: [
+        {model: ClientAddress, as: 'mainAddress'},
+        {model: ClientAddress, as: 'presentAddress'}
+      ],
+      transaction: manager
+    });
 
-            accountNumber: await generateNextAccountOrBillNumber("Client"),
-            firstName: formData.firstName,
-            middleName: formData.middleName,
-            lastName: formData.lastName,
-            extension: formData.extension,
-            relationshipStatus: formData.relationshipStatus,
-            birthDate: formData.birthDate,
-            age: formData.age,
-            email: formData.email,
-            occupation: formData.occupation,
-            profilePicture: "user.webp",
-            housePicture: "template_house.webp",
-            meterNumber: formData.meterNumber,
-            mainAddress: {
-                street: formData.mainAddressStreet,
-                subdivision: formData.mainAddressSubdivision,
-                barangay: formData.mainAddressBarangay,
-                city: formData.mainAddressCity,
-                province: formData.mainAddressProvince,
-                postalCode: formData.mainAddressPostalCode,
-                details: formData.mainAddressDetails
-            },
-            presentAddress: {
-                street: formData.presentAddressStreet,
-                subdivision: formData.presentAddressSubdivision,
-                barangay: formData.presentAddressBarangay,
-                city: formData.presentAddressCity,
-                province: formData.presentAddressProvince,
-                postalCode: formData.presentAddressPostalCode,
-                details: formData.presentAddressDetails
-            }
-        },
-        {
-            include: [
-                { model: ClientAddress, as: "mainAddress" },
-                { model: ClientAddress, as: "presentAddress" }
-            ],
-            transaction: manager
-        })
+    await createNewPhoneNumber(client.id, formData.phoneNumber, manager);
+    await createNewConnectionStatus(client.id, manager);
+  } catch (error) {
+    console.log(error);
+    if (error.type === 'custom') throw error;
 
-        await createNewPhoneNumber(client.id, formData.phoneNumber, manager)
-        await createNewConnectionStatus(client.id, manager)
+    const customError = new Error('Failed to create a new client');
+    customError['type'] = 'custom';
+    throw customError;
+  }
 
-    } catch (error) {
-        
-        console.log(error)
-        if (error.type === "custom") throw error
-
-        const customError = new Error("Failed to create a new client")
-        customError["type"] = "custom"
-        throw customError
-    }
-
-    return client
-
+  return client;
 }
 
 /**
@@ -127,20 +131,19 @@ async function createClient(formData, manager) {
  * in saving the new phone number.
  */
 async function createNewPhoneNumber(clientId, phoneNumber, manager) {
+  const whereClause = {
+    clientId: clientId,
+    phoneNumber: phoneNumber
+  };
 
-    const whereClause = { 
-        clientId: clientId, 
-        phoneNumber: phoneNumber 
-    }
-
-    try {
-        await ClientPhoneNumber.create(whereClause, { transaction: manager });
-    } catch (error) {
-        console.log(error)
-        const customError = new Error("Client not saved. Error in saving new phone number")
-        customError["type"] = "custom"
-        throw customError
-    }
+  try {
+    await ClientPhoneNumber.create(whereClause, {transaction: manager});
+  } catch (error) {
+    console.log(error);
+    const customError = new Error('Client not saved. Error in saving new phone number');
+    customError['type'] = 'custom';
+    throw customError;
+  }
 }
 
 /**
@@ -157,64 +160,63 @@ async function createNewPhoneNumber(clientId, phoneNumber, manager) {
  * if the provided connection status type is not valid.
  */
 async function createNewConnectionStatus(clientId, manager) {
+  const whereClause = {
+    clientId: clientId,
+    status: connectionStatusTypes.Connected
+  };
 
-    const whereClause = { 
-        clientId : clientId, 
-        status : connectionStatusTypes.Connected 
+  try {
+    await ClientConnectionStatus.create(whereClause, {transaction: manager});
+  } catch (error) {
+    console.log(error);
+
+    const customError = new Error('Client not saved. Failed to add connection status.');
+    customError['type'] = 'custom';
+
+    if (error.name === 'SequelizeValidationError') {
+      const sqlErrorMessage = error.message.split(': ')[1];
+      customError['message'] = sqlErrorMessage + ' please choose the correct connection status';
     }
 
-    try {
-        await ClientConnectionStatus.create(whereClause, { transaction: manager })
-    } catch (error) {
-
-        console.log(error)
-
-        const customError = new Error("Client not saved. Failed to add connection status to new client")
-        customError["type"] = "custom"
-
-        if (error.name === "SequelizeValidationError") {
-            customError["message"] = error.message.split(': ')[1] + " please choose the correct connection status"
-        }
-
-        throw customError
-    }
+    throw customError;
+  }
 }
 
 /**
- * Retrieves client information for editing, including associated phone numbers, addresses, and connection statuses.
+ * Retrieves client information for editing,
+ * including associated phone numbers, addresses, and connection statuses.
  *
  * @async
  * @function
  * @param {number} clientId - The unique identifier of the client to retrieve for editing.
- * @returns {Client|null} A Promise that resolves with the retrieved client object or null if an error occurs.
+ * @return {Client|null} A Promise that resolves with the
+ * retrieved client object or null if an error occurs.
  */
 async function retrieveClientForEdit(clientId) {
+  let client = null;
 
-    let client = null
+  try {
+    client = await Client.findByPk(clientId, {
+      include: [
+        {
+          model: ClientPhoneNumber,
+          as: 'phoneNumbers',
+          attributes: ['phoneNumber']
+        },
+        {model: ClientAddress, as: 'mainAddress'},
+        {model: ClientAddress, as: 'presentAddress'},
+        {
+          model: ClientConnectionStatus,
+          as: 'connectionStatuses',
+          attributes: ['status']
+        }
+      ]
+    });
+  } catch (error) {
+    console.error(error);
+  }
 
-    try {
-
-        client = await Client.findByPk(clientId, {
-            include: [
-                {
-                    model: ClientPhoneNumber,
-                    as: "phoneNumbers",
-                    attributes: ["phoneNumber"]
-                },
-                { model: ClientAddress, as: "mainAddress" },
-                { model: ClientAddress, as: "presentAddress" },
-                {
-                    model: ClientConnectionStatus,
-                    as: "connectionStatuses",
-                    attributes: ["status"]
-                }
-            ]
-        })
-    } catch (error) {
-        console.error(error);
-    }
-
-    return client
+  return client;
 }
 
 /**
@@ -225,30 +227,28 @@ async function retrieveClientForEdit(clientId) {
  * @param {Object} formData - The form data containing the fields to be updated.
  */
 function updateClientRecord(client, formData) {
+  for (const key in formData) {
+    // Skips these fields as this keys have a fixed value on creation
+    if (key === 'profilePicture' || key === 'accountNumber') continue;
 
-    for (const key in formData) {
-        
-        // Skips these fields as profilePicture is updated earlier and accountNumber is a fixed value on creation
-        if (key === "profilePicture" || key === "accountNumber") continue;
-
-        // Updates main address fields
-        if (key.includes("mainAddress")) {
-            const addressKey = key.replace("mainAddress", "");
-            const modifiedAddressKey = addressKey.charAt(0).toLowerCase() + addressKey.slice(1);
-            client.mainAddress[modifiedAddressKey] = formData[key];
-            continue;
-        }
-
-        // Updates present address fields
-        if (key.includes("presentAddress")) {
-            const addressKey = key.replace("presentAddress", "");
-            client.presentAddress[addressKey] = formData[key];
-            continue;
-        }
-
-        // Updates other client fields
-        client[key] = formData[key];
+    // Updates main address fields
+    if (key.includes('mainAddress')) {
+      const addressKey = key.replace('mainAddress', '');
+      const modifiedAddressKey = addressKey.charAt(0).toLowerCase() + addressKey.slice(1);
+      client.mainAddress[modifiedAddressKey] = formData[key];
+      continue;
     }
+
+    // Updates present address fields
+    if (key.includes('presentAddress')) {
+      const addressKey = key.replace('presentAddress', '');
+      client.presentAddress[addressKey] = formData[key];
+      continue;
+    }
+
+    // Updates other client fields
+    client[key] = formData[key];
+  }
 }
 
 /**
@@ -257,271 +257,269 @@ function updateClientRecord(client, formData) {
  * @function
  * @param {Client} client - The client object.
  * @param {string} phoneNumberInputValue - The new phone number to be added.
+ * @param {Transaction} manager - Optional transaction manager for performing
+ * the connection status creation within a specified transaction.
  */
 async function updatePhoneNumber(client, phoneNumberInputValue, manager) {
+  const alreadyExists = client.phoneNumbers.filter(eachRecord => {
+    return eachRecord.phoneNumber === phoneNumberInputValue;
+  }).length > 0;
 
-    const alreadyExists = client.phoneNumbers.filter(eachRecord => {
-        return eachRecord.phoneNumber === phoneNumberInputValue
-    }).length > 0
+  if (alreadyExists) {
+    const error = new Error('Failed to update client. Phonenumber already exists');
+    error.type = 'phonenumber';
+    throw error;
+  }
 
-    if (alreadyExists) {
-        const error = new Error("Failed to update client. Phonenumber already exists")
-        error.type = "phonenumber"
-        throw error
-    }
+  const whereClause = {
+    clientId: client.id,
+    phoneNumber: phoneNumberInputValue
+  };
 
-    const whereClause = { 
-        clientId: client.id, 
-        phoneNumber: phoneNumberInputValue 
-    }
-
-    await ClientPhoneNumber.create(whereClause, { transaction: manager })
-
+  await ClientPhoneNumber.create(whereClause, {transaction: manager});
 }
 
 /**
 * Updates a client's profile picture by saving the new picture, deleting the old picture
 * if it exists, and returning a success Response object with the new image file name.
 * @function
-* @param {Object} oldClientData - An object containing the old client data, including the current profile
-* picture path.
-* @param {string|Buffer} profilePicture - The new profile picture data. It could be an image file or any data
-* representing the picture.
-* @returns {Response} A new Response object representing the result of the update operation.
+* @param {Object} oldClientData - An object containing the old client data,
+* including the current profile picture path.
+* @param {string|Buffer} profilePicture - The new profile picture data.
+* It could be an image file or any data representing the picture.
+* @return {Response} A new Response object representing the result of the update operation.
 */
 async function updateProfilePicture(oldClientData, profilePicture) {
+  try {
+    await savePicture(profilePicture);
+  } catch (error) {
+    return new Response().error(error.message);
+  }
 
-    try {
-        await savePicture(profilePicture)
-    } catch (error) {
-        return new Response().Error(error.message)
-    }
+  if (oldClientData.profilePicture) {
+    const oldProfilePicturePath = joinAndResolve(
+        [__dirname, '../../assets/images/clients/profile/'],
+        oldClientData.profilePicture
+    );
 
-   if (oldClientData.profilePicture) {
+    fs.unlink(oldProfilePicturePath, error => {
+      if (error) {
+        console.error('Error deleting client old profile picture:', error);
+        return new Response().error('Failed to add new client');
+      }
+    });
+  }
 
-        const oldProfilePicturePath = joinAndResolve(
-           path.resolve(__dirname, "../../assets/images/clients/profile/"),
-           oldClientData.profilePicture
-       )
-
-       fs.unlink(oldProfilePicturePath, error => {
-           if (error) {
-               console.error("Error deleting client old profile picture:", error)
-               return new Response().Error("Failed to add new client")
-           }
-       })
-   }
-
-   return new Response().OkWithData("imageFileName", saveStatus.imageName)
+  return new Response().okWithData('imageFileName', saveStatus.imageName);
 }
 
 
 /**
  * Checks for duplicate client records based on provided form data.
- * 
+ *
  * @async
  * @function
  * @param {Object} formData - The form data to check for duplicates.
  * @param {boolean} [forEdit=false] - Indicates if the check is for editing an existing client.
  * @param {number} [clientId=null] - The ID of the client being edited.
- * @returns {Promise<Object>} An object containing duplicate check results.
+ * @return {Promise<Object>} An object containing duplicate check results.
  */
 async function checkDuplicateData(formData, forEdit = false, clientId = null) {
-
-    const checkDuplicate = async (field, where) => {
-
-        if (forEdit && clientId !== null) {
-            if (field === "phone-number") {
-                where[Op.and].unshift({
-                    clientId: { [Op.not]: clientId }
-                })
-            } else {
-                where[Op.and].unshift({
-                    id: { [Op.not]: clientId }
-                }) 
-            }
-        }
-
-        let duplicates = null
-
-        try {
-            
-            if (field === "phone-number") {
-                duplicates = await ClientPhoneNumber.findAndCountAll({ where })
-            } else {
-                duplicates = await Client.findAndCountAll({ where })
-            }
-        } catch (error) {
-            console.log(error)
-            return new Response().Error("Error in checking for client duplicates")
-        }
-
-        if (duplicates.count > 0) {
-            return new Response().Error(`Client with the same ${field.split("-").join(" ")} is already registered`)
-        }
-
-        return new Response().Ok()
+  const checkDuplicate = async (field, where) => {
+    if (forEdit && clientId !== null) {
+      if (field === 'phone-number') {
+        where[Op.and].unshift({
+          clientId: {[Op.not]: clientId}
+        });
+      } else {
+        where[Op.and].unshift({
+          id: {[Op.not]: clientId}
+        });
+      }
     }
 
-    const duplicateChecks = [
-        {
-            field: "full-name",
-            where: {
-                [Op.and]: [
-                    {
-                        firstName: formData.firstName,
-                        middleName: formData.middleName,
-                        lastName: formData.lastName
-                    }
-                ]
-            }
-        },
+    let duplicates = null;
 
-        {
-            field: "user-email",
-            where: {
-                [Op.and]: [
-                    {
-                        email: formData.email
-                    }
-                ]
-            }
-        },
-
-        {
-            field: "phone-number",
-            where: {
-                [Op.and]: [
-                    {
-                        phoneNumber: formData.phoneNumber
-                    }
-                ]
-            }
-        },
-
-        {
-            field: "meter-number",
-            where: {
-                [Op.and]: [
-                    {
-                        meterNumber: formData.meterNumber
-                    }
-                ]
-            }
-        }
-    ]
-
-    for (const check of duplicateChecks) {
-        const duplicateValidation = await checkDuplicate(check.field, check.where)
-        if (duplicateValidation.status === "failed") return duplicateValidation
+    try {
+      if (field === 'phone-number') {
+        duplicates = await ClientPhoneNumber.findAndCountAll({where});
+      } else {
+        duplicates = await Client.findAndCountAll({where});
+      }
+    } catch (error) {
+      console.log(error);
+      return new Response().error('Error in checking for client duplicates');
     }
 
-    return new Response().Ok()
+    if (duplicates.count > 0) {
+      const data = data.split('-').join(' ');
+      return new Response().error(`Client with the same ${data} is already registered`);
+    }
+
+    return new Response().ok();
+  };
+
+  const duplicateChecks = [
+    {
+      field: 'full-name',
+      where: {
+        [Op.and]: [
+          {
+            firstName: formData.firstName,
+            middleName: formData.middleName,
+            lastName: formData.lastName
+          }
+        ]
+      }
+    },
+
+    {
+      field: 'user-email',
+      where: {
+        [Op.and]: [
+          {
+            email: formData.email
+          }
+        ]
+      }
+    },
+
+    {
+      field: 'phone-number',
+      where: {
+        [Op.and]: [
+          {
+            phoneNumber: formData.phoneNumber
+          }
+        ]
+      }
+    },
+
+    {
+      field: 'meter-number',
+      where: {
+        [Op.and]: [
+          {
+            meterNumber: formData.meterNumber
+          }
+        ]
+      }
+    }
+  ];
+
+  for (const check of duplicateChecks) {
+    const duplicateValidation = await checkDuplicate(check.field, check.where);
+    if (duplicateValidation.status === 'failed') return duplicateValidation;
+  }
+
+  return new Response().ok();
 }
 
 /**
  * Saves a client's profile picture to the filesystem.
  * @function
  * @param {Object} profilePicture - The profile picture data to be saved.
- * @returns {Object} A new Response() object indicating the status of the operation.
+ * @return {Object} A new Response() object indicating the status of the operation.
  */
 async function savePicture(profilePicture) {
-	
-    const takenFromInput = Boolean(profilePicture.fromInput)
+  const takenFromInput = Boolean(profilePicture.fromInput);
 
-    const randomString = crypto.randomBytes(32).toString("hex")
-    const hash = bcrypt.hashSync(randomString, 10).replace(/[/+\$\.]/g, "").slice(0,32)
+  const randomString = crypto.randomBytes(32).toString('hex');
+  const hash = bcrypt.hashSync(randomString, 10).replace(/[/+\$\.]/g, '').slice(0, 32);
 
-    const imageFormat = takenFromInput ? profilePicture.format : ".png"
+  const imageFormat = takenFromInput ? profilePicture.format : '.png';
 
-    const imageName = [hash, imageFormat].join(".")
-    const imagePath = path.join(__dirname, PROFILE_PATH, imageName)
+  const imageName = [hash, imageFormat].join('.');
+  const imagePath = path.join(__dirname, PROFILE_PATH, imageName);
 
-    try {
-
-        if (takenFromInput) {
-            fs.writeFileSync(imagePath, fs.readFileSync(profilePicture.path))
-        } else {
-            const base64Image = profilePicture.base64.split("base64,").pop()
-            await fs.promises.writeFile(imagePath, base64Image, { encoding: "base64" })
-        }
-
-        return imageName
-
-    } catch (error) {
-        console.log(error)
-        throw Error("Failed in saving clients profile picture")        
+  try {
+    if (takenFromInput) {
+      fs.writeFileSync(imagePath, fs.readFileSync(profilePicture.path));
+    } else {
+      const base64Image = profilePicture.base64.split('base64,').pop();
+      await fs.promises.writeFile(imagePath, base64Image, {encoding: 'base64'});
     }
-    
+
+    return imageName;
+  } catch (error) {
+    console.log(error);
+    throw Error('Failed in saving clients profile picture');
+  }
 }
 
 /**
  * Deletes the clients picture especially if client wasnt saved.
- * 
- * @param {String} imageName - The filename for the image 
+ *
+ * @param {String} imageName - The filename for the image
  */
 async function deletePicture(imageName) {
-    
-    if (!imageName) return
+  if (!imageName) return;
 
-    const imagePath = path.join(__dirname, PROFILE_PATH, imageName)
-    const imageExists = fs.existsSync(imagePath)
-    
-    if (imageExists) {
-        try {
-            await fs.unlink(imagePath)
-        } catch (error) {
-            console.log("Failed to delete image", error)
-        }
+  const imagePath = path.join(__dirname, PROFILE_PATH, imageName);
+  const imageExists = fs.existsSync(imagePath);
+
+  if (imageExists) {
+    try {
+      await fs.unlink(imagePath);
+    } catch (error) {
+      console.log('Failed to delete image', error);
     }
+  }
 }
 
 /**
  * Checks for missing fields in the provided form data.
  * @function
  * @param {Object} formData - The form data to check for missing fields.
- * @returns {string[]|null} An array of missing field messages or null if all fields are present.
+ * @return {string[]|null} An array of missing field messages or null if all fields are present.
  */
 function checkMissingFields(formData) {
+  const formDataFieldNames = Object.keys(formData);
+  const requiredFields = Object.keys(requiredFormFields);
 
-    const formDataFieldNames = Object.keys(formData)
+  const missingElements = requiredFields.filter(fieldName => {
+    return !formDataFieldNames.includes(fieldName);
+  });
 
-    const missingElements = Object.keys(clientFormFields).filter(fieldName => !formDataFieldNames.includes(fieldName))
-    const missingElementFields = missingElements.map(field => clientFormFields[field]).join(", ")
+  if (missingElements.length > 1) {
+    const missingElementFields = missingElements.map(field => {
+      return requiredFormFields[field];
+    }).join(', ');
 
-    if (missingElements.length > 1) return [`${missingElementFields} are required`]
-    if (missingElements.length === 1) return [`${missingElementFields} is required`]
+    return [`${missingElementFields} are required`];
+  }
 
-    return null
+  if (missingElements.length === 1) {
+    const missingField = requiredFormFields[missingElements[0]];
+    return [`${missingField} is required`];
+  }
+
+  return null;
 }
 
 /**
  * Gets the files for a client.
  * @async
  * @param {number} clientId - The client id to associate the files with.
- * @returns {ClientFile|null} A ClientFile object or null.
+ * @return {ClientFile|null} A ClientFile object or null.
  */
 async function getClientFiles(clientId) {
+  try {
+    const clientFiles = await ClientFile.findAll({
+      attributes: ['name'],
+      where: {
+        clientId: clientId
+      }
+    });
 
-    try {
-        
-        const clientFiles = await ClientFile.findAll({
-			attributes: ['name'],
-			where: {
-				clientId: clientId
-			}
-		})
+    return clientFiles.map(file => {
+      return {path: getFilePath(file.name), fileName: file.name};
+    });
+  } catch (error) {
+    console.log(error);
+  }
 
-        return clientFiles.map(file => {
-            return { path: getFilePath(file.name), fileName: file.name }
-        })
-
-    } catch (error) {
-        console.log(error)
-    }
-
-    return null
-
+  return null;
 }
 
 /**
@@ -534,34 +532,30 @@ async function getClientFiles(clientId) {
  * @throws {Error} Throws an error if the file saving process fails.
  */
 async function saveFiles(client, files, manager) {
+  if (files.length <= 0) return;
 
-    if (files.length <= 0) return
+  const copiedFiles = [];
 
-    const copiedFiles = []
+  try {
+    const saveFilePromises = files.map(async file => {
+      const newFileName = [client.fullName, file.name].join(' ');
+      const whereClause = {
+        clientId: client.id,
+        name: file.name
+      };
 
-    try {
+      const endPath = getFilePath(newFileName);
 
-        const saveFilePromises = files.map(async file => {
+      await ClientFile.create(whereClause, {transaction: manager});
+      await fs.copyFile(file.path, endPath);
+      copiedFiles.push(endPath);
+    });
 
-            const newFileName = [client.fullName, file.name].join(' ')
-            const whereClause = {
-                clientId: client.id,
-                name: file.name
-            }
-
-            const endPath = getFilePath(newFileName)
-
-            await ClientFile.create(whereClause, { transaction: manager })
-            await fs.copyFile(file.path, endPath)
-            copiedFiles.push(endPath)
-        })
-
-        await Promise.all(saveFilePromises)
-
-    } catch (error) {
-        console.log(error);
-        throw Error("Client not added. Error in saving client's documents")
-    }
+    await Promise.all(saveFilePromises);
+  } catch (error) {
+    console.log(error);
+    throw Error(`Client not added. Error in saving client's documents`);
+  }
 }
 
 /**
@@ -572,17 +566,16 @@ async function saveFiles(client, files, manager) {
  * @throws {Error} Throws an error if any file deletion operation fails.
  */
 async function deleteFiles(files) {
+  if (files.length <= 0) return;
 
-    if (files.length <= 0) return
+  const fileDeletionPromises = files.map(file => {
+    deleteFile(file)
+        .catch(error => {
+          return console.error(`Error in deleting file: ${error}`);
+        });
+  });
 
-    const fileDeletionPromises = files.map(file => {
-        deleteFile(file)
-            .catch(error => {
-                return console.error(`Error in deleting file: ${error}`)
-            })
-    })
-
-    await Promise.all(fileDeletionPromises)
+  await Promise.all(fileDeletionPromises);
 }
 
 /**
@@ -593,16 +586,15 @@ async function deleteFiles(files) {
  * @throws {Error} Throws an error if the file does not exist or if the deletion fails.
  */
 async function deleteFile(fileName) {
+  const filePath = getFilePath(fileName);
+  const fileExists = fs.existsSync(filePath);
 
-    const filePath = getFilePath(fileName)
-    const fileExists = fs.existsSync(filePath)
+  const error = new Error('File does not exist');
+  error.type = 'Not found';
 
-    const error = new Error("File does not exist")
-    error.type = "Not found"
+  if (!fileExists) throw error;
 
-    if (!fileExists) throw error
-
-    await fs.unlink(filePath)
+  await fs.unlink(filePath);
 }
 
 /**
@@ -614,7 +606,7 @@ async function deleteFile(fileName) {
  * @function
  * @param {number} clientId - The unique identifier of the client to delete.
  * @param {Event} event - The event triggering the client deletion.
- * @returns {Promise<Response>} A Promise that resolves with a Response object
+ * @return {Promise<Response>} A Promise that resolves with a Response object
  * representing the result of the delete operation. The Response object can be
  * used to check the success or failure of the operation.
  * @throws {Error} Throws an error if the client id is not found or if the deletion fails.
@@ -622,62 +614,62 @@ async function deleteFile(fileName) {
  * ```
  * const clientId = 123
  * const response = await deleteClient(clientId, event)
- * 
- * if (response.status === "success") {
+ *
+ * if (response.status === 'success') {
  *   console.log('Client deleted successfully.')
- * } else {
+ *} else {
  *   console.error('Failed to delete client:', [...response.toast])
- * }
+ *}
  * ```
  */
 async function deleteClient(clientId, event) {
-    if (!clientId) throw new Error("Client id not found")
+  if (!clientId) throw new Error('Client id not found');
 
-    const exportResponse = await exportRecord(clientId, event)
+  const exportResponse = await exportRecord(clientId, event);
 
-    if (exportResponse.status === "failed") {
-        return exportResponse
-    }
+  if (exportResponse.status === 'failed') {
+    return exportResponse;
+  }
 
-    const client = await Client.findByPk(clientId, {
-        include: "clientFiles"
-    })
+  const client = await Client.findByPk(clientId, {
+    include: 'clientFiles'
+  });
 
-    if (!client) throw new Error("Failed to delete client record")
+  if (!client) throw new Error('Failed to delete client record');
 
-    try {
-        await deleteFiles(client.clientFiles)
-    } catch (error) {
-        console.error(error)
-        throw new Error("Failed to delete client files")
-    }
+  try {
+    await deleteFiles(client.clientFiles);
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to delete client files');
+  }
 
-    try {
-        await client.destroy()
-    } catch (error) {
-        console.error(error)
-        throw new Error("Failed to delete client")
-    }
+  try {
+    await client.destroy();
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to delete client');
+  }
 
-    return new Response().Ok().addToast("Client deleted successfully")
+  return new Response().ok().addToast('Client deleted successfully');
 }
 
 module.exports = {
-    getFilePath,
-    updateProfilePicture,
-    createNewConnectionStatus,
-    updatePhoneNumber,
-    retrieveClientForEdit,
-    createNewPhoneNumber,
-    checkDuplicateData,
-    checkMissingFields,
-    updateClientRecord,
-    getClientFiles,
-    deletePicture,
-    deleteClient,
-    createClient,
-    savePicture,
-    deleteFiles,
-    deleteFile,
-    saveFiles
-}
+  createNewConnectionStatus,
+  retrieveClientForEdit,
+  updateProfilePicture,
+  createNewPhoneNumber,
+  checkDuplicateData,
+  checkMissingFields,
+  updateClientRecord,
+  updatePhoneNumber,
+  getClientFiles,
+  deletePicture,
+  deleteClient,
+  createClient,
+  getFilePath,
+  savePicture,
+  deleteFiles,
+  deleteFile,
+  saveFiles
+};

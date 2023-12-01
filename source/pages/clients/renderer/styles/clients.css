@@ -75,18 +75,18 @@
 @media screen and (max-width: 1300px) {
     #client-data {
         border-radius: 5px;
-    }
+   }
     .client-info {
         height: 2rem;
-    }
+   }
     #client-data-headers, .client-info {
         height: 2rem;
-    }
+   }
     .client-data-headers__item, .client-info__item {
         font-size: 0.8rem;
-    }
+   }
     .client-info__item {
         font-size: 0.7rem;
-    }
+   }
     
 }

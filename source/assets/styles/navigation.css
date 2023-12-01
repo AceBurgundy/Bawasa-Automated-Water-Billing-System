@@ -85,13 +85,13 @@ nav {
 @media screen and (max-width: 1280px) {
     .nav-item {
         padding: 0.5rem 1rem;
-    }
+   }
     .nav-item > div {
         width: 2.5rem;
         border-radius: 13px;
-    }
+   }
     .nav-item > p {
         font-size: 0.65rem;
         margin-top: 5px;
-    }
+   }
 }

@@ -1,25 +1,25 @@
 // utilties
-const { formatDate, joinAndResolve, emitEvent } = require("./helpers")
-const Response = require("./Response")
+const {formatDate, joinAndResolve, emitEvent} = require('./helpers')
+const Response = require('./Response')
 
-const { ipcMain, dialog } = require("electron")
+const {ipcMain, dialog} = require('electron')
 const ExcelJS = require('exceljs')
-const fs = require("fs-extra")
-const path = require("path")
+const fs = require('fs-extra')
+const path = require('path')
 
 // models
-const ClientPhoneNumber = require("../../models/ClientPhoneNumber")
-const UserPhoneNumber = require("../../models/UserPhoneNumber")
-const PartialPayment = require("../../models/PartialPayment")
-const ClientAddress = require("../../models/ClientAddress")
-const UserAddress = require("../../models/UserAddress")
-const ClientFile = require("../../models/ClientFile")
-const ClientBill = require("../../models/ClientBill")
-const Client = require("../../models/Client")
-const User = require("../../models/User")
+const ClientPhoneNumber = require('../../models/ClientPhoneNumber')
+const UserPhoneNumber = require('../../models/UserPhoneNumber')
+const PartialPayment = require('../../models/PartialPayment')
+const ClientAddress = require('../../models/ClientAddress')
+const UserAddress = require('../../models/UserAddress')
+const ClientFile = require('../../models/ClientFile')
+const ClientBill = require('../../models/ClientBill')
+const Client = require('../../models/Client')
+const User = require('../../models/User')
 
-ipcMain.handle("export-record", async (event, args) => {    
-    const { id } = args
+ipcMain.handle('export-record', async (event, args) => {   
+    const {id} = args
     return await exportRecord(id, event)
 })
 
@@ -27,15 +27,15 @@ const rowColor = backgroundColor => {
     return {
         type: 'pattern',
         pattern: 'solid',
-        fgColor: { argb: backgroundColor },
-    }
+        fgColor: {argb: backgroundColor},
+   }
 }
 
 const thinCellBorder = {
-    top: { style: 'thin' },
-    left: { style: 'thin' },
-    bottom: { style: 'thin' },
-    right: { style: 'thin' },
+    top: {style: 'thin'},
+    left: {style: 'thin'},
+    bottom: {style: 'thin'},
+    right: {style: 'thin'},
 }
 
 function newRow(worksheet, cellValues, backgroundColor, includeEmptyCells = true) {
@@ -46,24 +46,24 @@ function newRow(worksheet, cellValues, backgroundColor, includeEmptyCells = true
             const cell = tableRowCellData.getCell(columnIndex + 1)
             cell.fill = rowColor(backgroundColor)
             cell.border = thinCellBorder
-        }
-    })
+       }
+   })
 }
 
 const askDirectory = async () => {
     const result = await dialog.showOpenDialog({
         properties: ['openDirectory'],
         title: 'Select Directory for XLSX File',
-    })
+   })
 
     return !result.canceled && result.filePaths.length > 0 ? result.filePaths[0] : null
 }
 
-ipcMain.handle("full-user-data", async (event, args) => {
+ipcMain.handle('full-user-data', async (event, args) => {
 
     if (!args.id) {
-        return new Response().Error("User id not found")
-    }
+        return new Response().error('User id not found')
+   }
 
     let user = null
 
@@ -71,20 +71,20 @@ ipcMain.handle("full-user-data", async (event, args) => {
         
         user = await User.findByPk(args.id, {
 			include: [
-				{ 
+				{
 					model: UserPhoneNumber, 
-					as: "phoneNumbers",
+					as: 'phoneNumbers',
 					attributes: ['phoneNumber']
 				},
-				{ model: UserAddress, as: "mainAddress" },
-				{ model: UserAddress, as: "presentAddress" }
+				{model: UserAddress, as: 'mainAddress'},
+				{model: UserAddress, as: 'presentAddress'}
 			]
 		})
 
-    } catch (error) {
+   } catch (error) {
         console.log(error);
-        return new Response().Error("User not found")
-    }
+        return new Response().error('User not found')
+   }
 
     return user
     
@@ -92,7 +92,7 @@ ipcMain.handle("full-user-data", async (event, args) => {
 
 const getClientData = async (id) => {
 
-    if (!id) return new Response().Error("Client id if not found")
+    if (!id) return new Response().error('Client id if not found')
 
     let client = null
 
@@ -100,47 +100,47 @@ const getClientData = async (id) => {
         
         client = await Client.findByPk(id, {
             include: [
-                { 
+                {
                     model: ClientPhoneNumber, 
-                    as: "phoneNumbers",
+                    as: 'phoneNumbers',
                     attributes: ['phoneNumber'],
                     order: [ 
                         ['createdAt', 'DESC']
                     ]
-                },
-                { 
+               },
+                {
                     model: ClientAddress, 
-                    as: "mainAddress"
-                },
-                { 
+                    as: 'mainAddress'
+               },
+                {
                     model: ClientAddress, 
-                    as: "presentAddress"
-                },
-                { 
+                    as: 'presentAddress'
+               },
+                {
                     model: ClientFile, 
-                    as: "files"
-                },
-                { 
+                    as: 'files'
+               },
+                {
                     model: ClientBill, 
-                    as: "bills",
+                    as: 'bills',
                     include: [
-                        { 
+                        {
                             model: PartialPayment,
-                            as: "partialPayments",
+                            as: 'partialPayments',
                             order: [ 
                                 ['createdAt', 'DESC']
                             ]
-                        }
+                       }
                     ]
-                }
+               }
             ]
-        })
-    } catch (error) {
+       })
+   } catch (error) {
         console.log(error)
-        return new Response().Error("Client not found")
-    }
+        return new Response().error('Client not found')
+   }
 
-    return new Response().OkWithData("clientData", client)
+    return new Response().okWithData('clientData', client)
 
 }
 
@@ -156,19 +156,19 @@ const getClientData = async (id) => {
  */
 async function exportRecord(id, event) {
 
-    if (!id) return new Response().Error("Client id is required for export")
+    if (!id) return new Response().error('Client id is required for export')
 
     try {
 
         const getClientData = await getClientData(id)
 
-        if (getClientData.status === "failed" || !getClientData.clientData) {
-            return new Response().Error(getClientData.toast[0])
-        }
+        if (getClientData.status === 'failed' || !getClientData.clientData) {
+            return new Response().error(getClientData.toast[0])
+       }
         
         const client = getClientData.clientData
     
-        const { 
+        const {
             fullName, 
             age, 
             relationshipStatus, 
@@ -177,7 +177,7 @@ async function exportRecord(id, event) {
             birthDate,
             email,
             occupation
-        } = client
+       } = client
         
         const presentAddress = client.presentAddress ?? ''
         const mainAddress = client.mainAddress ?? ''
@@ -186,27 +186,27 @@ async function exportRecord(id, event) {
         
         let directoryPath = await askDirectory()
 
-        if (!directoryPath) return new Response().Error("Directory selection canceled")
+        if (!directoryPath) return new Response().error('Directory selection canceled')
 
         const workbook = new ExcelJS.Workbook()
         
         const worksheet = workbook.addWorksheet(`${fullName}'s Data`)
-        event.sender.send("export", "Creating new excel worksheet")
+        event.sender.send('export', 'Creating new excel worksheet')
 
         worksheet.properties.defaultColWidth = 25.67
         worksheet.properties.defaultRowHeight = 27.75
     
         worksheet.addRow([])
-        worksheet.addRow(["Client Details"])
+        worksheet.addRow(['Client Details'])
         worksheet.addRow([])
 
-        worksheet.addRow([ "", "Account Number", "Meter Number", "Full Name", "Relationship Status", "Birth Date", "Age", "Email", "Occupation", "Present Address", "Main Address", "Phone Numbers" ])
-        worksheet.addRow([ "", accountNumber, meterNumber, fullName, relationshipStatus, formatDate(birthDate), age, email, occupation, presentAddress.fullAddress, mainAddress.fullAddress, phoneNumber ? ["0", phoneNumber].join('') : '' ])
+        worksheet.addRow([ '', 'Account Number', 'Meter Number', 'Full Name', 'Relationship Status', 'Birth Date', 'Age', 'Email', 'Occupation', 'Present Address', 'Main Address', 'Phone Numbers' ])
+        worksheet.addRow([ '', accountNumber, meterNumber, fullName, relationshipStatus, formatDate(birthDate), age, email, occupation, presentAddress.fullAddress, mainAddress.fullAddress, phoneNumber ? ['0', phoneNumber].join('') : '' ])
         
         // Additional data
         if (bills) {
             worksheet.addRow([])
-            worksheet.addRow(["Account History"])
+            worksheet.addRow(['Account History'])
             worksheet.addRow([])
 
             let currentIndex = 0
@@ -215,17 +215,17 @@ async function exportRecord(id, event) {
             const colorIndex = currentIndex % rowColors.length
             const currentColor = rowColors[colorIndex]
 
-            const clientBillHeaders = ["", "Bill Number", "First Reading", "Second Reading", "Consumption", "Bill Amount", "Payment Status", "Paid Amount", "Remaining Balance", "Excess", "Payment Date", "Penalty", "Due Date", "Disconnection Date" ]
+            const clientBillHeaders = ['', 'Bill Number', 'First Reading', 'Second Reading', 'Consumption', 'Bill Amount', 'Payment Status', 'Paid Amount', 'Remaining Balance', 'Excess', 'Payment Date', 'Penalty', 'Due Date', 'Disconnection Date' ]
             newRow(worksheet, clientBillHeaders, currentColor)
-            emitEvent("export", "Adding bills data")
+            emitEvent('export', 'Adding bills data')
 
             bills.forEach((bill, index) => {
             
                 currentIndex = index
 
-                const { billNumber, firstReading, secondReading, consumption, total, status, amountPaid, balance, excess, penalty, dueDate, disconnectionDate, partialPayments } = bill
+                const {billNumber, firstReading, secondReading, consumption, total, status, amountPaid, balance, excess, penalty, dueDate, disconnectionDate, partialPayments} = bill
 
-                billRow = [ "", billNumber, firstReading ?? 0, secondReading ?? 0, consumption ?? 0, total ?? 0, status, amountPaid ?? 0, balance ?? 0, excess ?? 0, penalty ?? 0, formatDate(dueDate), formatDate(disconnectionDate), "" ]
+                billRow = [ '', billNumber, firstReading ?? 0, secondReading ?? 0, consumption ?? 0, total ?? 0, status, amountPaid ?? 0, balance ?? 0, excess ?? 0, penalty ?? 0, formatDate(dueDate), formatDate(disconnectionDate), '' ]
 
                 worksheet.addRow([])
 
@@ -240,42 +240,42 @@ async function exportRecord(id, event) {
                                     
                     // Add partial payment data rows with background color
                     partialPayments.forEach(partialPayment => {
-                        const { amountPaid, paymentDate } = partialPayment
+                        const {amountPaid, paymentDate} = partialPayment
                         const rowValues = ['', '', '', '', '', '', amountPaid, paymentDate ? formatDate(paymentDate) : '']
                         newRow(worksheet, rowValues, currentColor, false)
-                    })
-                }
-            })
-        }
+                   })
+               }
+           })
+       }
 
-        worksheet.eachRow({ includeEmpty: false }, row => {
+        worksheet.eachRow({includeEmpty: false}, row => {
             row.alignment = {
                 vertical: 'middle',
                 horizontal: 'center',
                 wrapText: true,
-            }
-        })
+           }
+       })
 
         const firstColumn = worksheet.getColumn(1)
         firstColumn.width = 10
 
-        firstColumn.eachCell({ includeEmpty: true }, cell => {
+        firstColumn.eachCell({includeEmpty: true}, cell => {
             cell.style = {}
             cell.alignment = {
                 vertical: 'middle',
                 horizontal: 'center',
                 wrapText: true,
-            }
-        })
+           }
+       })
 
         const fullDirectoryPath = `${directoryPath}\\${fullName}'s record`
         
         fs.ensureDir(fullDirectoryPath, error => {
             if (error) {
                 console.log(error);
-                return new Response().Error(`Error in creating new folder for ${fullName}'s export data`)
-            }
-        })
+                return new Response().error(`Error in creating new folder for ${fullName}'s export data`)
+           }
+       })
 
         // Write the workbook to a file
         await workbook.xlsx.writeFile(`${fullDirectoryPath}\\${fullName}'s account history.xlsx`)
@@ -287,35 +287,35 @@ async function exportRecord(id, event) {
             fs.ensureDir(destinationFilePath, error => {
                 if (error) {
                     console.log(error);
-                    return new Response().Error(`Error in creating files folder for ${fullName}'s export data`)
-                }
-            })
+                    return new Response().error(`Error in creating files folder for ${fullName}'s export data`)
+               }
+           })
 
-            emitEvent("export", "Moving client files")
+            emitEvent('export', 'Moving client files')
             const filesToMove = client.files.map(async file => {
 
-                const currentFilePath = joinAndResolve([__dirname, "../../source/assets/files/"], file.name)
+                const currentFilePath = joinAndResolve([__dirname, '../../source/assets/files/'], file.name)
                 const newFilePath = path.join(`${destinationFilePath}`, file.name)
         
                 const fileExists = await fs.pathExists(currentFilePath).catch(() => false)
         
                 if (fileExists) {
                     await fs.copy(currentFilePath, newFilePath)
-                } else {
+               } else {
                     console.log(`File ${file.name} from ${currentFilePath} cannot be found`)
-                }
+               }
                 
-            })
+           })
         
             await Promise.all(filesToMove)
-        }
+       }
 
-        return new Response().Ok("Client data exported")
+        return new Response().ok('Client data exported')
 
-    } catch (error) {
+   } catch (error) {
         console.log(error);
-        return new Response().Error("Failed to export client data")
-    }
+        return new Response().error('Failed to export client data')
+   }
 
 }
 

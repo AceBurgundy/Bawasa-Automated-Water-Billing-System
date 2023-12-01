@@ -1,4 +1,4 @@
-@import url("./image-capture.css");
+@import url('./image-capture.css');
 
 .form-field__info__error {
     font-size: 0.7rem;
@@ -6,7 +6,7 @@
 }
 
 /* Apply styles to all input elements except submit and reset */
-input:not([type="submit"]):not([type="reset"]),
+input:not([type='submit']):not([type='reset']),
 select,
 .number,
 .input-style {

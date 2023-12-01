@@ -1,6 +1,6 @@
-import { camelToDashed, generateUniqueId, getById } from "../assets/scripts/helper.js";
+import {camelToDashed, generateUniqueId, getById} from '../assets/scripts/helper.js';
 
-const allowedAttributes = ["name", "label", "selected"];
+const allowedAttributes = ['name', 'label', 'selected'];
 
 /**
  * Represents a field for form input.
@@ -19,8 +19,8 @@ class Field {
         this.validations = validations;
         this.props = props;
 
-        const { flags, attributes, classes } = props;
-        const { name, value } = attributes;
+        const {flags, attributes, classes} = props;
+        const {name, value} = attributes;
 
         this.dashedName = camelToDashed(name);
 
@@ -32,18 +32,18 @@ class Field {
 
         this.render();
 
-    }
+   }
 
     /**
-     * Cleans attributes by removing disallowed ones and converting them to from attribute: value -> attribute="value".
+     * Cleans attributes by removing disallowed ones and converting them to from attribute: value -> attribute='value'.
      * @method
      * @returns {string} An string array of cleaned attributes.
      */
     cleanAttributes() {
         return Object.entries(this.attributes)
             .filter(([key, value]) => !allowedAttributes.includes(key))
-            .map(([key, value]) => `${camelToDashed(key)}="${value}"`).join(" ");
-    }
+            .map(([key, value]) => `${camelToDashed(key)}='${value}'`).join(' ');
+   }
 
     /**
      * Displays an error message for the field.
@@ -54,9 +54,9 @@ class Field {
         const inputElement = getById(this.id);
         const error = document.querySelector(`#${this.dashedName}-field__info__error`);
 
-        inputElement.classList.add("invalid");
+        inputElement.classList.add('invalid');
         error.textContent = message;
-    }
+   }
 
     /**
      * Clears the error message for the field.
@@ -66,9 +66,9 @@ class Field {
         const inputElement = getById(this.id);
         const error = document.querySelector(`#${this.dashedName}-field__info__error`);
 
-        inputElement.classList.remove("invalid");
+        inputElement.classList.remove('invalid');
         error.textContent = '';
-    }
+   }
 
     /**
      * Renders the label and error message for the field.
@@ -76,12 +76,12 @@ class Field {
      * @returns {string} A string containing the label and error message HTML.
      */
     renderLabelAndError() {
-        const { label } = this.attributes;
-        const title = label ? `<label id="${this.dashedName}-field__info__label" class="form-field__info__label">${label}</label>` : '';
-        const error = `<p id="${this.dashedName}-field__info__error" class="form-field__info__error"></p>`;
+        const {label} = this.attributes;
+        const title = label ? `<label id='${this.dashedName}-field__info__label' class='form-field__info__label'>${label}</label>` : '';
+        const error = `<p id='${this.dashedName}-field__info__error' class='form-field__info__error'></p>`;
         
         return `${title} ${error}`;
-    }
+   }
 
     /**
      * Renders the specific field element.
@@ -92,8 +92,8 @@ class Field {
      */
     renderField() {
         // This method should be implemented by subclasses (Input and Select)
-        throw new Error("renderField method must be implemented by subclasses");
-    }
+        throw new Error('renderField method must be implemented by subclasses');
+   }
 
 /**
      * Renders the complete field template.
@@ -108,8 +108,8 @@ class Field {
         const field = this.renderField()
 
         const template = `
-            <div id="${this.dashedName}-field" class="form-field">
-                <div id="${this.dashedName}-field__info" class="form-field__info">
+            <div id='${this.dashedName}-field' class='form-field'>
+                <div id='${this.dashedName}-field__info' class='form-field__info'>
                     ${labelAndError}
                 </div>
                 ${field} 
@@ -130,20 +130,20 @@ class Field {
 
                     for (const validation of this.validations) {
 
-                        if (typeof validation === "function") {
+                        if (typeof validation === 'function') {
 
                             const result = validation(trimmedValue)
                             
                             if (result.passed === false) {
                                 this.showError(result.message)
                                 break
-                            }
+                           }
 
                             this.clearError()
                             
-                        }
+                       }
 
-                        if (Array.isArray(validation) && validation.length >= 2 && typeof validation[0] === "function") {
+                        if (Array.isArray(validation) && validation.length >= 2 && typeof validation[0] === 'function') {
 
                             const [validateFunction, ...args] = validation
                             const result = validateFunction( ...args, trimmedValue)
@@ -151,19 +151,19 @@ class Field {
                             if (result.passed === false) {
                                 this.showError(result.message)
                                 break
-                            } 
+                           } 
 
                             this.clearError()
                             
-                        }
-                    }
+                       }
+                   }
 
-                }
-            }
-        }, 0)
+               }
+           }
+       }, 0)
 
         return template
-    }
+   }
 
 }
 

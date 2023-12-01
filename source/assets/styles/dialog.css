@@ -35,20 +35,20 @@
     0% {
         transform: translate(-50%, -10%);
         opacity: 0;
-    }
+   }
     100% {
         transform: translate(-50%, -50%);
         opacity: 1;
-    }
+   }
 }
 
 @keyframes slide-fade-out {
     0% {
         transform: translate(-50%, -50%);
         opacity: 1;
-    }
+   }
     100% {
         transform: translate(-50%, -10%);
         opacity: 0;
-    }
+   }
 }

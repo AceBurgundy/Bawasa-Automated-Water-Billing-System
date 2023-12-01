@@ -1,9 +1,9 @@
-@import url("./navigation.css");
-@import url("./search.css");
-@import url("./dialog.css");
-@import url("./fonts.css");
-@import url("./field.css");
-@import url("./toast.css");
+@import url('./navigation.css');
+@import url('./search.css');
+@import url('./dialog.css');
+@import url('./fonts.css');
+@import url('./field.css');
+@import url('./toast.css');
 
 :root.dark {
     --text: #e6fbff;
@@ -40,7 +40,7 @@
     margin: 0%;
     padding: 0%;
     box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
+    font-family: 'Poppins', sans-serif;
 }
 
 body {
@@ -59,7 +59,7 @@ input {
     color: var(--text);
 }
 
-button, input[type="file"] {
+button, input[type='file'] {
     cursor: pointer;
 }
 

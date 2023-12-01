@@ -1,8 +1,8 @@
 // models
-const ClientBill = require("../../models/ClientBill")
-const Client = require("../../models/Client")
+const ClientBill = require('../../models/ClientBill')
+const Client = require('../../models/Client')
 
-const path = require("path")
+const path = require('path')
 
 /**
  * Wraps a callback function in a try-catch block for error handling.
@@ -36,11 +36,11 @@ function throwAndLogError(error, customMessage = null) {
 }
 
 function formatDate(date) {
-    return date ?? false ? new Date(date).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-        })    
+    return date ?? false ? new Date(date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+       })    
     : ''
 }
 
@@ -53,9 +53,9 @@ function formatDate(date) {
  */
 function emitEvent(event, key, value) {
     if (!event) {
-        console.log("Missing event for emit")
+        console.log('Missing event for emit')
         return
-    } 
+   } 
     
     event.sender.send(key, value)
 }
@@ -79,40 +79,40 @@ function joinAndResolve(resolveParams, joinParams) {
  */
 async function generateNextAccountOrBillNumber(type) {
 
-	const isClient = type === "Client"
+	const isClient = type === 'Client'
 
     const latestRecord = isClient ?
-		await Client.findOne({ order: [["createdAt", "DESC"]] })
+		await Client.findOne({order: [['createdAt', 'DESC']]})
 	:
-		await ClientBill.findOne({ order: [["createdAt", "DESC"]] })
+		await ClientBill.findOne({order: [['createdAt', 'DESC']]})
 
     if (!latestRecord) {
-        return isClient ? "0000-AA" : "000000000-AAAA"
-    }
+        return isClient ? '0000-AA' : '000000000-AAAA'
+   }
 
-    let nextNumber = isClient ? "0000" : "000000000"
-    let nextLetter = isClient ? "AA" : "AAAA"
+    let nextNumber = isClient ? '0000' : '000000000'
+    let nextLetter = isClient ? 'AA' : 'AAAA'
 
     const latestNumber = isClient ? latestRecord.accountNumber : latestRecord.billNumber
-    const numberSection = parseInt(latestNumber.split("-")[0], 10)
-    const letterSection = latestNumber.split("-")[1]
+    const numberSection = parseInt(latestNumber.split('-')[0], 10)
+    const letterSection = latestNumber.split('-')[1]
 
     if (numberSection === 9999 || numberSection === 999999999) {
         const lastLetterCharCode = letterSection.charCodeAt(letterSection.length - 1);
         
         if (lastLetterCharCode !== 90) {
-            nextLetter = "A" + String.fromCharCode(lastLetterCharCode + 1)
-        }
-    } else {
-        nextNumber = String((isClient ? "0000" : "000000000") + (numberSection + 1)).slice(-nextNumber.length)
+            nextLetter = 'A' + String.fromCharCode(lastLetterCharCode + 1)
+       }
+   } else {
+        nextNumber = String((isClient ? '0000' : '000000000') + (numberSection + 1)).slice(-nextNumber.length)
         nextLetter = letterSection
-    }
+   }
 
 	return [nextNumber, nextLetter].join('-')
 
 }
 
-module.exports = { 
+module.exports = {
     generateNextAccountOrBillNumber,
     throwAndLogError,
     tryCatchWrapper, 

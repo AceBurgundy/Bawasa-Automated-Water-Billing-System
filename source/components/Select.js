@@ -1,4 +1,4 @@
-import Field from "./Field.js"
+import Field from './Field.js'
 
 /**
  * Represents a Select field that extends the base Field class.
@@ -14,14 +14,14 @@ import Field from "./Field.js"
  *   attributes: {
  *     name: 'mySelect',
  *     placeholder: 'Choose an option',
- *   },
+ *  },
  *   options: {
  *     option1: 'Option 1',
  *     option2: 'Option 2',
- *   },
- *   classes: ["input-type"],
- *   flags: ["required", "readonly"]
- * })
+ *  },
+ *   classes: ['input-type'],
+ *   flags: ['required', 'readonly']
+ *})
  */
 export default class Select extends Field {
     /**
@@ -31,7 +31,7 @@ export default class Select extends Field {
      */
     constructor(validations, props) {
         super(validations, props)
-    }
+   }
 
     /**
      * Get a string representation of the Select field.
@@ -39,7 +39,7 @@ export default class Select extends Field {
      */
     toString() {
         return this.render()
-    }
+   }
 
     /**
      * Render the Select field.
@@ -52,25 +52,25 @@ export default class Select extends Field {
          * @property {boolean} evalStatus - The evaluation status.
          * @property {string} evalMessage - The evaluation message.
          */
-        const { evalStatus, evalMessage } = this.evaluateProps()
+        const {evalStatus, evalMessage} = this.evaluateProps()
         if (evalStatus === false) return evalMessage
 
-        const { name, placeholder } = this.attributes
+        const {name, placeholder} = this.attributes
 
-        const { options } = this.props
+        const {options} = this.props
 
         const selectAttributes = this.cleanAttributes(this.attributes)        
         const cleanClasses = this.cleanClasses(this.classes)
 
         return `
-            <select id="${this.id}" name="${name}" class="input-style form-field__input ${cleanClasses}" ${selectAttributes} ${this.flags}>
+            <select id='${this.id}' name='${name}' class='input-style form-field__input ${cleanClasses}' ${selectAttributes} ${this.flags}>
             <option disabled selected>
-                    ${placeholder !== undefined ? placeholder : "Select"}
+                    ${placeholder !== undefined ? placeholder : 'Select'}
             </option>
                 ${this.renderOptions(options)}
             </select>
         `
-    }
+   }
 
     /**
      * Evaluate the field's properties.
@@ -84,35 +84,35 @@ export default class Select extends Field {
          */
         const error = error => {
             console.error(error)
-            return { evalStatus: false, evalMessage: error }
-        }
+            return {evalStatus: false, evalMessage: error}
+       }
 
-        if (this.props.hasOwnProperty("id"))
+        if (this.props.hasOwnProperty('id'))
             return error(`id is not required as name stands as id`)
 
-        for (let data of ["flags", "attributes", "options"]) {
+        for (let data of ['flags', 'attributes', 'options']) {
             if (
-                data !== "attributes" &&
-                data !== "options" &&
+                data !== 'attributes' &&
+                data !== 'options' &&
                 !Array.isArray(this.props[data])
             ) {
                 return error(`${data} must be an array`)
-            }
+           }
 
             if (
-                (data === "attributes" || data === "options") &&
-                typeof this.props[data] !== "object"
+                (data === 'attributes' || data === 'options') &&
+                typeof this.props[data] !== 'object'
             ) {
                 return error(`${data} must be key value pairs`)
-            }
+           }
 
             if (!this.props.hasOwnProperty(data)) {
                 return error(`Missing ${data} for select attribute`)
-            }
-        }
+           }
+       }
 
-        return { evalStatus: true, evalMessage: "" }
-    }
+        return {evalStatus: true, evalMessage: ''}
+   }
 
     /**
      * Render the Select field's options.
@@ -124,11 +124,11 @@ export default class Select extends Field {
             .map(([key, value]) => {
                 return this.attributes.selected &&
                     this.attributes.selected === value
-                    ? `<option value="${key}" selected>${value}</option>`
-                    : `<option value="${key}">${value}</option>`
-            })
-            .join("\n")
-    }
+                    ? `<option value='${key}' selected>${value}</option>`
+                    : `<option value='${key}'>${value}</option>`
+           })
+            .join('\n')
+   }
 
     /**
      * Cleans and formats the input classes.
@@ -136,8 +136,8 @@ export default class Select extends Field {
      * @returns {string} The cleaned and formatted classes as a string.
      */
     cleanClasses(classes) {
-        return classes.length > 0 ? classes.join(" ") : ""
-    }
+        return classes.length > 0 ? classes.join(' ') : ''
+   }
 
 }
 

@@ -1,40 +1,43 @@
-import { getById } from "./helper.js";
+import {getById} from './helper.js';
 
 /**
  * Creates a toast notification element and appends it to the flashes container.
- * @function makeToastNotification
+ * @function
  * @param {String|Array<string>} message - The message or list of messages which will be rendered.
  */
-export default function (message) {
+export default function makeToastNotification(message) {
+  const messageIsArray = Array.isArray(message);
 
-    if (Array.isArray(message)) {
-        message.forEach(messageItem => arguments.callee(messageItem))
-        return
-    }
+  if (messageIsArray) {
+    message.forEach(messageItem => {
+      return makeToastNotification(messageItem);
+    });
+    return;
+  }
 
-    if (message === null || message === undefined || message.toString().trim().length <= 0) {
-        console.error("Toast notification requires a non-empty message")
-        return
-    }
+  if (message && message.toString().trim().length <= 0) {
+    console.error('Toast notification requires a non-empty message');
+    return;
+  }
 
-    let toastBox = getById("flashes")
+  let toastBox = getById('flashes');
 
-    if (!toastBox) {
-        const newBox = document.createElement("div")
-        newBox.id = "flashes"
-        document.body.insertBefore(newBox, document.body.firstChild || null)
-        toastBox = newBox
-    }
+  if (!toastBox) {
+    const newBox = document.createElement('div');
+    newBox.id = 'flashes';
+    document.body.insertBefore(newBox, document.body.firstChild || null);
+    toastBox = newBox;
+  }
 
-    const toast = document.createElement("dialog")
-    toast.classList.add("message")
-    toast.textContent = message
+  const toast = document.createElement('dialog');
+  toast.classList.add('message');
+  toast.textContent = message;
 
-    toastBox.append(toast)
-    toast.show()
+  toastBox.append(toast);
+  toast.show();
 
-    setTimeout(() => {
-        toast.classList.add("close")
-        setTimeout(() => toast.remove(), 500)
-    }, 5000)
+  setTimeout(() => {
+    toast.classList.add('close');
+    setTimeout(() => toast.remove(), 500);
+  }, 5000);
 }

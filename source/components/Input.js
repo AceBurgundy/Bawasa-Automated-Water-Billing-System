@@ -1,4 +1,4 @@
-import Field from "./Field.js"
+import Field from './Field.js'
 
 /**
  * Represents an input field that extends the base Field class.
@@ -14,10 +14,10 @@ import Field from "./Field.js"
  *     name: 'username',
  *     type: 'text',
  *     placeholder: 'Enter your username',
- *   },
- *   classes: ["input-type"],
- *   flags: ["required", "readonly"]
- * });
+ *  },
+ *   classes: ['input-type'],
+ *   flags: ['required', 'readonly']
+ *});
  */
 export default class Input extends Field {
     /**
@@ -27,7 +27,7 @@ export default class Input extends Field {
      */
     constructor(validations, props) {
         super(validations, props)
-    }
+   }
 
     /**
      * Converts the input to its string representation.
@@ -35,7 +35,7 @@ export default class Input extends Field {
      */
     toString() {
         return this.render()
-    }
+   }
 
     /**
      * Renders the input field.
@@ -43,26 +43,26 @@ export default class Input extends Field {
      */
     renderField() {
 
-        const { name } = this.attributes
+        const {name} = this.attributes
         const inputAttributes = this.cleanAttributes(this.attributes)
         const cleanClasses = this.cleanClasses(this.classes)
-        const isPhoneNumberFieldAndReadOnly = this.classes.includes("input-readonly") && this.classes.includes("number-input") 
+        const isPhoneNumberFieldAndReadOnly = this.classes.includes('input-readonly') && this.classes.includes('number-input') 
 
         return `
             ${
-                this.classes.includes("number-input") ? ` 
-                    <div class="input-style ${isPhoneNumberFieldAndReadOnly ? "input-readonly" : ''}">
-                        <div class="country-code">
+                this.classes.includes('number-input') ? ` 
+                    <div class='input-style ${isPhoneNumberFieldAndReadOnly ? 'input-readonly' : ''}'>
+                        <div class='country-code'>
                             +63
                         </div>
-                        <input id="${this.id}" name="${name}" class="form-field__input number-input ${cleanClasses}" ${inputAttributes} ${this.flags}>
+                        <input id='${this.id}' name='${name}' class='form-field__input number-input ${cleanClasses}' ${inputAttributes} ${this.flags}>
                     </div> `
                 : `
-                    <input id="${this.id}" name="${name}" class="form-field__input ${this.classes}" ${inputAttributes} ${this.flags}>
+                    <input id='${this.id}' name='${name}' class='form-field__input ${this.classes}' ${inputAttributes} ${this.flags}>
                 `
-            }
+           }
         `
-    }
+   }
 
     /**
      * Cleans and formats the input classes.
@@ -70,7 +70,7 @@ export default class Input extends Field {
      * @returns {string} The cleaned and formatted classes as a string.
      */
     cleanClasses(classes) {
-        return classes.length > 0 ? classes.join(" ") : ""
-    }
+        return classes.length > 0 ? classes.join(' ') : ''
+   }
 
 }

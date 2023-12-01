@@ -1,10 +1,10 @@
-const Store = require("electron-store")
+const Store = require('electron-store')
 
-const UserPhoneNumber = require("../../models/UserPhoneNumber")
-const UserAddress = require("../../models/UserAddress")
-const User = require("../../models/User")
+const UserPhoneNumber = require('../../models/UserPhoneNumber')
+const UserAddress = require('../../models/UserAddress')
+const User = require('../../models/User')
 
-const SESSION_KEY = "user_session"
+const SESSION_KEY = 'user_session'
 
 /**
  * Manages user sessions using Electron Store.
@@ -19,7 +19,7 @@ class SessionManager {
      */
     constructor() {
         this.store = new Store()
-    }
+   }
 
     /**
      * Logs in a user by storing the access key in the session.
@@ -28,15 +28,15 @@ class SessionManager {
      */
     login(accessKey) {
         this.store.set(SESSION_KEY, accessKey)
-    }
+   }
 
     /**
      * Logs out the current user by clearing the session.
      * @method
      */
-    logout() {        
+    logout() {       
         this.store.clear()
-    }
+   }
 
     /**
      * Retrieves the current user based on the stored access key.
@@ -45,27 +45,27 @@ class SessionManager {
      * @throws {Error} Throws an error if there is an issue retrieving the user information.
      * @returns {Promise<Object|null>} A Promise that resolves to the user object or null if the access key is not found.
      */
-    async current_user() {
+    async currentUser() {
         
         const accessKey = this.store.get(SESSION_KEY)
 
         if (!accessKey) {
-            console.log("Access key not found");
+            console.log('Access key not found');
             return null
-        }
+       }
 
         try {
 
-            const user = await User.findOne({ 
-                where: { 
+            const user = await User.findOne({
+                where: {
                     accessKey: accessKey 
-                },
+               },
                 attributes: {
                     exclude: [
-                        "password",
-                        "updatedAt",
+                        'password',
+                        'updatedAt',
                     ]
-                },
+               },
                 include: [
                     {
                         model: UserPhoneNumber,
@@ -74,26 +74,26 @@ class SessionManager {
                             ['createdAt', 'DESC']
                         ],
                         limit: 1,
-                    },
-                    { 
+                   },
+                    {
                         model: UserAddress, 
-                        as: "mainAddress"
-                    },
-                    { 
+                        as: 'mainAddress'
+                   },
+                    {
                         model: UserAddress, 
-                        as: "presentAddress"
-                    },
+                        as: 'presentAddress'
+                   },
                 ],
-            })
+           })
             
             return user ? user.toJSON() : null
 
-        } catch(error) {
+       } catch(error) {
             console.log(error);
             return null
-        }         
+       }         
 
-    }
+   }
 
 }
 

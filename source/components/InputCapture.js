@@ -1,9 +1,9 @@
 // helpers
-import { camelToDashed, getById } from "../assets/scripts/helper.js"
-import makeToastNotification from "../assets/scripts/toast.js"
+import {camelToDashed, getById} from '../assets/scripts/helper.js'
+import makeToastNotification from '../assets/scripts/toast.js'
 
 // package
-import Webcam from "../assets/scripts/Webcam.js"
+import Webcam from '../assets/scripts/Webcam.js'
 
 export default class InputCapture {
 
@@ -22,12 +22,12 @@ export default class InputCapture {
         this.dashedName = camelToDashed(name)
 
         this.template = `
-            <div id="${this.dashedName}-field" class="form-field image-capture">     
-                <video  id="${this.dashedName}-form-field__video" class="form-field__video"  autoplay  playsinline width="360"  height="360"></video>
-                <canvas  id="${this.dashedName}-form-field__canvas" class="form-field__canvas"></canvas>
-                <div class="form-field__options">
-                    <input name="${this.dashedName}" id="${this.dashedName}-form-field__options__input" class="form-field__options__input" type="file" accept="image/*">
-                    <button id="${this.dashedName}-form-field__options__capture" class="form-field__options__capture button-primary take-image">
+            <div id='${this.dashedName}-field' class='form-field image-capture'>     
+                <video  id='${this.dashedName}-form-field__video' class='form-field__video'  autoplay  playsinline width='360'  height='360'></video>
+                <canvas  id='${this.dashedName}-form-field__canvas' class='form-field__canvas'></canvas>
+                <div class='form-field__options'>
+                    <input name='${this.dashedName}' id='${this.dashedName}-form-field__options__input' class='form-field__options__input' type='file' accept='image/*'>
+                    <button id='${this.dashedName}-form-field__options__capture' class='form-field__options__capture button-primary take-image'>
                         Take Image
                     </button>
                 </div>
@@ -36,11 +36,11 @@ export default class InputCapture {
         
         this.initializeWebcam()
 
-    }
+   }
 
     toString() {
         return this.template
-    }
+   }
 
     /**
      * Show or hide the image capture field based on the number of available webcams.
@@ -52,13 +52,13 @@ export default class InputCapture {
         const imageCapture = getById(`${this.dashedName}-form-field__options__capture`)
 
         if (numWebcams > 0) {
-            input.style.display = "none"
-            imageCapture.style.display = "block"
-        } else {
-            input.style.display = "block"
-            imageCapture.style.display = "none"
-        }
-    }
+            input.style.display = 'none'
+            imageCapture.style.display = 'block'
+       } else {
+            input.style.display = 'block'
+            imageCapture.style.display = 'none'
+       }
+   }
 
     /**
      * Set the original image on a canvas.
@@ -69,14 +69,14 @@ export default class InputCapture {
 
         const image = new Image()
         const context = canvas.getContext('2d')
-        const imagePath = await window.ipcRenderer.invoke("get-profile-path", this.profilePicture)
+        const imagePath = await window.ipcRenderer.invoke('get-profile-path', this.profilePicture)
         image.src = imagePath
 
         image.onload = function () {
             canvas.width = image.width
             canvas.height = image.height
             context.drawImage(image, 0, 0)
-        }
+       }
 
         this.imageData = {
             base64: null,
@@ -84,10 +84,10 @@ export default class InputCapture {
             path: imagePath,
             size: null,
             type: null,
-            format: this.profilePicture.split(".")[1],
-        }
+            format: this.profilePicture.split('.')[1],
+       }
 
-    }
+   }
 
     /**
      * Initialize the webcam and handle image capture.
@@ -98,15 +98,15 @@ export default class InputCapture {
 
             const canvas = getById(`${this.dashedName}-form-field__canvas`)
             const camera = getById(`${this.dashedName}-form-field__video`)
-            const webcam = new Webcam(camera, "user", canvas)
+            const webcam = new Webcam(camera, 'user', canvas)
 
             const inputElement = getById(`${this.dashedName}-form-field__options__input`)
             const captureElement = getById(`${this.dashedName}-form-field__options__capture`)
 
             await webcam.info().then(data => {
-                const numberOfWebCams = data.filter(value => value["kind"] === "videoinput" && value["label"] !== "screen-capture-recorder" ).length
+                const numberOfWebCams = data.filter(value => value['kind'] === 'videoinput' && value['label'] !== 'screen-capture-recorder' ).length
                 this.showHideImageCapture(numberOfWebCams)
-            })
+           })
         
             // Load the client's profile picture when form is set to edit
             if (this.forEdit && this.profilePicture) await this.setOriginalImage(canvas)
@@ -116,52 +116,52 @@ export default class InputCapture {
 
                 event.preventDefault()
         
-                const { target } = event
-                const { classList } = target
+                const {target} = event
+                const {classList} = target
         
                 const toggleCaptureClass = () => {
-                    const newClass = classList.contains("take-image") ? "capture" : "take-image"
-                    classList.replace("take-image", newClass)
-                    target.innerHTML = newClass === "capture" ? "Capture" : "Take Image"
-                    camera.style.zIndex = newClass === "capture" ? "2" : "1"
-                    canvas.style.zIndex = newClass === "capture" ? "1" : "2"
-                }
+                    const newClass = classList.contains('take-image') ? 'capture' : 'take-image'
+                    classList.replace('take-image', newClass)
+                    target.innerHTML = newClass === 'capture' ? 'Capture' : 'Take Image'
+                    camera.style.zIndex = newClass === 'capture' ? '2' : '1'
+                    canvas.style.zIndex = newClass === 'capture' ? '1' : '2'
+               }
         
                 // handles turning camera on
-                if (classList.contains("take-image")) {
+                if (classList.contains('take-image')) {
                     webcam.start()
-                        .then(() => makeToastNotification("Click capture to capture the image"))
+                        .then(() => makeToastNotification('Click capture to capture the image'))
                         .catch(error => {
-                            if (error === "Camera access denied") {
+                            if (error === 'Camera access denied') {
                                 makeToastNotification(error)
-                                inputElement.style.display = "block"
-                                target.nextElementSibling.style.display = "none"
-                            }
-                        })
+                                inputElement.style.display = 'block'
+                                target.nextElementSibling.style.display = 'none'
+                           }
+                       })
                     toggleCaptureClass()
-                }
+               }
         
                 // handles capture button click
-                if (classList.contains("capture")) {
+                if (classList.contains('capture')) {
                     webcam.snap(data => {
-                        this.imageData["image"] = { base64: data, fromInput: false }
+                        this.imageData['image'] = {base64: data, fromInput: false}
                         canvas.value = data
-                    })
+                   })
                     webcam.stop()
                     toggleCaptureClass()
-                }
+               }
 
-            }.bind(this)
+           }.bind(this)
         
             inputElement.onchange = function (event) {
 
-                const context = canvas.getContext("2d")
+                const context = canvas.getContext('2d')
         
                 if (inputElement.files && inputElement.files[0]) {
 
                     const file = inputElement.files[0]
 
-                    if (file.type.startsWith("image/")) {
+                    if (file.type.startsWith('image/')) {
                         
                         const reader = new FileReader()
         
@@ -172,29 +172,29 @@ export default class InputCapture {
                                 canvas.width = image.width
                                 canvas.height = image.height
                                 context.drawImage(image, 0, 0)
-                            }
+                           }
         
                             image.src = event.target.result
         
-                            this.imageData["image"] = {
+                            this.imageData['image'] = {
                                 base64: null,
                                 fromInput: true,
                                 path: file.path,
                                 size: file.size,
                                 type: file.type,
-                                format: file.name.split(".")[1],
-                            }
-                        }
+                                format: file.name.split('.')[1],
+                           }
+                       }
         
                         reader.readAsDataURL(file)
-                    } else {
+                   } else {
                         event.preventDefault()
-                        makeToastNotification("Please select an image file")
-                    }
-                }
+                        makeToastNotification('Please select an image file')
+                   }
+               }
 
-            }.bind(this)
+           }.bind(this)
 
-        }, 0)    
-    }
+       }, 0)    
+   }
 }

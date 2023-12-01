@@ -1,7 +1,7 @@
 export default class Webcam {
     constructor(
         webcamElement,
-        facingMode = "user",
+        facingMode = 'user',
         canvasElement = null,
         snapSoundElement = null
     ) {
@@ -11,83 +11,83 @@ export default class Webcam {
         this._facingMode = facingMode;
         this._webcamList = [];
         this._streamList = [];
-        this._selectedDeviceId = "";
+        this._selectedDeviceId = '';
         this._canvasElement = canvasElement;
         this._snapSoundElement = snapSoundElement;
-    }
+   }
 
     get facingMode() {
         return this._facingMode;
-    }
+   }
 
     set facingMode(value) {
         this._facingMode = value;
-    }
+   }
 
     get webcamList() {
         return this._webcamList;
-    }
+   }
 
     get webcamCount() {
         return this._webcamList.length;
-    }
+   }
 
     get selectedDeviceId() {
         return this._selectedDeviceId;
-    }
+   }
 
     /* Get all video input devices info */
     getVideoInputs(mediaDevices) {
         this._webcamList = [];
         mediaDevices.forEach((mediaDevice) => {
-            if (mediaDevice.kind === "videoinput") {
+            if (mediaDevice.kind === 'videoinput') {
                 this._webcamList.push(mediaDevice);
-            }
-        });
+           }
+       });
         if (this._webcamList.length == 1) {
-            this._facingMode = "user";
-        }
+            this._facingMode = 'user';
+       }
         return this._webcamList;
-    }
+   }
 
     /* Get media constraints */
     getMediaConstraints() {
         var videoConstraints = {};
-        if (this._selectedDeviceId == "") {
+        if (this._selectedDeviceId == '') {
             videoConstraints.facingMode = this._facingMode;
-        } else {
-            videoConstraints.deviceId = { exact: this._selectedDeviceId };
-        }
-        videoConstraints.width = { exact: this._webcamElement.width };
-        videoConstraints.height = { exact: this._webcamElement.height };
+       } else {
+            videoConstraints.deviceId = {exact: this._selectedDeviceId};
+       }
+        videoConstraints.width = {exact: this._webcamElement.width};
+        videoConstraints.height = {exact: this._webcamElement.height};
         var constraints = {
             video: videoConstraints,
             audio: false,
-        };
+       };
         return constraints;
-    }
+   }
 
     /* Select camera based on facingMode */
     selectCamera() {
         for (let webcam of this._webcamList) {
             if (
-                (this._facingMode == "user" &&
-                    webcam.label.toLowerCase().includes("front")) ||
-                (this._facingMode == "enviroment" &&
-                    webcam.label.toLowerCase().includes("back"))
+                (this._facingMode == 'user' &&
+                    webcam.label.toLowerCase().includes('front')) ||
+                (this._facingMode == 'enviroment' &&
+                    webcam.label.toLowerCase().includes('back'))
             ) {
                 this._selectedDeviceId = webcam.deviceId;
                 break;
-            }
-        }
-    }
+           }
+       }
+   }
 
     /* Change Facing mode and selected camera */
     flip() {
-        this._facingMode = this._facingMode == "user" ? "enviroment" : "user";
-        this._webcamElement.style.transform = "";
+        this._facingMode = this._facingMode == 'user' ? 'enviroment' : 'user';
+        this._webcamElement.style.transform = '';
         this.selectCamera();
-    }
+   }
 
     /*
       1. Get permission from user
@@ -109,28 +109,28 @@ export default class Webcam {
                                 this.stream()
                                     .then((facingMode) => {
                                         resolve(this._facingMode);
-                                    })
+                                   })
                                     .catch((error) => {
                                         reject(error);
-                                    });
-                            } else {
+                                   });
+                           } else {
                                 resolve(this._selectedDeviceId);
-                            }
-                        })
+                           }
+                       })
                         .catch((error) => {
                             reject(error);
-                        });
-                })
+                       });
+               })
                 .catch((error) => {
                 // Handle the error when user denies access to the camera
-                if (error.name === "NotAllowedError") {
-                    reject("Camera access denied");
-                } else {
+                if (error.name === 'NotAllowedError') {
+                    reject('Camera access denied');
+               } else {
                     reject(error);
-                }
-            });
-        });
-    }
+               }
+           });
+       });
+   }
 
     /* Get all video input devices info */
     async info() {
@@ -140,12 +140,12 @@ export default class Webcam {
                 .then((devices) => {
                     this.getVideoInputs(devices);
                     resolve(this._webcamList);
-                })
+               })
                 .catch((error) => {
                     reject(error);
-                });
-        });
-    }
+               });
+       });
+   }
 
     /* Start streaming webcam to video element */
     async stream() {
@@ -155,40 +155,40 @@ export default class Webcam {
                 .then((stream) => {
                     this._streamList.push(stream);
                     this._webcamElement.srcObject = stream;
-                    if (this._facingMode == "user") {
-                        this._webcamElement.style.transform = "scale(-1,1)";
-                    }
+                    if (this._facingMode == 'user') {
+                        this._webcamElement.style.transform = 'scale(-1,1)';
+                   }
                     this._webcamElement.play();
                     resolve(this._facingMode);
-                })
+               })
                 .catch((error) => {
                     console.log(error);
                     reject(error);
-                });
-        });
-    }
+               });
+       });
+   }
 
     /* Stop streaming webcam */
     stop() {
         this._streamList.forEach((stream) => {
             stream.getTracks().forEach((track) => {
                 track.stop();
-            });
-        });
-    }
+           });
+       });
+   }
 
     snap(callback) {
         if (this._canvasElement != null) {
             if (this._snapSoundElement != null) {
                 this._snapSoundElement.play();
-            }
+           }
             this._canvasElement.height = this._webcamElement.scrollHeight;
             this._canvasElement.width = this._webcamElement.scrollWidth;
-            let context = this._canvasElement.getContext("2d");
-            if (this._facingMode == "user") {
+            let context = this._canvasElement.getContext('2d');
+            if (this._facingMode == 'user') {
                 context.translate(this._canvasElement.width, 0);
                 context.scale(-1, 1);
-            }
+           }
             context.clearRect(
                 0,
                 0,
@@ -202,13 +202,13 @@ export default class Webcam {
                 this._canvasElement.width,
                 this._canvasElement.height
             );
-            let data = this._canvasElement.toDataURL("image/png");
+            let data = this._canvasElement.toDataURL('image/png');
 
             callback(data)
 
             return data;
-        } else {
-            throw "canvas element is missing";
-        }
-    }
+       } else {
+            throw 'canvas element is missing';
+       }
+   }
 }

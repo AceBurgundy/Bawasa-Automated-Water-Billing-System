@@ -1,59 +1,59 @@
-const { connectionStatusTypes } = require("./utilities/constants.js")
-const { app, BrowserWindow, screen, ipcMain } = require("electron")
-const { tryCatchWrapper } = require("./utilities/helpers.js")
-const { db } = require("./utilities/sequelize.js")
-const session = require("./utilities/session.js")
-const { resolve, join } = require("path")
+const {connectionStatusTypes} = require('./utilities/constants.js')
+const {app, BrowserWindow, screen, ipcMain} = require('electron')
+const {tryCatchWrapper} = require('./utilities/helpers.js')
+const {db} = require('./utilities/sequelize.js')
+const session = require('./utilities/session.js')
+const {resolve, join} = require('path')
 
 // views
-require("./pages/clientBuilder/views.js")
-require("./pages/authentication/view.js")
-require("./pages/clients/views.js")
-require("./pages/billing/views.js")
-require("./pages/profile/view.js")
-require("./utilities/export.js")
+require('./pages/clientBuilder/views.js')
+require('./pages/authentication/view.js')
+require('./pages/clients/views.js')
+require('./pages/billing/views.js')
+require('./pages/profile/view.js')
+require('./utilities/export.js')
 
-const ClientConnectionStatus = require("../models/ClientConnectionStatus")
-const ClientPhoneNumber = require("../models/ClientPhoneNumber.js")
-const UserPhoneNumber = require("../models/UserPhoneNumber")
-const PartialPayment = require("../models/PartialPayment")
-const RecoveryCode = require("../models/RecoveryCode.js")
-const ClientAddress = require("../models/ClientAddress")
-const UserAddress = require("../models/UserAddress")
-const ClientFile = require("../models/ClientFile")
-const ClientBill = require("../models/ClientBill")
-const Client = require("../models/Client")
-const User = require("../models/User")
+const ClientConnectionStatus = require('../models/ClientConnectionStatus')
+const ClientPhoneNumber = require('../models/ClientPhoneNumber.js')
+const UserPhoneNumber = require('../models/UserPhoneNumber')
+const PartialPayment = require('../models/PartialPayment')
+const RecoveryCode = require('../models/RecoveryCode.js')
+const ClientAddress = require('../models/ClientAddress')
+const UserAddress = require('../models/UserAddress')
+const ClientFile = require('../models/ClientFile')
+const ClientBill = require('../models/ClientBill')
+const Client = require('../models/Client')
+const User = require('../models/User')
 
 async function initializeDatabase() {
 	try {
 		await db.authenticate()
-		console.log("Connection has been established successfully.")
+		console.log('Connection has been established successfully.')
 
-		await db.sync({ force: true })
-		console.log("All models were synchronized successfully.")
+		await db.sync({force: true})
+		console.log('All models were synchronized successfully.')
 	} catch (error) {
-		console.error("Unable to connect to the database:", error)
+		console.error('Unable to connect to the database:', error)
 	}
 }
 
 // initializeDatabase()
 
-if (require("electron-squirrel-startup")) {
+if (require('electron-squirrel-startup')) {
     app.quit()
 }
 
 let icon
 
 switch (process.platform) {
-    case "win32":
-        icon = resolve(__dirname, "assets/images", "Logo.ico")
+    case 'win32':
+        icon = resolve(__dirname, 'assets/images', 'Logo.ico')
         break
-    case "darwin":
-        icon = resolve(__dirname, "assets/images", "Logo.icns")
+    case 'darwin':
+        icon = resolve(__dirname, 'assets/images', 'Logo.icns')
         break
-    case "linux":
-        icon = resolve(__dirname, "assets/images", "Logo.png")
+    case 'linux':
+        icon = resolve(__dirname, 'assets/images', 'Logo.png')
         break
 }
 
@@ -76,12 +76,12 @@ const createWindow = async () => {
             webPreferences: {
                 contextIsolation: true,
                 nodeIntegration: true,
-                preload: join(__dirname, "preload.js"),
-            },
+                preload: join(__dirname, 'preload.js'),
+           },
             icon,
-        })
+       })
 
-        mainWindow.loadFile(join(__dirname, "index.html"))
+        mainWindow.loadFile(join(__dirname, 'index.html'))
         mainWindow.webContents.openDevTools()
 
         session.logout()
@@ -97,7 +97,7 @@ const createWindow = async () => {
                         separate: true,
                         order: [['createdAt', 'DESC']],
                         limit: 1,
-                      },
+                     },
                       {
                         model: ClientConnectionStatus,
                         as: 'connectionStatuses',
@@ -106,14 +106,14 @@ const createWindow = async () => {
                         separate: true,
                         order: [['createdAt', 'DESC']],
                         limit: 1,
-                      }
+                     }
                 ]
-            })
+           })
 	})
 
     if (clients && clients.length > 0) {
 
-        const { Connected, DueForDisconnection, Disconnected } = connectionStatusTypes
+        const {Connected, DueForDisconnection, Disconnected} = connectionStatusTypes
                 
         for (let client of clients) {
 
@@ -124,7 +124,7 @@ const createWindow = async () => {
             if (!connectionStatus) continue;
             if (!latestBill.dueDate) continue
 
-            if (latestBill.status === "paid") continue
+            if (latestBill.status === 'paid') continue
 
             const billDueDate = new Date(latestBill.dueDate);
             const billDisconnectionDate = new Date(latestBill.disconnectionDate);
@@ -132,17 +132,17 @@ const createWindow = async () => {
             const current = {
                 day: new Date().getDate(),
                 month: new Date().getMonth()
-            }
+           }
 
             const due = {
                 day: billDueDate.getDate(),
                 month: billDueDate.getMonth()
-            }
+           }
 
             const disconnection = {
                 day: billDisconnectionDate.getDate(),
                 month: billDisconnectionDate.getMonth()
-            }
+           }
 
             if (current.day >= due.day && current.month >= due.month && connectionStatus === Connected) {
 
@@ -150,8 +150,8 @@ const createWindow = async () => {
                     await ClientConnectionStatus.create({
                         clientId: client.id,
                         status: DueForDisconnection,
-                    });
-                })
+                   });
+               })
 
                 // Adds penalty to current bill
                 const penalty = 5;
@@ -160,10 +160,10 @@ const createWindow = async () => {
                     await latestBill.update({
                         penalty: penalty,
                         total: latestBill.total + penalty,
-                    });
-                })
+                   });
+               })
 
-            }
+           }
         
             if (current.day >= disconnection.day && current.month >= disconnection.month && connectionStatus === DueForDisconnection) {
 
@@ -171,38 +171,38 @@ const createWindow = async () => {
                     await ClientConnectionStatus.create({
                         clientId: client.id,
                         status: Disconnected,
-                    });
-                })
-            }
-        }        
+                   });
+               })
+           }
+       }        
 
-    }
+   }
 
-    } catch (error) {
+   } catch (error) {
         console.error('Error connecting to the database:', error)
-    }
+   }
 
 }
 
-app.on("ready", createWindow)
+app.on('ready', createWindow)
 
-app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
         app.quit()
-    }
+   }
 })
 
-ipcMain.handle("current_user", async event => {
-    return await session.current_user()
+ipcMain.handle('current_user', async event => {
+    return await session.currentUser()
 })
 
-app.on("before-quit", () => {
+app.on('before-quit', () => {
     session.logout()
 })
 
-app.on("activate", () => {
+app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
         createWindow()
-    }
+   }
 })
 
