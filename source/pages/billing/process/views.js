@@ -1,13 +1,13 @@
-// constants
-const {connectionStatusTypes} = require('../../../utilities/constants');
 
 // utilities
-const Response = require('../../../utilities/Response');
+const {connectionStatusTypes} = require('../../../utilities/constants');
+const receiptTemplate = require('../../../utilities/receipt-template');
+const {printReceipt, getMonth} = require('../../../utilities/helpers');
+const Response = require('../../../utilities/response');
 
-// models
-const Client = require('../../../../models/Client');
-
+const {Sequelize} = require('sequelize');
 const {ipcMain} = require('electron');
+const {getYear} = require('date-fns');
 
 // functions
 const {
@@ -18,21 +18,60 @@ const {
   handleUnderpaidBill,
   getBillAndStatus,
   handleUnpaidBill,
+  getCompleteData,
   createNewBill,
   getAllClients,
   getBillById
 } = require('./functions');
 
 // Retrieves a list of bills with associated client data.
-ipcMain.handle('accounts', async event => {
-  const accounts = await getAllClients();
+ipcMain.handle('accounts', async (event, table) => {
+  const whereClause = {};
 
-  if (accounts && accounts.length > 0) {
-    const stringAccounts = JSON.stringify(accounts);
-    return new Response().okWithData('data', stringAccounts);
-  } else {
-    return new Response().errorWithData('message', 'No accounts yet');
+  if (table.columnName) {
+    whereClause[table.columnName] = {
+      [Sequelize.Op.like]: `%${table.columnData}%`
+    };
   }
+
+  let accounts = null;
+  const statistics = {};
+
+  try {
+    accounts = await getAllClients(whereClause);
+
+    if (accounts && accounts.length <= 0) {
+      accounts = await getAllClients();
+      if (accounts.length <= 0) {
+        return new Response().errorWithData('message', 'No accounts yet');
+      }
+    }
+  } catch (error) {
+    console.log(error);
+    return new Response().errorWithData('message', 'Error in searching for accounts');
+  }
+
+  if (accounts) {
+    accounts.forEach(account => {
+      const hasStatus = account.hasOwnProperty('bills');
+      if (hasStatus && account.bills.length > 0) {
+        const status = account.bills[0].status;
+        if (status in statistics) {
+          statistics[status] += 1;
+        } else {
+          statistics[status] = 1;
+        }
+      }
+    });
+  }
+
+  const stringAccounts = JSON.stringify(accounts);
+  const stringStatistics = JSON.stringify(statistics);
+  return new Response()
+      .success()
+      .addObject('data', stringAccounts)
+      .addObject('statistics', stringStatistics)
+      .getResponse();
 });
 
 // Retrieves the the bill of a client.
@@ -58,25 +97,26 @@ ipcMain.handle('get-bill', async (event, args) => {
 });
 
 ipcMain.handle('print-bill', async (event, args) => {
-  const {clientId} = args;
+  const {accountId, billId} = args;
 
-  if (!clientId) return new Response().error('Missing client id');
+  if (!accountId) return new Response().error('Missing account id');
+  if (!billId) return new Response().error('Missing bill id');
 
-  let clientBill = null;
-  const message = 'Cannot find clients bill';
+  const clientWithBill = await getCompleteData(args);
+  if (!clientWithBill) return new Response().error('Client not found');
+
+  const fullName = clientWithBill.fullName;
+  const billMonth = getMonth(clientWithBill.bills[0].createdAt);
+  const billYear = getYear(clientWithBill.bills[0].createdAt);
+  const receiptFileName = [fullName, billMonth, billYear, 'receipt'].join(' ');
+  const template = receiptTemplate(clientWithBill);
 
   try {
-    clientBill = await Client.findByPk(clientId);
+    await printReceipt(template, receiptFileName, event);
+    return new Response().ok(`${receiptFileName} has been printed`);
   } catch (error) {
-    console.log(error);
-    return new Response().error(message);
+    return new Response().error(error.message);
   }
-
-  if (!clientBill) {
-    return new Response().error(message);
-  }
-
-  // MISSING CODE TO PRINT RECEIPT
 });
 
 ipcMain.handle('new-bill', async (event, args) => {
@@ -123,7 +163,7 @@ ipcMain.handle('new-bill', async (event, args) => {
     latestBillAlreadyPaid = billPaid || OverpaidWithSecondReading;
   }
 
-  const hasSecondReading = clientBill.secondReading !== null;
+  const hasSecondReading = clientBill && clientBill.secondReading !== null;
   const NotPaidButHasSecondReading = clientBill && !latestBillAlreadyPaid && hasSecondReading;
 
   if (NotPaidButHasSecondReading) {
@@ -159,6 +199,8 @@ ipcMain.handle('new-bill', async (event, args) => {
 });
 
 ipcMain.handle('pay-bill', async (event, args) => {
+  console.log('called');
+  console.log(args);
   const {amount, billId} = args;
 
   if (!amount) {
@@ -176,7 +218,7 @@ ipcMain.handle('pay-bill', async (event, args) => {
     return new Response().error('Cannot find bill');
   }
 
-  const bill = billQuery.toJSON();
+  const bill = billQuery;
   const totalPartialPayments = calculatePartialPaymentsTotal(bill);
 
   switch (bill.status) {

@@ -1,19 +1,28 @@
 /* eslint-disable indent */
 
-// components
-import Input from '../../../../components/Input.js';
-
 // helpers
 import makeToastNotification from '../../../../assets/scripts/toast.js';
-
 import {
   clearAndHideDialog,
   fillAndShowDialog,
-  generateHTML,
   generateUniqueId,
-  getById,
-  getFormData
+  generateHTML,
+  getFormData,
+  getById
 } from '../../../../assets/scripts/helper.js';
+
+// components
+import Input from '../../../../components/Input.js';
+
+// validations
+import '../../../../utilities/validations.js';
+
+const {
+  hasNoSymbols,
+  isOverThan,
+  isEmail,
+  isEmpty
+} = window;
 
 /**
  * @class ForgetPasswordDialog
@@ -25,8 +34,6 @@ export default class {
   * @constructor
   */
   constructor() {
-    const {isEmail, isEmpty, isOverThan, hasNoSymbols} = window;
-
     /**
     * Enum representing different states of the Forget Password Dialog.
     * @enum {string}
@@ -61,7 +68,6 @@ export default class {
       flags: ['required'],
       attributes: {
         id: this.dialogPasswordInputId,
-        value: 'Adrian2001.',
         label: 'Password',
         name: 'password',
         type: 'password',
@@ -73,7 +79,7 @@ export default class {
     * HTML template for the Forget Password Dialog.
     * @member {string}
     */
-    this.template = `
+    this.template = /* html */`
       <form id='${this.formId}' class='${formName}'>
         <p id='${formName}-title'>
             Account Recovery
@@ -87,7 +93,7 @@ export default class {
               new Input([isEmpty, isEmail, [isOverThan, 0, 255]], {
                 flags: ['required'],
                 attributes: {
-                  value: 'samadriansabalo99@gmail.com',
+                  value: 'JuanDelaCruz@gmail.com',
                   id: this.dialogEmailInputId,
                   maxlength: '255',
                   label: 'Email',
@@ -100,7 +106,6 @@ export default class {
                   id: this.dialogRecoveryCodeInputId,
                   label: 'Recovery Code',
                   name: 'recoveryCode',
-                  value: 'AvkPIVI1',
                   maxlength: '8'
                 }
               })
@@ -150,7 +155,6 @@ export default class {
     });
 
     if (response.toast) makeToastNotification(response.toast);
-    console.log(response);
 
     if (response.status === 'success') {
       warningElement.textContent = 'Enter your new password';

@@ -12,8 +12,8 @@ import {
 import ForgetPasswordDialog from '../components/ForgetPasswordDialog.js';
 
 // main
-import billing from '../../../billing/renderer/static/billing.js';
-import renderRegister from './register.js';
+import billing from '../../../billing/renderer/main/billing.js';
+import register from './register.js';
 
 // template
 import loginTemplate from '../templates/login.js';
@@ -24,24 +24,22 @@ import loginTemplate from '../templates/login.js';
  */
 export default async function() {
   const template = loginTemplate();
-
   getById('container').innerHTML += template;
-  setTimeout(() => getById('login').classList.add('active'), 500);
 
   window.onclick = async event => {
     switch (event.target.id) {
       case 'to-register-prompt':
-        transition(renderRegister);
-        break;
+        transition(register);
+        return;
 
       case 'forgot-password':
         new ForgetPasswordDialog();
-        break;
+        return;
 
       case 'login-button':
         event.preventDefault();
         await loginUser();
-        break;
+        return;
 
       default:
         break;
@@ -66,12 +64,16 @@ async function loginUser() {
   }
 
   const response = await window.ipcRenderer.invoke('login', formData);
-
-  console.log(response.toast);
   makeToastNotification(response.toast);
 
   if (response.status === 'success') {
-    transition(billing);
+    setTimeout(() => {
+      /**
+       * The timeout was added to fix issues where transition still doesnt happen
+       * Despite response.status === 'success'
+      */
+      transition(billing);
+    }, 500);
     return;
   }
 

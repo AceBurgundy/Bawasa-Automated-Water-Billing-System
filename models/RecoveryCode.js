@@ -25,6 +25,7 @@ RecoveryCode.belongsTo(User, {
   foreignKey: 'userId',
   as: 'recoveryCodes'
 });
+
 User.hasMany(RecoveryCode, {
   foreignKey: 'userId',
   as: 'recoveryCodes'

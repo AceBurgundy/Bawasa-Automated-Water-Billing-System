@@ -1,0 +1,146 @@
+File tree structure
+
+Main folder/
+|   |-- .prettierrc
+|   |-- Bawasa.sqlite3 ------------- Database
+|   |-- forge.config.js
+|   |-- generate_tree.py
+|   |-- models/ ------------- Database Models
+|   |   |-- Client.js
+|   |   |-- ClientAddress.js
+|   |   |-- ClientBill.js
+|   |   |-- ClientConnectionStatus.js
+|   |   |-- ClientFile.js
+|   |   |-- ClientPhoneNumber.js
+|   |   |-- PartialPayment.js
+|   |   |-- RecoveryCode.js
+|   |   |-- User.js
+|   |   |-- UserAddress.js
+|   |   └-- UserPhoneNumber.js
+|   |-- package-lock.json
+|   |-- package.json
+|   └-- source ------------- Global files ( client documents, client pictures, logo, global styles, global frontend scripts, global components )
+|       |-- assets/
+|       |   |-- files/
+|       |   |-- fonts/
+|       |   |   └-- Poppins-Regular.woff2
+|       |   |-- images/
+|       |   |   |-- admin/
+|       |   |   |   └-- profile
+|       |   |   |-- clients/
+|       |   |   |   |-- house/
+|       |   |   |   └-- profile
+|       |   |   |       └-- user.webp
+|       |   |   |-- Logo.icns
+|       |   |   |-- Logo.ico
+|       |   |   |-- Logo.png
+|       |   |   └-- user.png
+|       |   |-- scripts/
+|       |   |   |-- current-user.js
+|       |   |   |-- helper.js
+|       |   |   |-- icons.js
+|       |   |   |-- toast.js
+|       |   |   └-- Webcam.js
+|       |   └-- styles
+|       |       |-- dialog.css
+|       |       |-- field.css
+|       |       |-- fonts.css
+|       |       |-- image-capture.css
+|       |       |-- navigation.css
+|       |       |-- root.css
+|       |       |-- search.css
+|       |       |-- table.css
+|       |       └-- toast.css
+|       |-- components/
+|       |   |-- DocumentBoard.js
+|       |   |-- Field.js
+|       |   |-- FilePreview.js
+|       |   |-- Input.js
+|       |   |-- InputCapture.js
+|       |   └-- Select.js
+|       |-- global.js
+|       |-- index.html ------------- Main html
+|       |-- index.js ------------- Starter file
+|       |-- pages/ ------------- Code for all pages in the app (Authentication page, Billing page, Client page, ClientBuilder page, Profile page)
+|       |   |-- authentication/ 
+|       |   |   |-- process/
+|       |   |   |   |-- functions.js
+|       |   |   |   └-- views.js
+|       |   |   └-- renderer
+|       |   |       |-- components/
+|       |   |       |   |-- ForgetPasswordDialog.js
+|       |   |       |   └-- RecoveryCodesDialog.js
+|       |   |       |-- main/
+|       |   |       |   |-- login.js
+|       |   |       |   └-- register.js
+|       |   |       |-- styles/
+|       |   |       |   |-- authentication.css
+|       |   |       |   |-- forget-password-dialog.css
+|       |   |       |   └-- recovery-codes-dialog.css
+|       |   |       └-- templates
+|       |   |           |-- login.js
+|       |   |           └-- register.js
+|       |   |-- billing/
+|       |   |   |-- process/
+|       |   |   |   |-- functions.js
+|       |   |   |   └-- views.js
+|       |   |   └-- renderer
+|       |   |       |-- components/
+|       |   |       |   |-- BillForm.js
+|       |   |       |   └-- BillingRow.js
+|       |   |       |-- main/
+|       |   |       |   └-- billing.js
+|       |   |       |-- styles/
+|       |   |       |   |-- billing.css
+|       |   |       |   |-- new-bill.css
+|       |   |       |   └-- pay-bill.css
+|       |   |       └-- templates
+|       |   |           └-- billing.js
+|       |   |-- client-builder/
+|       |   |   |-- process/
+|       |   |   |   |-- functions.js
+|       |   |   |   └-- views.js
+|       |   |   └-- renderer
+|       |   |       |-- main/
+|       |   |       |   |-- client-builder.js
+|       |   |       |   └-- random-form-filler.js
+|       |   |       |-- styles/
+|       |   |       |   └-- client-builder.css
+|       |   |       └-- templates
+|       |   |           └-- client-builder.js
+|       |   |-- clients/
+|       |   |   |-- process/
+|       |   |   |   |-- functions.js
+|       |   |   |   └-- views.js
+|       |   |   └-- renderer
+|       |   |       |-- components/
+|       |   |       |   |-- ClientRow.js
+|       |   |       |   |-- DeleteClientDialog.js
+|       |   |       |   └-- ReconnectClientForm.js
+|       |   |       |-- main/
+|       |   |       |   └-- clients.js
+|       |   |       |-- styles/
+|       |   |       |   |-- clients.css
+|       |   |       |   |-- delete-client-dialog.css
+|       |   |       |   └-- reconnect-client-form.css
+|       |   |       └-- templates
+|       |   |           └-- clients.js
+|       |   └-- profile
+|       |       |-- process/
+|       |       |   |-- functions.js
+|       |       |   └-- views.js
+|       |       └-- renderer
+|       |           |-- main/
+|       |           |   └-- profile.js
+|       |           └-- templates
+|       |               └-- profile.js
+|       |-- preload.js
+|       └-- utilities ------------- extra helper functions for all view.js and function.js files
+|           |-- constants.js
+|           |-- export.js
+|           |-- helpers.js
+|           |-- receipt-template.js
+|           |-- response.js
+|           |-- sequelize.js
+|           |-- session.js
+|           └-- validations.js

@@ -1,19 +1,22 @@
 // helpers
-import {camelToDashed, getById, queryElement} from '../assets/scripts/helper.js'
-import makeToastNotification from '../assets/scripts/toast.js'
+import {camelToDashed, getById, queryElement} from '../assets/scripts/helper.js';
+import makeToastNotification from '../assets/scripts/toast.js';
+
+// icons
+import {icons} from '../assets/scripts/icons.js';
 
 // components
-import {FilePreview} from './FilePreview.js'
+import {FilePreview} from './FilePreview.js';
 
 /**
  * Represents a document board for handling file uploads.
  *
+ * @name DocumentBoard
  * @class
  * @public
  */
-export default class DocumentBoard {
-    
-    /**
+export default class {
+  /**
      * Creates a file drop element.
      *
      * @constructor
@@ -22,216 +25,277 @@ export default class DocumentBoard {
      * @param {string|null} clientId - The id of the client (forEdit must be true).
      * @param {string} title - The title of the document board.
      */
-    constructor(name, forEdit, clientId, title) {
+  constructor(name, forEdit, clientId, title) {
+    if (forEdit && !clientId) {
+      console.error(`
+        Client id must not be null when document board will be used for editing
+      `);
+      return;
+    }
 
-        if (forEdit && !clientId) {
-            console.error('Client id must not be null when document board will be used for editing')
-            return
-       }
+    if (!forEdit && clientId) {
+      console.error(`
+        For edit must be true when client id is present
+        as this implies that the document board will be used for editing
+      `);
+      return;
+    }
 
-        if (!forEdit && clientId) {
-            console.error('For edit must be true when clientId is present as this implies that the document board will be used for editing')
-            return
-       }
+    if (!name) {
+      console.error('Name is missing');
+      return;
+    }
 
-        if (!name) {
-            console.error('Name is missing')
-            return
-       }
+    if (!title) {
+      console.error('Title is missing');
+      return;
+    }
 
-        if (!title) {
-            console.error('Title is missing')
-            return
-       }
+    this.name = name;
+    this.title = title;
+    this.forEdit = forEdit;
+    this.clientId = clientId;
 
-        this.name = name
-        this.title = title
-        this.forEdit = forEdit
-        this.clientId = clientId
+    this.uploadedFiles = [];
+    this.fileNamesFromDatabase = [];
+    this.dashedName = camelToDashed(name);
 
-        this.uploadedFiles = []
-        this.dashedName = camelToDashed(name)
+    this.documentBoardId = `${this.dashedName}-field`;
+    this.documentBoardLabel = `${this.dashedName}-form-field-info-label`;
+    this.documentBoardErrorId = `${this.dashedName}-form-field__info__error`;
+    this.documentBoardInputLabelId = `${this.dashedName}-field__drop`;
+    this.documentBoardInputId = `${this.dashedName}-field__drop__input`;
+    this.documentBoardDropMessageId = `${this.dashedName}-field__drop__message`;
 
-        this.documentBoardId = `${this.dashedName}-field`
-        this.documentBoardLabel = `${this.dashedName}-form-field-info-label`
-        this.documentBoardErrorId = `${this.dashedName}-form-field__info__error`
-        this.documentBoardInputLabelId = `${this.dashedName}-field__drop`
-        this.documentBoardInputId = `${this.dashedName}-field__drop__input`
-        this.documentBoardDropMessageId = `${this.dashedName}-field__drop__message`
+    this.template = /* html */`
+      <div id='${this.documentBoardId}' class='form-field'>
+        <div class='${this.dashedName}-form-field__info'>
+          <label
+            id='${this.documentBoardLabel}'
+            class='form-field__info__label'>
+            ${this.title}
+          </label>
+          <p
+            id='${this.documentBoardErrorId}'
+            class='form-field__info__error'>
+          </p>
+        </div>
+        <div id='${this.documentBoardInputLabelId}' class='form-field__drop'>
+          <input
+            type='file'
+            id='${this.documentBoardInputId}'
+            hidden
+            name='${this.name}'
+            multiple>
+          <div
+            id='${this.documentBoardDropMessageId}'
+            class='form-field__drop__message'>
+            ${ icons.uploadIcon('upload') }
+            <p>
+              Drop files or click here to upload documents
+            </p>
+            <p>
+              Upload any files from desktop
+            </p>
+          </div>
+        </div>
+      </div>
+    `;
 
-        this.template = `
-            <div id='${this.documentBoardId}' class='form-field'>
-                <div class='${this.dashedName}-form-field__info'>
-                    <label 
-                        id='${this.documentBoardLabel}'
-                        class='form-field__info__label'>
-                        ${this.title}
-                    </label>
-                    <p 
-                        id='${this.documentBoardErrorId}'
-                        class='form-field__info__error'>
-                    </p>
-                </div>
-                <div id='${this.documentBoardInputLabelId}' class='form-field__drop'>
-                    <input
-                        type='file' 
-                        id='${this.documentBoardInputId}'
-                        hidden
-                        name='${this.name}'
-                        multiple>
-                        
-                    <div 
-                        id='${this.documentBoardDropMessageId}'
-                        class='form-field__drop__message'>
-                        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' id='upload'><path d='M8.71,7.71,11,5.41V15a1,1,0,0,0,2,0V5.41l2.29,2.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42l-4-4a1,1,0,0,0-.33-.21,1,1,0,0,0-.76,0,1,1,0,0,0-.33.21l-4,4A1,1,0,1,0,8.71,7.71ZM21,12a1,1,0,0,0-1,1v6a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V13a1,1,0,0,0-2,0v6a3,3,0,0,0,3,3H19a3,3,0,0,0,3-3V13A1,1,0,0,0,21,12Z'></path></svg>
-                        <p>Drop files or click here to upload documents</p>
-                        <p>Upload any files from desktop</p>
-                    </div>
-                </div>
-            </div>
-        `
+    this.loadScripts();
+  }
 
-        this.loadScripts()
-   }
+  /**
+   * Returns the document board template string
+   * @return {string}
+   */
+  toString() {
+    return this.template;
+  }
 
-    toString() {
-        return this.template
-   }
+  /**
+   * Clears all arrays
+   */
+  clear() {
+    this.uploadedFiles = [];
+    this.fileNamesFromDatabase = [];
+  }
 
-    /**
-     * Updates the uploadedFiles array from the input:type hidden element.
-     *
-     * @param {boolean} noThumbnails - Whether the icons must be updated or not.
-     * @returns {void}
-     */
-    updateInputFiles(noThumbnails = false) {
+  /**
+   * Updates the uploadedFiles array from the input:type hidden element.
+   *
+   * @param {boolean} noThumbnails - Whether the icons must be updated or not.
+   * False by default
+   * @return {void}
+   */
+  updateInputFiles(noThumbnails = false) {
+    const dataTransfer = new DataTransfer();
 
-        const dataTransfer = new DataTransfer()
-        
-        this.uploadedFiles.forEach(uploadedFile => dataTransfer.items.add(uploadedFile))
-        
-        const input = getById(this.documentBoardInputId)
-        input.files = dataTransfer.files
-        
-        console.log(dataTransfer.files);
+    this.uploadedFiles.forEach(uploadedFile => dataTransfer.items.add(uploadedFile));
 
-        if (noThumbnails) return
+    const input = getById(this.documentBoardInputId);
+    input.files = dataTransfer.files;
 
-        const addNewFileMessage = getById(this.documentBoardDropMessageId)
-        const dropElement = getById(this.documentBoardInputLabelId)
-        this.displayThumbnail(addNewFileMessage, dropElement, dropElement)
-        
-   }
+    if (noThumbnails) return;
 
-    /**
-     * Displays thumbnails for uploaded files.
-     *
-     * @param {HTMLDivElement} addNewFileMessage - The element displaying the 'Drop files or click here to upload documents' message.
-     * @param {HTMLLabelElement} dropElement - The drop zone element.
-     * @returns {void}
-     */
-    displayThumbnail(addNewFileMessage, dropElement) {
-        
-        const didUpload = this.uploadedFiles.length > 0
-        addNewFileMessage.style.display = didUpload ? 'none' : 'flex'
+    const addNewFileMessage = getById(this.documentBoardDropMessageId);
+    const dropElement = getById(this.documentBoardInputLabelId);
+    this.displayThumbnail(addNewFileMessage, dropElement, dropElement);
+  }
 
-        Array.from(this.uploadedFiles).forEach((file, index) => {
+  /**
+   * Displays thumbnails for uploaded files.
+   *
+   * @param {HTMLDivElement} addNewFileMessage - The element displaying the
+   * 'Drop files or click here to upload documents' message.
+   * @param {HTMLLabelElement} dropElement - The drop zone element.
+   * @return {void}
+  */
+  displayThumbnail(addNewFileMessage, dropElement) {
+    const didUpload = this.uploadedFiles.length > 0;
+    addNewFileMessage.style.display = didUpload ? 'none' : 'flex';
 
-            const filePreviewProperties = {
-                deletePreview : this.deletePreview.bind(this),
-                index: index, 
-                file : file
-           }
+    Array.from(this.uploadedFiles).forEach((file, index) => {
+      const filePreviewProperties = {
+        deletePreview: this.deletePreview.bind(this),
+        index: index,
+        file: file
+      };
 
-            const previewExists = queryElement(`[data-preview-file-name='${file.name}']`)
-            if (!previewExists) dropElement.innerHTML += new FilePreview(filePreviewProperties)
-       })
-   }
+      const previewExists = queryElement(`[data-preview-file-name='${file.name}']`);
+      if (!previewExists) dropElement.innerHTML += new FilePreview(filePreviewProperties);
+    });
+  }
 
-    /**
-     * Gets the uploaded files.
-     *
-     * @returns {Array<File>} An array of File objects representing the uploaded files.
-     */
-    getFiles() {
-        return this.uploadedFiles
-   }
+  /**
+   * Gets the uploaded files.
+   *
+   * @return {Array<File>} An array of File objects representing the uploaded files.
+  */
+  getFiles() {
+    return this.uploadedFiles;
+  }
 
-    /**
-     * Deletes a file preview.
-     *
-     * @async
-     * @function
-     * @param {string} fileName - The name of the file to be deleted.
-     * @returns {boolean} Returns true if the file is successfully deleted, false otherwise.
-     */
-    async deletePreview(fileName) {
-        const fileIndex = this.uploadedFiles.findIndex(uploadFile => uploadFile.name === fileName);
+  /**
+   * Deletes a file preview.
+   *
+   * @async
+   * @function
+   * @param {string} fileName - The name of the file to be deleted.
+   * @return {boolean} Returns true if the file is successfully deleted, false otherwise.
+  */
+  async deletePreview(fileName) {
+    const fileIndex = this.uploadedFiles.findIndex(uploadFile => uploadFile.name === fileName);
 
-        if (fileIndex !== -1) {
+    // when a user deleted a file but its not in the input list
+    if (fileIndex === -1) return false;
 
-            try {
-                this.uploadedFiles.splice(fileIndex, 1);
-                this.updateInputFiles();
-                
-                if (this.forEdit && this.clientId) {
-                    const fileDeleted = await window.ipcRenderer.invoke('delete-file', fileName)
-                    makeToastNotification(fileDeleted.toast[0])
-                    return fileDeleted.status === 'success'
-               }
+    try {
+      this.uploadedFiles.splice(fileIndex, 1);
+      this.updateInputFiles();
 
-                return true;
+      if (this.forEdit && this.clientId && this.fileNamesFromDatabase.includes(fileName)) {
+        const fileDeleted = await window.ipcRenderer.invoke('delete-file', {
+          fileName: fileName,
+          clientId: this.clientId
+        });
+        makeToastNotification(fileDeleted.toast);
 
-           } catch (error) {
-                console.error(error)
-                return false
-           }
+        const deleted = fileDeleted.status === 'success';
+        if (deleted) {
+          const indexOfFile = this.fileNamesFromDatabase.indexOf(fileName);
+          this.fileNamesFromDatabase.splice(indexOfFile, 1);
+        }
 
-       }
+        return deleted;
+      }
 
-        // when a user deleted a file but its not in the input list
-        return false;
-   }
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  }
 
-    /**
-     * Loads scripts for the document board.
-     *
-     * @function
-     * @private
-     */
-    loadScripts() {
+  /**
+   * @param {HTMLDivElement} addNewFileMessage - The element displaying the
+   * 'Drop files or click here to upload documents' message.
+   * @param {HTMLLabelElement} dropElement - The drop zone element.
+   * Retrieves the client's files only if used for editing.
+  */
+  async loadFiles(addNewFileMessage, dropElement) {
+    if (this.forEdit && this.clientId) {
+      const filesResponse = await window.ipcRenderer.invoke('get-files', this.clientId);
 
-        setTimeout(() => {
-        
-            const addNewFileMessage = getById(this.documentBoardDropMessageId)
-            const dropElement = getById(this.documentBoardInputLabelId)
-            const input = getById(this.documentBoardInputId)
+      if (filesResponse.status === 'success') {
+        const dataTransfer = new DataTransfer();
+        const filesData = JSON.parse(filesResponse.files);
+        filesData.forEach(file => {
+          dataTransfer.items.add(new File([file.content || ''], file.name));
+          this.fileNamesFromDatabase.push(file.name);
+        });
 
-            window.ondragover = event => event.preventDefault()
+        this.uploadedFiles.push(...dataTransfer.files);
+        this.displayThumbnail(addNewFileMessage, dropElement);
+      }
+    }
+  }
 
-            dropElement.onclick = () => input.click()
 
-            dropElement.addEventListener('drop', event => {
-                const files = event.dataTransfer.files
+  /**
+   * Loads scripts for the document board.
+   *
+   * @function
+   * @private
+  */
+  loadScripts() {
+    setTimeout(async () => {
+      const addNewFileMessage = getById(this.documentBoardDropMessageId);
+      const dropElement = getById(this.documentBoardInputLabelId);
+      const input = getById(this.documentBoardInputId);
 
-                const uploadedFilesNames = this.uploadedFiles.map(file => file.name)
-                const fileNames = Array.from(files).map(file => file.name)
+      await this.loadFiles(addNewFileMessage, dropElement);
+      window.ondragover = event => event.preventDefault();
 
-                fileNames.forEach((name, index) => {
-                    if (!uploadedFilesNames.includes(name)) {
-                        this.uploadedFiles.push(files[index])
-                   } else {
-                        makeToastNotification(`${name} already exists`)
-                   }
-               })
-                this.updateInputFiles()
-           })
+      dropElement.onclick = () => input.click();
 
-            input.addEventListener('change', () => {
-                [...input.files].forEach(file => this.uploadedFiles.push(file))
-                this.displayThumbnail(addNewFileMessage, dropElement)
-           })
+      dropElement.addEventListener('drop', event => {
+        const files = event.dataTransfer.files;
 
-       }, 0)
-   }
+        const uploadedFilesNames = this.uploadedFiles.map(file => file.name);
+        const fileNames = Array.from(files).map(file => file.name);
+
+        fileNames.forEach((name, index) => {
+          if (!uploadedFilesNames.includes(name)) {
+            this.uploadedFiles.push(files[index]);
+          } else {
+            makeToastNotification(`${name} already exists`);
+          }
+        });
+        this.updateInputFiles();
+      });
+
+      dropElement.onclick = event => {
+        const element = event.target;
+        const deleteButtonClassName = 'form-field__drop__preview__delete';
+        const isDeleteButton = element.classList.contains(deleteButtonClassName);
+
+        if (isDeleteButton) {
+          element.parentElement.style.display = 'none';
+          const deleted = this.deletePreview(element.dataset.file);
+
+          if (deleted) {
+            element.parentElement.remove();
+          } else {
+            element.parentElement.style.display = 'block';
+          }
+        }
+      };
+
+      input.addEventListener('change', () => {
+        [...input.files].forEach(file => this.uploadedFiles.push(file));
+        this.displayThumbnail(addNewFileMessage, dropElement);
+      });
+    }, 0);
+  }
 }

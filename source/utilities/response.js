@@ -23,14 +23,12 @@ class Response {
      * @property {string} status - The status of the response.
      * @property {Array<string>} toast - An array to store toast messages.
      * @property {Object<string, string>} fieldErrors - An object to store field-specific errors.
-     * @property {string|null} elementName - The name attribute of an HTMLElement or null.
      */
   constructor() {
     this.response = {
       status: Response.SUCCESS, // Type for status not provided in the code snippet.
       toast: [],
-      fieldErrors: {},
-      elementName: null
+      fieldErrors: {}
     };
   }
 
@@ -95,14 +93,14 @@ class Response {
   /**
      * Sets the response status to 'failed', adds toast and field error if provided.
      * @method
-     * @param {string} errorMessage - The general error message to be added.
-     * @param {string} fieldName - The name of the field associated with the error.
+     * @param {string|null} message - The general error message to be added.
+     * @param {string|null} fieldName - The name of the field associated with the error.
      * @return {Response}
      */
-  error(errorMessage, fieldName) {
+  error(message=null, fieldName=null) {
     this.failed();
-    if (fieldName) this.addFieldError(fieldName, errorMessage);
-    this.addToast(errorMessage);
+    if (fieldName) this.addFieldError(fieldName, message);
+    if (message) this.addToast(message);
     return this.getResponse();
   }
 
@@ -112,9 +110,9 @@ class Response {
      * @param {string|null} message - The general success message to be added.
      * @return {Response}
      */
-  ok(message = null) {
+  ok(message=null) {
     this.success();
-    this.addToast(message);
+    if (message) this.addToast(message);
     return this.getResponse();
   }
 

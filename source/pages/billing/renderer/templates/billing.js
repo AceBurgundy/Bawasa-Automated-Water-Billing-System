@@ -1,8 +1,5 @@
 /* eslint-disable indent */
 
-// helpers
-import {sentenceToDashed} from '../../../../assets/scripts/helper.js';
-
 // user
 import currentUser from '../../../../assets/scripts/current-user.js';
 
@@ -11,6 +8,10 @@ import {icons} from '../../../../assets/scripts/icons.js';
 
 // row
 import BillingRow from '../components/BillingRow.js';
+
+// constants
+import '../../../../utilities/constants.js';
+
 /**
  * Generate a billing table string HTML template based on the provided billing data.
  *
@@ -21,21 +22,32 @@ import BillingRow from '../components/BillingRow.js';
  * @return {Promise<string>} Generated HTML for the billing table.
  */
 export default async function(bills, noBillsMessage) {
+  const user = await currentUser();
+  const userWelcome = user ? `Welcome, ${user.firstName}` : 'Welcome User';
+
   const navigationObject = [
     {title: 'Clients', icon: icons.usersIcon('users-icon')},
     {title: 'Billing', icon: icons.billIcon('bill-icon')},
     {title: 'Logout', icon: icons.powerIcon('power-icon')}
   ];
 
-  return `
-    <section id='section-type-container' class='page'>
+  const searchOptions = {
+    accountNumber: 'Account Number',
+    meterNumber: 'Meter Number',
+    firstName: 'First Name',
+    middleName: 'Middle Name',
+    lastName: 'Last Name'
+  };
+
+  return /* html */`
+    <section id='section-type-container' class='page billing-page' data-current-page='billing'>
 
       <nav>
         <div id='nav-items'>
           ${
             navigationObject.map(navigation => {
               const active = navigation.title === 'Billing' ? 'active' : '';
-              return `
+              return /* html */`
                 <div id='${navigation.title.toLowerCase()}' class='nav-item ${active}'>
                     <div>${navigation.icon}</div>
                     <p>${navigation.title}</p>
@@ -58,11 +70,7 @@ export default async function(bills, noBillsMessage) {
             <div>
             <img src='assets/images/Logo.png' alt=''>
               <p class='content__top-title'>
-                ${
-                await currentUser() ?
-                  `Welcome, ${await currentUser().firstName}` :
-                  `Welcome User`
-                }
+                ${ userWelcome }
               </p>
             </div>
             <img src='assets/images/Logo.png' alt=''>
@@ -83,14 +91,14 @@ export default async function(bills, noBillsMessage) {
 
               <div id='statistics'>
                 ${
-                  ['Paid', 'Unpaid', 'Overpaid'].map(statistic => {
-                    return `
+                  ['Paid', 'Unpaid', 'Overpaid', 'Underpaid'].map(statistic => {
+                    return /* html */`
                       <div class='statistics__child'>
                         <p>
                           <span id='${statistic.toLowerCase()}-clients'></span>
                           ${statistic}
                         </p>
-                      </div>    
+                      </div>
                     `;
                   }).join('\n')
                 }
@@ -106,10 +114,10 @@ export default async function(bills, noBillsMessage) {
                 <select id='billing-search-box-filter' class='search-box-filter'>
                   <option selected disable>Search by</option>
                   ${
-                    ['Account Number', 'Meter Number', 'Full Name'].map(option => {
-                      return `
-                        <option value='${sentenceToDashed(option)}'>
-                          ${option}
+                    Object.keys(searchOptions).map(option => {
+                      return /* html */`
+                        <option value='${option}'>
+                          ${searchOptions[option]}
                         </option>
                       `;
                     }).join('\n')
@@ -118,7 +126,7 @@ export default async function(bills, noBillsMessage) {
               </div>
             </div>
           </div>
-          
+
           <div class='content__bottom'>
             <div id='table-data'>
               <div id='table-data-title'>
@@ -143,7 +151,7 @@ export default async function(bills, noBillsMessage) {
                     'Disconnection Date',
                     'Menu'
                   ].map(header => {
-                    return `
+                    return /* html */`
                       <div class='table-data-headers__item'>
                         <p>${header}</p>
                       </div>
@@ -151,7 +159,7 @@ export default async function(bills, noBillsMessage) {
                   }).join('\n')
                 }
               </div>
-              <div id='table-data-row'>
+              <div id='table-data-rows'>
                 ${ renderTable(bills, noBillsMessage) }
               </div>
             </div>
@@ -174,11 +182,11 @@ const connected = window.connectionStatusTypes.Connected;
  */
 export function renderTable(bills, noBillsMessage) {
   if (noBillsMessage) {
-    return `<p style='margin: 1rem'>${noBillsMessage}</p>`;
+    return /* html */`<p style='margin: 1rem'>${noBillsMessage}</p>`;
   }
 
   return bills
-      .map((billing, index) => {
+      .map(billing => {
         const hasStatuses = billing.connectionStatuses.length > 0;
         const latest = billing.connectionStatuses[0].status;
 
@@ -186,7 +194,7 @@ export function renderTable(bills, noBillsMessage) {
         const statusNotDisconnected = status !== connected && status === disconnected;
         const clientDisconnected = status !== null && statusNotDisconnected;
 
-        return new BillingRow(billing, clientDisconnected, index);
+        return new BillingRow(billing, clientDisconnected);
       })
       .join('');
 }

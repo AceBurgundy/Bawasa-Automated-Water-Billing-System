@@ -1,10 +1,11 @@
 /* eslint-disable indent */
 
 // helpers
-import {formatDate, getById} from '../../../../assets/scripts/helper.js';
+import {formatDate, generateUniqueId, getById} from '../../../../assets/scripts/helper.js';
 
 // icons
 import {icons} from '../../../../assets/scripts/icons.js';
+import makeToastNotification from '../../../../assets/scripts/toast.js';
 
 // form
 import BillForm from './BillForm.js';
@@ -20,7 +21,6 @@ export default class {
  * @class
  * @param {object} account - The account data associated with the billing row.
  * @param {boolean} isDisconnected - Indicates whether the client is disconnected.
- * @param {number} index - The index of the billing row.
  * @property {boolean} isDisconnected - Indicates whether the client is disconnected.
  * @property {object} account - The account data associated with the billing row.
  * @property {string} connectionStatus - The latest connection status of the account.
@@ -37,9 +37,10 @@ export default class {
  * @property {string} rowId - The unique ID for the table row.
  * @property {string} template - HTML template for the billing row.
  */
-  constructor(account, isDisconnected, index) {
+  constructor(account, isDisconnected) {
     this.isDisconnected = isDisconnected;
     this.account = account;
+    this.accountId = account.id;
 
     const hasStatuses = account.connectionStatuses.length > 0;
     const latestStatus = account.connectionStatuses[0].status;
@@ -59,37 +60,34 @@ export default class {
       dueDate,
       excess,
       status,
-      total
+      total,
+      id
     } = this.billData;
 
-    const hasFirstReading = firstReading !== null && firstReading !== undefined;
-    const hasSecondReading = secondReading !== null && secondReading !== undefined;
+    this.billId = id;
 
-    this.hasEitherReadings = hasFirstReading || hasSecondReading;
-    this.hasBothReadings = hasFirstReading && hasSecondReading;
+    this.hasFirstReading = firstReading !== null && firstReading !== undefined;
+    this.hasSecondReading = secondReading !== null && secondReading !== undefined;
+
+    this.hasEitherReadings = this.hasFirstReading || this.hasSecondReading;
+    this.hasBothReadings = this.hasFirstReading && this.hasSecondReading;
 
     this.clientHasPaid = status === 'paid' || status === 'overpaid';
 
-    this.printBillButtonId = ['print-button', index].join('-');
-    this.newBillButtonId = ['new-button', index].join('-');
-    this.payBillButtonId = ['pay-button', index].join('-');
+    this.reconnectButtonId = generateUniqueId('billing-reconnect-button');
+    this.printBillButtonId = generateUniqueId('billing-print-button');
+    this.newBillButtonId = generateUniqueId('billing-new-button');
+    this.payBillButtonId = generateUniqueId('billing-pay-button');
 
-    this.rowMenuToggleId = ['row-menu-toggle', index].join('-');
-    this.rowMenuId = ['row-menu', index].join('-');
-    this.rowId = ['table-row', index].join('-');
+    this.rowMenuToggleId = generateUniqueId('billing-row-menu-toggle');
+    this.rowId = generateUniqueId('billing-table-row');
 
-    this.template = `
-      <div 
-        id='${this.rowId}'
-        class='table-info account'
-        data-account-number='${account.accountNumber}'
-        data-meter-number='${account.meterNumber}'
-        data-full-name='${account.fullName}'
-        data-client-id='${account.id}'>
+    this.template = /* html */`
+      <div id='${this.rowId}' class='table-info account'>
 
-        <div id='${this.rowMenuId}' class='table-info__options' data-client-id='${account.id}'>
+        <div class='table-info__options'>
             ${this.renderRowOptions()}
-        </div> 
+        </div>
 
         <div class='table-info__item'>
             <p>${account.accountNumber ?? ''}</p>
@@ -133,12 +131,10 @@ export default class {
         <div class='table-info__item'>
             <p>${formatDate(disconnectionDate) || ''}</p>
         </div>
-        
-        <div 
-          id='${this.rowMenuToggleId}' 
-          class='table-info__item table-menu' 
-          data-client-disconnected='${isDisconnected}'
-          data-client-id='${account.id}'>
+
+        <div
+          id='${this.rowMenuToggleId}'
+          class='table-info__item table-menu'>
             <div class='icon-box'>
               ${icons.menuIcon(null, 'menu')}
             </div>
@@ -165,9 +161,9 @@ export default class {
    * @return {string} The HTML string representing the row menu options.
    */
   renderRowOptions() {
-    return `
+    return /* html */`
       <p>Menu</p>
-      <div 
+      <div
         class='table-info__options-item-box account'
         data-client-has-bills='${this.clientHasBills}'
         data-client-has-paid='${this.clientHasPaid}'
@@ -180,7 +176,7 @@ export default class {
               this.printBillButton()
             ].join('')
         }
-      </div>    
+      </div>
     `;
   }
 
@@ -190,7 +186,9 @@ export default class {
    * @return {string} The HTML string representing the "New Bill" button.
    */
   newBillButton() {
-    return this.clientHasPaid || this.hasEitherReadings ? `
+    return this.clientHasPaid ||
+          (!this.hasFirstReading && !this.hasSecondReading) ||
+          (this.hasFirstReading && !this.hasSecondReading) ? /* html */`
       <div id='${this.newBillButtonId}' class='table-info__options-item'>
         ${icons.editIcon(null, 'edit-table-icon')}
         <p>New</p>
@@ -204,7 +202,7 @@ export default class {
    * @return {string} The HTML string representing the "Pay Bill" button.
    */
   payBillButton() {
-    return !this.clientHasPaid && this.hasBothReadings ? `
+    return !this.clientHasPaid && this.hasFirstReading && this.hasSecondReading ? `
       <div id='${this.payBillButtonId}' class='table-info__options-item'>
         ${icons.payIcon(null, 'table-pay-icon')}
         <p>Pay</p>
@@ -218,7 +216,7 @@ export default class {
    * @return {string} The HTML string representing the "Print Bill" button.
    */
   printBillButton() {
-    return !this.clientHasPaid && this.hasBothReadings ? `
+    return !this.clientHasPaid && this.hasBothReadings ? /* html */`
       <div id='${this.printBillButtonId}' class='table-info__options-item'>
         ${icons.printIcon(null, 'print-bill-icon')}
         <p>Print Bill</p>
@@ -232,8 +230,8 @@ export default class {
    * @return {string} The HTML string representing the "Disconnected" message.
    */
   disconnectedMessage() {
-    return `
-      <div class='table-info__options-item'>
+    return /* html */`
+      <div id='${this.reconnectButtonId}' class='table-info__options-item'>
           <p>Disconnected</p>
       </div>
     `;
@@ -246,11 +244,15 @@ export default class {
    */
   loadScript() {
     setTimeout(() => {
+      const reconnectButton = getById(this.reconnectButtonId);
+      const printBillButton = getById(this.printBillButtonId);
       const newBillButton = getById(this.newBillButtonId);
       const payBillButton = getById(this.payBillButtonId);
-      const printBillButton = getById(this.printBillButtonId);
       const rowMenuToggle = getById(this.rowMenuToggleId);
-      const rowMenu = getById(this.rowMenuId);
+
+      const rowMenu = rowMenuToggle
+          .closest('.table-info')
+          .querySelector('.table-info__options');
 
       if (newBillButton) {
         newBillButton.onclick = () => {
@@ -267,9 +269,26 @@ export default class {
       }
 
       if (printBillButton) {
-        printBillButton.onclick = () => {
-          console.log('print');
+        printBillButton.onclick = async () => {
+          if (!this.accountId && !hasBill) {
+            makeToastNotification('Account and bill is missing');
+            return;
+          }
           rowMenu.classList.remove('active');
+          makeToastNotification('Please wait while printing is in progress');
+
+          const response = await window.ipcRenderer.invoke('print-bill', {
+            accountId: this.accountId,
+            billId: this.billId
+          });
+
+          makeToastNotification(response.toast);
+        };
+      }
+
+      if (reconnectButton) {
+        reconnectButton.onclick = () => {
+          makeToastNotification('Reconnect client first at the client section');
         };
       }
 

@@ -6,6 +6,8 @@ import {getById} from './helper.js';
  * @param {String|Array<string>} message - The message or list of messages which will be rendered.
  */
 export default function makeToastNotification(message) {
+  if (!message) return;
+
   const messageIsArray = Array.isArray(message);
 
   if (messageIsArray) {

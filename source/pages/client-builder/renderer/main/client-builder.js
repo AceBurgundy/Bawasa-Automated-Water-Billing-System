@@ -1,9 +1,7 @@
 // helpers
 import makeToastNotification from '../../../../assets/scripts/toast.js';
 import {
-  toSentenceCase,
   queryElements,
-  camelToDashed,
   queryElement,
   getFormData,
   transition,
@@ -18,11 +16,12 @@ import InputCapture from '../../../../components/InputCapture.js';
 import clientBuilderTemplate from '../templates/client-builder.js';
 
 // main
+import login from '../../../authentication/renderer/main/login.js';
 import billing from '../../../billing/renderer/main/billing.js';
-import client from '../../../clients/renderer/main/clients.js';
 import profile from '../../../profile/renderer/main/profile.js';
+import client from '../../../clients/renderer/main/clients.js';
 
-// constants
+// utilities
 import '../../../../utilities/constants.js';
 
 /**
@@ -39,21 +38,29 @@ export default async function(edit, clientObject) {
   getById('container').innerHTML += clientBuilderTemplate(forEdit, clientData);
   setTimeout(() => getById('section-type-container').classList.add('active'), 500);
 
-  document.onclick = event => {
+  document.onclick = async event => {
     const targetId = event.target.getAttribute('id');
 
     switch (targetId) {
       case 'billing':
         transition(billing);
-        break;
+        return;
 
       case 'clients':
         transition(client);
-        break;
+        return;
 
       case 'profile':
         transition(profile);
-        break;
+        return;
+
+      // removed await as we dont need to wait for anything
+      // when loging out, it can simply logout
+      // while transitioning to the login page
+      case 'logout':
+        window.ipcRenderer.invoke('logout');
+        transition(login);
+        return;
     }
   };
 
@@ -75,10 +82,10 @@ export default async function(edit, clientObject) {
 
   // Handle form submission
   submitButton.onclick = event => {
-    const forEditingClient = forEdit && clientData !== null;
-    const submitArguments = forEditingClient ? [...forEdit, clientData.id] : [];
-    handleFormSubmit(submitArguments);
     event.preventDefault();
+    const forEditingClient = forEdit && clientData !== null;
+    const submitArguments = forEditingClient ? [forEdit, clientData.id] : [];
+    handleFormSubmit(...submitArguments);
   };
 
   // Handle merging addresses
@@ -98,14 +105,30 @@ export default async function(edit, clientObject) {
     });
   };
 
-  /*
-        if duplicate address is checked,
-        any values placed inside present address fields also duplicates to main address fields
-    */
   clientBuilderForm.onkeyup = ({target}) => {
+    /*
+      if duplicate address is checked,
+      any values placed inside present address fields also duplicates to main address fields
+    */
     if (duplicateAddress) {
       const targetName = target.getAttribute('name').replace('present', 'main');
       queryElement(`input[name='${targetName}']`).value = target.value;
+    }
+
+    const isFieldInput = target.classList.contains('form-field__input');
+    const isPhoneNumberInput = isFieldInput && target.name === 'phoneNumber';
+    let errorMessageElement = target.previousElementSibling.children[1];
+
+    const hasErrorMessage = !isPhoneNumberInput && errorMessageElement.textContent.trim() !== '';
+    if (!isPhoneNumberInput && isFieldInput && hasErrorMessage) {
+      errorMessageElement.textContent = '';
+    }
+
+    if (isPhoneNumberInput) {
+      errorMessageElement = target.parentElement.previousElementSibling.children[1];
+      if (errorMessageElement.textContent.trim() !== '') {
+        errorMessageElement.textContent = '';
+      }
     }
   };
 
@@ -131,42 +154,57 @@ export default async function(edit, clientObject) {
     const submittedFilesList = extractFileData(clipBoardComponent.getFiles());
     const capturedPhoto = captureComponent.imageData;
 
-    let response = null;
+    const purpose = forEdit && clientId ? 'edit-client' : 'add-client';
+    let options = {};
 
     if (forEdit && clientId) {
-      response = await window.ipcRenderer.invoke('edit-client', {
+      options = {
         formDataBuffer: {
           formData: formData,
           profilePicture: capturedPhoto.image
         },
+        files: submittedFilesList,
         clientId: clientId
-      });
+      };
     } else {
-      response = await window.ipcRenderer.invoke('add-client', {
+      options = {
         formData: formData,
         image: capturedPhoto.image,
         files: submittedFilesList
-      });
+      };
     }
 
-    if (response.status === 'success') {
-      response.toast.forEach(toast => makeToastNotification(toast));
+    const {
+      toast, status, fieldErrors
+    } = await window.ipcRenderer.invoke(purpose, options);
+
+    makeToastNotification(toast);
+    showErrors(fieldErrors);
+
+    if (status === 'success') {
+      clipBoardComponent.clear();
       transition(client);
       return;
     }
-
-    if (response.fieldErrors) {
-      Object.entries(response.fieldErrors).forEach(([name, error]) => {
-        const dashedName = camelToDashed(name);
-        const cleanName = dashedName.includes('-') ? dashedName.split('-').join(' ') : dashedName;
-        const cleanErrorMessage = toSentenceCase([cleanName, error[0]].join(' '));
-        getById(`${dashedName}-field__info__error`).textContent = error[0];
-        makeToastNotification(cleanErrorMessage);
-      });
-    }
-
-    response.toast.forEach(toast => makeToastNotification(toast));
   }
+}
+
+
+/**
+ * Updates the error messages for each field in the response object.
+ *
+ * @param {Object}fieldErrors - contains the error messages for each field.
+ * @param {Object} fieldErrors.name - The key of the object represent the field names.
+ * @param {Object} fieldErrors.errorMessage - The value of the object respresent the error message.
+ */
+function showErrors(fieldErrors) {
+  if (!fieldErrors) return;
+
+  Object.entries(fieldErrors).forEach(([name, errorMessage]) => {
+    const fieldName = name.replace(' ', '').toLowerCase();
+    const errorElementId = `${fieldName}-field__info__error`;
+    getById(errorElementId).textContent = errorMessage;
+  });
 }
 
 /**
@@ -177,7 +215,7 @@ export default async function(edit, clientObject) {
  * @return {Array<Object>} An array of file data objects, each containing
  * 'name', 'size', and 'path' properties.
  */
-const extractFileData = inputFiles => {
+function extractFileData(inputFiles) {
   if (!inputFiles) return [];
 
   return Array.from(inputFiles).map(file => ({

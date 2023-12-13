@@ -1,5 +1,5 @@
 const {joinAndResolve} = require('../../../utilities/helpers');
-const Response = require('../../../utilities/Response');
+const Response = require('../../../utilities/response');
 
 // models
 const UserPhoneNumber = require('../../../../models/UserPhoneNumber');
@@ -10,6 +10,8 @@ const {Op} = require('sequelize');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const fs = require('fs-extra');
+
+const PROFILE_PATH = '../../../assets/images/users/profile';
 
 const requiredFormFields = {
   presentAddressPostalCode: 'Present Address Postal Code',
@@ -68,30 +70,27 @@ async function retrieveUser(userId) {
  * or null if all fields are present.
  */
 function checkMissingFields(formData) {
-  const formDataFieldNames = Object.keys(formData);
+  const formDataFields = Object.keys(formData);
   const requiredFields = Object.keys(requiredFormFields);
 
-  const missingElements = requiredFields.filter(fieldName => {
-    return !formDataFieldNames.includes(fieldName);
-  });
+  const missingFields = requiredFields.reduce((accumulator, fieldName) => {
+    const fieldNotInFormData = !formDataFields.includes(fieldName);
+    const isPresent = formData[fieldName] !== undefined && formData[fieldName] !== null;
+    const isPresentButEmpty = isPresent && formData[fieldName].trim() === '';
+    if (fieldNotInFormData || isPresentButEmpty) accumulator.push(requiredFormFields[fieldName]);
+    return accumulator;
+  }, []);
 
-  if (missingElements.length > 1) {
-    const missingFields = missingElements.map(field => {
-      return requiredFormFields[field];
-    }).join(', ');
-
-    return [`${missingFields} are required`];
+  if (missingFields.length > 1) {
+    return [`${missingFields.join(', ')} are required`];
   }
 
-  if (missingElements.length === 1) {
-    const missingField = requiredFormFields[missingElements[0]];
-    return [`${missingField} is required`];
+  if (missingFields.length === 1) {
+    return [`${missingFields[0]} is required`];
   }
 
   return null;
 }
-
-const PROFILE_PATH = '../../assets/images/users/profile';
 
 /**
  * Saves a user's profile picture to the filesystem.
@@ -156,18 +155,18 @@ async function checkDuplicateUser(formData, forEdit = false, userId = null) {
 
     try {
       if (field === 'phone-number') {
-        duplicates = await ClientPhoneNumber.findAndCountAll({where});
+        duplicates = await UserPhoneNumber.findAndCountAll({where});
       } else {
-        duplicates = await Client.findAndCountAll({where});
+        duplicates = await User.findAndCountAll({where});
       }
     } catch (error) {
       console.log(error);
-      return new Response().error('Error in checking for client duplicates');
+      return new Response().error('Error in checking for user duplicates');
     }
 
     if (duplicates.count > 0) {
-      const data = data.split('-').join(' ');
-      return new Response().error(`Client with the same ${data} is already registered`);
+      field = field.split('-').join(' ');
+      return new Response().error(`User with the same ${field} is already registered`);
     }
 
     return new Response().ok();
@@ -205,16 +204,6 @@ async function checkDuplicateUser(formData, forEdit = false, userId = null) {
           }
         ]
       }
-    },
-
-    {
-      field: 'meter-number', where: {
-        [Op.and]: [
-          {
-            meterNumber: formData.meterNumber
-          }
-        ]
-      }
     }
   ];
 
@@ -230,31 +219,75 @@ async function checkDuplicateUser(formData, forEdit = false, userId = null) {
  * Updates a user record with the provided form data.
  *
  * @function
+ * @async
  * @param {User} user - The user object to be updated.
  * @param {Object} formData - The form data containing the fields to be updated.
+ * @param {Sequelize.Transaction} manager - the transaction used to save the data
+ * @return {Promise<void>}
  */
-function updateUserRecord(user, formData) {
+async function updateUserRecord(user, formData, manager) {
+  const extractDbKey = (field, addressType) => {
+    const addressKey = field.replace(addressType, '');
+    return addressKey.charAt(0).toLowerCase() + addressKey.slice(1);
+  };
+
   for (const key in formData) {
-    // Skips these fields as this keys have a fixed value on creation
+    if (!formData[key]) continue;
+
     if (key === 'profilePicture') continue;
 
+    const hasPresentAddress = key.includes('presentAddress') && user.presentAddress;
+    const hasMainAddress = key.includes('mainAddress') && user.mainAddress;
+
     // Updates main address fields
-    if (key.includes('mainAddress')) {
-      const addressKey = key.replace('mainAddress', '');
-      const modifiedAddressKey = addressKey.charAt(0).toLowerCase() + addressKey.slice(1);
-      user.mainAddress[modifiedAddressKey] = formData[key];
+    if (hasMainAddress) {
+      user.mainAddress[extractDbKey(key, 'mainAddress')] = formData[key];
       continue;
     }
 
     // Updates present address fields
-    if (key.includes('presentAddress')) {
-      const addressKey = key.replace('presentAddress', '');
-      user.presentAddress[addressKey] = formData[key];
+    if (hasPresentAddress) {
+      user.presentAddress[extractDbKey(key, 'presentAddress')] = formData[key];
       continue;
     }
 
     // Updates other user fields
     user[key] = formData[key];
+  }
+
+  // no main and present address
+  if (user.mainAddress) {
+    await user.mainAddress.save({transaction: manager});
+  } else {
+    const mainAddressDataObject = {};
+
+    Object.entries(formData).forEach(([field, value]) => {
+      if (field.includes('mainAddress')) {
+        mainAddressDataObject[extractDbKey(field, 'mainAddress')] = value;
+      }
+    });
+
+    const mainAddress = await UserAddress.create(mainAddressDataObject, {
+      transaction: manager
+    });
+    user.setMainAddress(mainAddress);
+  }
+
+  if (user.presentAddress) {
+    await user.presentAddress.save({transaction: manager});
+  } else {
+    const presentAddressDataObject = {};
+
+    Object.entries(formData).forEach(([field, value]) => {
+      if (field.includes('presentAddress')) {
+        presentAddressDataObject[extractDbKey(field, 'presentAddress')] = value;
+      }
+    });
+
+    const presentAddress = await UserAddress.create(presentAddressDataObject, {
+      transaction: manager
+    });
+    user.setPresentAddress(presentAddress);
   }
 }
 
@@ -277,7 +310,7 @@ async function updateProfilePicture(oldUserData, profilePicture) {
 
   if (oldUserData.profilePicture) {
     const oldProfilePicturePath = joinAndResolve(
-        [__dirname, '../../assets/images/users/profile/'],
+        [__dirname, '../../../assets/images/users/profile/'],
         oldUserData.profilePicture
     );
 
@@ -302,15 +335,13 @@ async function updateProfilePicture(oldUserData, profilePicture) {
  * the connection status creation within a specified transaction.
  */
 async function updatePhoneNumber(user, phoneNumberInputValue, manager) {
+  if (user.phoneNumbers && user.phoneNumbers.length <= 0) return;
+
   const alreadyExists = user.phoneNumbers.filter(eachRecord => {
     return eachRecord.phoneNumber === phoneNumberInputValue;
   }).length > 0;
 
-  if (alreadyExists) {
-    const error = new Error('Failed to update user. Phonenumber already exists');
-    error.type = 'phonenumber';
-    throw error;
-  }
+  if (alreadyExists) return;
 
   const whereClause = {
     userId: user.id,
@@ -322,10 +353,10 @@ async function updatePhoneNumber(user, phoneNumberInputValue, manager) {
 
 module.exports = {
   updateProfilePicture,
-  checkDuplicateUser,
-  updateUserRecord,
   checkMissingFields,
+  checkDuplicateUser,
   updatePhoneNumber,
+  updateUserRecord,
   retrieveUser,
   savePicture
 };

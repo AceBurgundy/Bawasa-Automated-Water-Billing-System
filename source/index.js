@@ -1,208 +1,270 @@
-const {connectionStatusTypes} = require('./utilities/constants.js')
-const {app, BrowserWindow, screen, ipcMain} = require('electron')
-const {tryCatchWrapper} = require('./utilities/helpers.js')
-const {db} = require('./utilities/sequelize.js')
-const session = require('./utilities/session.js')
-const {resolve, join} = require('path')
+/* eslint-disable linebreak-style */
+/* eslint-disable no-unused-vars */
+/* eslint-disable linebreak-style */
+const {connectionStatusTypes} = require('./utilities/constants.js');
+const {app, BrowserWindow, ipcMain, Menu, globalShortcut} = require('electron');
+const {db} = require('./utilities/sequelize.js');
+const session = require('./utilities/session.js');
+const {resolve, join} = require('path');
+const fs = require('fs-extra');
 
 // views
-require('./pages/clientBuilder/views.js')
-require('./pages/authentication/view.js')
-require('./pages/clients/views.js')
-require('./pages/billing/views.js')
-require('./pages/profile/view.js')
-require('./utilities/export.js')
+require('./pages/client-builder/process/views.js');
+require('./pages/authentication/process/views.js');
+require('./pages/clients/process/views.js');
+require('./pages/billing/process/views.js');
+require('./pages/profile/process/views.js');
+require('./utilities/export.js');
 
-const ClientConnectionStatus = require('../models/ClientConnectionStatus')
-const ClientPhoneNumber = require('../models/ClientPhoneNumber.js')
-const UserPhoneNumber = require('../models/UserPhoneNumber')
-const PartialPayment = require('../models/PartialPayment')
-const RecoveryCode = require('../models/RecoveryCode.js')
-const ClientAddress = require('../models/ClientAddress')
-const UserAddress = require('../models/UserAddress')
-const ClientFile = require('../models/ClientFile')
-const ClientBill = require('../models/ClientBill')
-const Client = require('../models/Client')
-const User = require('../models/User')
+const ClientConnectionStatus = require('../models/ClientConnectionStatus');
+const ClientPhoneNumber = require('../models/ClientPhoneNumber.js');
+const UserPhoneNumber = require('../models/UserPhoneNumber');
+const PartialPayment = require('../models/PartialPayment');
+const RecoveryCode = require('../models/RecoveryCode.js');
+const ClientAddress = require('../models/ClientAddress');
+const UserAddress = require('../models/UserAddress');
+const ClientFile = require('../models/ClientFile');
+const ClientBill = require('../models/ClientBill');
+const Client = require('../models/Client');
+const User = require('../models/User');
 
-async function initializeDatabase() {
-	try {
-		await db.authenticate()
-		console.log('Connection has been established successfully.')
+/**
+ * Deletes all files from the given path except for stated in array of filenames
+ * @param {string} path - The path to the directory
+ * @param {Array<string>|null} exceptFileNames - Array of files to be excempted
+ */
+function deleteAll(path, exceptFileNames=null) {
+  const pathExists = fs.pathExists(path);
+  if (!pathExists) {
+    console.log(`${path} does not exist. Cannot delete it's files.`);
+    return;
+  }
 
-		await db.sync({force: true})
-		console.log('All models were synchronized successfully.')
-	} catch (error) {
-		console.error('Unable to connect to the database:', error)
-	}
+  const folder = fs.readdirSync(path);
+
+  if (folder.length > 0) {
+    folder.forEach(file => {
+      const fileIsExempted = exceptFileNames ? exceptFileNames.includes(file) : false;
+      if (fileIsExempted) return;
+
+      const filePath = join(path, file);
+      const fileExists = fs.pathExistsSync(filePath);
+      if (fileExists) fs.unlinkSync(filePath);
+    });
+  }
 }
 
-// initializeDatabase()
+/**
+ * Initializes the database connection and synchronizes models.
+ * @async
+ * @function
+ * @return {Promise<void>} - A promise indicating the success or failure of the initialization.
+ */
+async function initializeDatabase() {
+  try {
+    await db.authenticate();
+    console.log('Connection has been established successfully.');
+
+    await db.sync({force: true});
+    console.log('All models were synchronized successfully.');
+  } catch (error) {
+    console.error('Unable to connect to the database:', error);
+  }
+}
+
+const clientsProfileFolderPath = resolve(__dirname, 'assets/images/clients/profile');
+const userProfileFolderPath = resolve(__dirname, 'assets/images/admin/profile');
+const filesFolderPath = resolve(__dirname, 'assets/files');
+
+/**
+ * WATCH OUT THIS FUNCTION WILL CLEAR ALL THE DATA IN THE DATABASE
+ */
+function startFresh() {
+  // Deleting all files in files folder
+  deleteAll(clientsProfileFolderPath, ['user.webp']);
+  deleteAll(userProfileFolderPath);
+  deleteAll(filesFolderPath);
+
+  // clears session (clears login)
+  session.logout();
+
+  // creates new database
+  initializeDatabase();
+}
+
+/**
+ * DELETES ALL DATA BE CAREFUL!
+ */
+startFresh();
 
 if (require('electron-squirrel-startup')) {
-    app.quit()
+  app.quit();
 }
 
-let icon
+let icon;
 
 switch (process.platform) {
-    case 'win32':
-        icon = resolve(__dirname, 'assets/images', 'Logo.ico')
-        break
-    case 'darwin':
-        icon = resolve(__dirname, 'assets/images', 'Logo.icns')
-        break
-    case 'linux':
-        icon = resolve(__dirname, 'assets/images', 'Logo.png')
-        break
+  case 'win32':
+    icon = resolve(__dirname, 'assets/images', 'Logo.ico');
+    break;
+  case 'darwin':
+    icon = resolve(__dirname, 'assets/images', 'Logo.icns');
+    break;
+  case 'linux':
+    icon = resolve(__dirname, 'assets/images', 'Logo.png');
+    break;
 }
 
 const createWindow = async () => {
+  try {
+    const mainWindow = new BrowserWindow({
+      minHeight: 720,
+      minWidth: 1280,
+      height: 720,
+      width: 1280,
+      // fullscreen: true,
+      webPreferences: {
+        contextIsolation: true,
+        nodeIntegration: true,
+        preload: join(__dirname, 'preload.js')
+      },
+      icon
+    });
 
-    try {
+    // Menu.setApplicationMenu(null);
+    // mainWindow.setMenuBarVisibility(true);
+    mainWindow.loadFile(join(__dirname, 'index.html'));
+    mainWindow.webContents.openDevTools();
 
-        const displays = screen.getAllDisplays()
-        const availableScreen = displays.length > 1 ? displays[0] : displays[0]
-
-        const mainWindow = new BrowserWindow({
-            x: availableScreen.bounds.x,
-            y: availableScreen.bounds.y,
-            minHeight: 720,
-            minWidth: 1280,
-            height: 720,
-            width: 1280,
-            fullscreen: true,
-            // autoHideMenuBar: true,
-            webPreferences: {
-                contextIsolation: true,
-                nodeIntegration: true,
-                preload: join(__dirname, 'preload.js'),
-           },
-            icon,
-       })
-
-        mainWindow.loadFile(join(__dirname, 'index.html'))
-        mainWindow.webContents.openDevTools()
-
-        session.logout()
-
-	    const clients = await tryCatchWrapper(async () => {
-            return await Client.findAll({
-                include: [
-                    {
-                        model: ClientBill,
-                        as: 'bills',
-                        attributes: ['id', 'penalty', 'total', 'status', 'dueDate', 'disconnectionDate', 'createdAt'],
-                        required: false,
-                        separate: true,
-                        order: [['createdAt', 'DESC']],
-                        limit: 1,
-                     },
-                      {
-                        model: ClientConnectionStatus,
-                        as: 'connectionStatuses',
-                        attributes: ['status', 'createdAt'],
-                        required: false,
-                        separate: true,
-                        order: [['createdAt', 'DESC']],
-                        limit: 1,
-                     }
-                ]
-           })
-	})
+    const clients = await Client.findAll({
+      include: [
+        {
+          model: ClientBill,
+          as: 'bills',
+          attributes: [
+            'disconnectionDate',
+            'createdAt',
+            'penalty',
+            'dueDate',
+            'status',
+            'total',
+            'id'
+          ],
+          required: false,
+          separate: true,
+          order: [['createdAt', 'DESC']],
+          limit: 1
+        },
+        {
+          model: ClientConnectionStatus,
+          as: 'connectionStatuses',
+          attributes: ['status', 'createdAt'],
+          required: false,
+          separate: true,
+          order: [['createdAt', 'DESC']],
+          limit: 1
+        }
+      ]
+    });
 
     if (clients && clients.length > 0) {
+      const {Connected, DueForDisconnection, Disconnected} = connectionStatusTypes;
 
-        const {Connected, DueForDisconnection, Disconnected} = connectionStatusTypes
-                
-        for (let client of clients) {
+      for (const client of clients) {
+        const latestBill = client.bills && client.bills.length > 0 ? client.bills[0] : null;
+        const hasStatuses = client.connectionStatuses && client.connectionStatuses.length > 0;
+        const connectionStatus = hasStatuses ? client.connectionStatuses[0].status : null;
 
-            const latestBill = client.bills && client.bills.length > 0 ? client.bills[0] : null;
-            const connectionStatus = client.connectionStatuses && client.connectionStatuses.length > 0 ? client.connectionStatuses[0].status : null;
-            
-            if (!latestBill) continue;
-            if (!connectionStatus) continue;
-            if (!latestBill.dueDate) continue
+        if (!latestBill) continue;
+        if (!connectionStatus) continue;
+        if (!latestBill.dueDate) continue;
 
-            if (latestBill.status === 'paid') continue
+        if (latestBill.status === 'paid') continue;
 
-            const billDueDate = new Date(latestBill.dueDate);
-            const billDisconnectionDate = new Date(latestBill.disconnectionDate);
-        
-            const current = {
-                day: new Date().getDate(),
-                month: new Date().getMonth()
-           }
+        const billDueDate = new Date(latestBill.dueDate);
+        const billDisconnectionDate = new Date(latestBill.disconnectionDate);
 
-            const due = {
-                day: billDueDate.getDate(),
-                month: billDueDate.getMonth()
-           }
+        const current = {
+          day: new Date().getDate(),
+          month: new Date().getMonth()
+        };
 
-            const disconnection = {
-                day: billDisconnectionDate.getDate(),
-                month: billDisconnectionDate.getMonth()
-           }
+        const due = {
+          day: billDueDate.getDate(),
+          month: billDueDate.getMonth()
+        };
 
-            if (current.day >= due.day && current.month >= due.month && connectionStatus === Connected) {
+        const disconnection = {
+          day: billDisconnectionDate.getDate(),
+          month: billDisconnectionDate.getMonth()
+        };
 
-                tryCatchWrapper(async () => {
-                    await ClientConnectionStatus.create({
-                        clientId: client.id,
-                        status: DueForDisconnection,
-                   });
-               })
+        const dueDay = current.day >= due.day;
+        const dueMonth = current.month >= due.month;
+        const dayOfDue = dueDay && dueMonth;
 
-                // Adds penalty to current bill
-                const penalty = 5;
+        if (dayOfDue && connectionStatus === Connected) {
+          await ClientConnectionStatus.create({
+            clientId: client.id,
+            status: DueForDisconnection
+          });
 
-                tryCatchWrapper(async () => {
-                    await latestBill.update({
-                        penalty: penalty,
-                        total: latestBill.total + penalty,
-                   });
-               })
+          // Adds penalty to current bill
+          const penalty = 5;
 
-           }
-        
-            if (current.day >= disconnection.day && current.month >= disconnection.month && connectionStatus === DueForDisconnection) {
+          await latestBill.update({
+            penalty: penalty,
+            total: latestBill.total + penalty
+          });
+        }
 
-                tryCatchWrapper(async () => {
-                    await ClientConnectionStatus.create({
-                        clientId: client.id,
-                        status: Disconnected,
-                   });
-               })
-           }
-       }        
+        const disconnectionDay = current.day >= disconnection.day;
+        const disconnectionMonth = current.month >= disconnection.month;
+        const dayOfDisconnection = disconnectionDay && disconnectionMonth;
 
-   }
+        if (dayOfDisconnection && connectionStatus === DueForDisconnection) {
+          await ClientConnectionStatus.create({
+            clientId: client.id,
+            status: Disconnected
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error connecting to the database:', error);
+  }
+};
 
-   } catch (error) {
-        console.error('Error connecting to the database:', error)
-   }
-
-}
-
-app.on('ready', createWindow)
+app.on('ready', createWindow);
 
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-        app.quit()
-   }
-})
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+ipcMain.handle('logout', event => {
+  session.logout();
+});
+
+ipcMain.handle('is_logged_in', async event => {
+  return await session.isLoggedIn();
+});
 
 ipcMain.handle('current_user', async event => {
-    return await session.currentUser()
-})
+  return await session.currentUser();
+});
 
 app.on('before-quit', () => {
-    session.logout()
-})
+  session.logout();
+});
 
 app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow()
-   }
-})
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
+});
 
+process.on('uncaughtException', error => {
+  logger.error(`${new Date().toISOString()} - Uncaught Exception: ${error}`);
+});

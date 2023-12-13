@@ -1,8 +1,10 @@
 #table-data {
     border: var(--borderDefaultGray);
     margin: 0 auto;
-    margin-top: 1.5rem;
     border-radius: 5px;
+    overflow: hidden;
+    height: 100%;
+    overflow-y: scroll;
 }
 
 #table-data-title {
@@ -38,6 +40,11 @@
 
 .table-info {
     position: relative;
+}
+
+#table-data-rows {
+    height: min-content;
+    max-height: 100%;
 }
 
 .table-info__options {
@@ -78,7 +85,8 @@
 .table-info__options-item {
     font-size: 0.8rem;
     height: 5rem;
-    width: 5rem;
+    width: fit-content;
+    min-width: 5rem;
     padding: 0 0.5rem;
     border-radius: 8px;
     display: flex;

@@ -1,8 +1,5 @@
 /* eslint-disable indent */
 
-// helpers
-import {sentenceToDashed} from '../../../../assets/scripts/helper.js';
-
 // user
 import currentUser from '../../../../assets/scripts/current-user.js';
 
@@ -17,10 +14,13 @@ import ClientRow from '../components/ClientRow.js';
  *
  * @async
  * @function clientTemplate
+ * @param {Object|null} clients - list of Client objects
+ * @param {string|null} noClientsMessage - message of list of clients is null
  * @return {Promise<string>} the HTML template for the client table section.
  */
-export default async function() {
-  const [clients, noClientsMessage] = await retrieveClients();
+export default async function(clients, noClientsMessage) {
+  const user = await currentUser();
+  const userWelcome = user ? `Welcome, ${user.firstName}` : 'Welcome User';
 
   const navigationObject = [
     {title: 'Clients', icon: icons.usersIcon('users-icon')},
@@ -28,15 +28,25 @@ export default async function() {
     {title: 'Logout', icon: icons.powerIcon('power-icon')}
   ];
 
-  const template = `
-    <section id='section-type-container' class='page'>
-      
+  const searchOptions = {
+    accountNumber: 'Account Number',
+    meterNumber: 'Meter Number',
+    firstName: 'First Name',
+    middleName: 'Middle Name',
+    lastName: 'Last Name',
+    email: 'Email',
+    age: 'Age'
+  };
+
+  const template = /* html */`
+    <section id='section-type-container' class='page client-page' data-current-page='clients'>
+
       <nav>
         <div id='nav-items'>
           ${
             navigationObject.map(navigation => {
               const title = navigation.title === 'Clients' ? 'active' : '';
-              return `
+              return /* html */`
                 <div id='${navigation.title.toLowerCase()}' class='nav-item ${title}'>
                   <div>${navigation.icon}</div>
                   <p>${navigation.title}</p>
@@ -53,21 +63,17 @@ export default async function() {
 
       <section>
         <div id='clients-section' class='content'>
-          
+
           <div class='content__top'>
             <div>
               <img src='assets/images/Logo.png' alt=''>
               <p class='content__top-title'>
-                ${
-                  await currentUser() ?
-                  `Welcome, ${await currentUser().firstName}` :
-                  `Welcome User`
-                }
+                ${ userWelcome }
               </p>
             </div>
             <img src='assets/images/Logo.png' alt=''>
           </div>
-          
+
           <div class='content__center'>
             <div class='content__center-left'>
               <p class='content__center-left__section-title'>
@@ -88,17 +94,12 @@ export default async function() {
                 <select id='client-search-box-filter' class='search-box-filter'>
                   <option selected disable>Search by</option>
                   ${
-                    [
-                      'Account Number',
-                      'Relationship Status',
-                      'Meter Number',
-                      'Full Name',
-                      'Email',
-                      'Age'
-                    ].map(selectOption => {
-                      const newValue = sentenceToDashed(selectOption);
-                      return `
-                        <option value='${newValue}'>${selectOption}</option>
+                    Object.keys(searchOptions).map(selectOption => {
+                      return /* html */`
+                        <option
+                          value='${selectOption}'>
+                          ${searchOptions[selectOption]}
+                        </option>
                       `;
                     }).join('\n')
                   }
@@ -120,9 +121,9 @@ export default async function() {
                           'Due',
                           'Disconnected'
                         ].map(filter => {
-                          return `
-                            <button 
-                              class='button-primary client-filter-toggle-filter-list__item' 
+                          return /* html */`
+                            <button
+                              class='button-primary client-filter-toggle-filter-list__item'
                               id='filter-button-${filter.toLowerCase()}-clients'>
                               ${filter}
                             </button>
@@ -135,12 +136,9 @@ export default async function() {
                     <button class='button-primary' id='client-options-toggle'>Options</button>
                     <div id='client-options-toggle-options-list'>
                       ${
-                        [
-                          'New Connection',
-                          'Save as CSV'
-                        ].map(option => {
+                        ['New Connection'].map(option => {
                           const id = option.replace(' ', '-').toLowerCase();
-                          return `
+                          return /* html */`
                             <button class='button-primary' id='${id}'>
                               ${option}
                             </button>
@@ -163,7 +161,7 @@ export default async function() {
                     'Status',
                     'Menu'
                   ].map(header => {
-                    return `
+                    return /* html */`
                       <div class='table-data-headers__item'>
                         <p>${header}</p>
                       </div>
@@ -194,11 +192,11 @@ export default async function() {
  */
 export function renderTable(clients, noClientsMessage) {
   if (noClientsMessage) {
-    return `<p style='margin: 1rem'>${noClientsMessage}</p>`;
+    return /* html */`<p style='margin: 1rem'>${noClientsMessage}</p>`;
   }
 
-  const clientRows = clients.map((client, index) => {
-    return new ClientRow(client, index);
+  const clientRows = clients.map(client => {
+    return new ClientRow(client);
   }).join('');
 
   return clientRows;

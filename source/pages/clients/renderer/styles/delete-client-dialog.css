@@ -1,0 +1,11 @@
+#delete-client-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+#delete-client-form-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}

@@ -1,10 +1,23 @@
 /* eslint-disable indent */
 // icons
-import {icons} from '../../../assets/scripts/icons.js';
+import {icons} from '../../../../assets/scripts/icons.js';
 
 // components
-import Select from '../../../components/Select.js';
-import Input from '../../../components/Input.js';
+import Select from '../../../../components/Select.js';
+import Input from '../../../../components/Input.js';
+
+// validations
+import '../../../../utilities/validations.js';
+
+const {
+  isBirthDate,
+  isEmail,
+  isEmpty,
+  isValidPhoneNumber,
+  notIn,
+  isOverThan,
+  userRelationshipTypes
+} = window;
 
 /**
  *
@@ -12,28 +25,19 @@ import Input from '../../../components/Input.js';
  * @return {string} HTML string template of the register section
  */
 export default function() {
-  const {
-    isBirthDate,
-    isEmail,
-    isEmpty,
-    isValidPhoneNumber,
-    notIn,
-    userRelationshipTypes
-  } = window;
-
   const userRelationshipValues = Object.values(userRelationshipTypes);
 
-  const longestRelationshipOption = userRelationshipValues.reduce((first, next) => {
-    return next.length > first.length ? next : first;
-  }).length;
+  const longestRelationshipOption = userRelationshipValues.reduce((first, next) =>
+    next.length > first.length ? next : first
+  ).length;
 
-  const shortestRelationshipOption = userRelationshipValues.reduce((first, next) => {
-    return next.length < first.length ? next : first;
-  }).length;
+  const shortestRelationshipOption = userRelationshipValues.reduce((first, next) =>
+    next.length < first.length ? next : first
+  ).length;
 
-  return `    
-    <div id='register' class='page'>
-      
+  return /* html */`
+    <div id='register' class='page' data-current-page='register'>
+
       <form data-action='' id='register-form' class='authentication-form'>
         <p id='register-form-title' class='authentication-form__title'>Create new account</p>
           <div class='authentication-form__inputs'>
@@ -44,50 +48,45 @@ export default function() {
                   new Input([isEmpty, [isOverThan, 2, 255]], {
                     flags: ['required'],
                     attributes: {
-                      name: 'firstName',
-                      value: 'Juan',
                       placeholder: 'First Name',
-                      maxlength: '255'
+                      name: 'firstName',
+                      maxlength: 255
                     }
                   }),
 
                   new Input([isEmpty, [isOverThan, 2, 255]], {
                     flags: ['required'],
                     attributes: {
-                      name: 'middleName',
                       placeholder: 'Middle Name',
-                      value: 'Quezon',
-                      maxlength: '255'
+                      name: 'middleName',
+                      maxlength: 255
                     }
                   }),
 
                   new Input([isEmpty, [isOverThan, 2, 255]], {
                     flags: ['required'],
                     attributes: {
-                      name: 'lastName',
                       placeholder: 'Last Name',
-                      value: 'Dela Cruz',
-                      maxlength: '255'
+                      name: 'lastName',
+                      maxlength: 255
                     }
                   }),
 
                   new Input([isEmpty, isBirthDate], {
                     flags: ['required'],
                     attributes: {
-                      name: 'birthDate',
-                      type: 'date',
                       placeholder: 'BirthDate',
-                      value: '1995-05-10'
+                      name: 'birthDate',
+                      type: 'date'
                     }
                   }),
 
                   new Input([isEmpty, [isOverThan, 15, 70]], {
                     flags: ['required'],
                     attributes: {
-                      name: 'age',
-                      type: 'number',
                       placeholder: 'Age',
-                      value: '28'
+                      type: 'number',
+                      name: 'age'
                     }
                   })
 
@@ -105,8 +104,7 @@ export default function() {
                 ], {
                   options: window.userRelationshipTypes,
                   attributes: {
-                    name: 'relationshipStatus',
-                    selected: 'Single'
+                    name: 'relationshipStatus'
                   },
                   flags: ['required']
                 }),
@@ -115,31 +113,28 @@ export default function() {
                   flags: ['required'],
                   classes: ['number-input'],
                   attributes: {
+                    placeholder: 'Phone Number',
                     name: 'phoneNumber',
                     type: 'number',
-                    placeholder: 'Phone Number',
-                    value: '9965739119',
-                    maxlength: '10'
+                    maxlength: 10
                   }
                 }),
 
                 new Input([isEmpty, isEmail, [isOverThan, 10, 255]], {
                   flags: ['required'],
                   attributes: {
-                    name: 'email',
-                    type: 'email',
                     placeholder: 'Email',
-                    value: 'JuanDelaCruz@gmail.com'
+                    name: 'email',
+                    type: 'email'
                   }
                 }),
 
                 new Input([isEmpty, [isOverThan, 10, 255]], {
                   flags: ['required'],
                   attributes: {
-                    name: 'password',
-                    type: 'password',
                     placeholder: 'Password',
-                    value: 'JuanDelaCruz1234.'
+                    name: 'password',
+                    type: 'password'
                   }
                 })
 

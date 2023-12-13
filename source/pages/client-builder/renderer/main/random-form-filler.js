@@ -1,3 +1,4 @@
+import '../../../../utilities/constants.js';
 
 const firstName = [
   'John',
@@ -113,7 +114,7 @@ const meterNumber = [
 
 const postalCode = ['1234', '5678', '2345', '9876', '3456', '8765', '4321', '6543', '2109', '7890'];
 
-const presentAddressStreet = [
+const street = [
   '123 Main St',
   '456 Elm St',
   '789 Oak St',
@@ -126,7 +127,7 @@ const presentAddressStreet = [
   '678 Spruce St'
 ];
 
-const presentAddressSubdivision = [
+const subdivision = [
   'Sunnydale',
   'Riverdale',
   'Hillside',
@@ -139,7 +140,7 @@ const presentAddressSubdivision = [
   'Riverside'
 ];
 
-const presentAddressBarangay = [
+const barangay = [
   'Central',
   'Westside',
   'East End',
@@ -152,7 +153,7 @@ const presentAddressBarangay = [
   'New Town'
 ];
 
-const presentAddressCity = [
+const city = [
   'Cityville',
   'Townsville',
   'Villagetown',
@@ -165,7 +166,7 @@ const presentAddressCity = [
   'Harbor City'
 ];
 
-const presentAddressProvince = [
+const province = [
   'State A',
   'State B',
   'State C',
@@ -210,16 +211,11 @@ export const getSampleForm = () => {
     phoneNumber: getRandomElement(phoneNumber),
     meterNumber: getRandomElement(meterNumber),
     postalCode: getRandomElement(postalCode),
-    presentAddressStreet: getRandomElement(presentAddressStreet),
-    presentAddressSubdivision: getRandomElement(presentAddressSubdivision),
-    presentAddressBarangay: getRandomElement(presentAddressBarangay),
-    presentAddressCity: getRandomElement(presentAddressCity),
-    presentAddressProvince: getRandomElement(presentAddressProvince),
-    mainAddressStreet: getRandomElement(presentAddressStreet),
-    mainAddressSubdivision: getRandomElement(presentAddressSubdivision),
-    mainAddressBarangay: getRandomElement(presentAddressBarangay),
-    mainAddressCity: getRandomElement(presentAddressCity),
-    mainAddressProvince: getRandomElement(presentAddressProvince),
+    street: getRandomElement(street),
+    subdivision: getRandomElement(subdivision),
+    barangay: getRandomElement(barangay),
+    city: getRandomElement(city),
+    province: getRandomElement(province),
     details: getRandomElement(details)
   };
 };

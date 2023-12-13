@@ -1,12 +1,17 @@
 // helpers
-import {queryElements, getById, transition} from '../../../../assets/scripts/helper.js';
 import makeToastNotification from '../../../../assets/scripts/toast.js';
+import {
+  generateUniqueId,
+  transition,
+  getById
+} from '../../../../assets/scripts/helper.js';
 
 // main
 import clientBuilder from '../../../client-builder/renderer/main/client-builder.js';
 
 // dialogs
 import ReconnectClientForm from './ReconnectClientForm.js';
+import DeleteClientDialog from './DeleteClientDialog.js';
 
 // icons
 import {icons} from '../../../../assets/scripts/icons.js';
@@ -20,19 +25,18 @@ export default class {
    * Represents a table row for the client table.
    * @class
    * @param {object} client - The client data associated with the row.
-   * @param {number} index - The index of the client row.
    * @property {object} client - The client data associated with the row.
    * @property {string} clientId - The unique identifier of the client.
    * @property {string} connectionStatus - The connection status of the client.
-   * @property {string} tableOptionsId - The unique ID for the table options.
+   * @property {string} rowMenuId - The unique ID for the table options.
    * @property {string} reconnectButtonId - The unique ID for the reconnect button.
-   * @property {string} archiveButtonId - The unique ID for the archive button.
    * @property {string} exportButtonId - The unique ID for the export button.
    * @property {string} editButtonId - The unique ID for the edit button.
-   * @property {string} rowMenuId - The unique ID for the row menu.
+   * @property {string} rowMenuToggleId - The unique ID for the row menu.
+   * @property {string} deleteButtonId - The unique ID for the delete button.
    * @property {string} template - HTML template for the client row.
    */
-  constructor(client, index) {
+  constructor(client) {
     this.client = client;
 
     const {
@@ -53,61 +57,60 @@ export default class {
     const noStatuses = connectionStatuses.length === 0;
     this.connectionStatus = noStatuses ? 'Not Set' : connectionStatuses[0].status;
 
-    this.tableOptionsId = ['table-info__options', index].join('-');
-    this.reconnectButtonId = ['reconnect', index].join('-');
-    this.archiveButtonId = ['archive', index].join('-');
-    this.exportButtonId = ['export', index].join('-');
-    this.rowMenuId = ['row-menu', index].join('-');
-    this.editButtonId = ['edit', index].join('-');
+    this.rowMenuToggleId = generateUniqueId('client-row-menu-toggle');
+    this.deleteButtonId = generateUniqueId('client-delete');
+    this.reconnectButtonId = generateUniqueId('reconnect');
+    this.exportButtonId = generateUniqueId('export');
+    this.editButtonId = generateUniqueId('edit');
 
-    this.template = `
-            <div class='table-info' id='client-row-${id}'>
-                <div id='${this.tableOptionsId}' class='table-info__options'>
-                    <p>Menu</p>
-                    <div class='table-info__options-item-box'>
-                        ${this.reconnectButton()}
-                        <div id='${this.editButtonId}' class='table-info__options-item'>
-                            ${icons.editIcon(null, 'edit-table-icon')}
-                            <p>Edit</p>
-                        </div>
-                        <div id='${this.exportButtonId}' class='table-info__options-item'>
-                            ${icons.printIcon(null, 'print-bill-icon')}
-                            <p>Export</p>
-                        </div>
-                        <div id='${this.archiveButtonId}' class='table-info__options-item'>
-                            ${icons.archiveIcon(null, 'archive-table-icon')}
-                            <p>Archive</p>
-                        </div>
-                    </div>
-                </div>
-                <div class='table-info__item'>
-                    <p>${accountNumber ?? ''}</p>
-                </div>
-                <div class='table-info__item'>
-                    <p>${fullName ?? ''}</p>
-                </div>
-                <div class='table-info__item'>
-                    <p>${fullAddress ?? ''}</p>
-                </div>
-                <div class='table-info__item'>
-                    <p>+63${phoneNumbers[0]?.phoneNumber ?? 'XXXXXXXXXX'}</p>
-                </div>
-                <div class='table-info__item'>
-                    <p>${birthDate ?? ''}</p>
-                </div>
-                <div class='table-info__item'>
-                    <p>${meterNumber ?? ''}</p>
-                </div>
-                <div class='table-info__item'>
-                    <p>${this.connectionStatus ?? ''}</p>
-                </div>
-                <div id='${this.rowMenuId}' class='table-info__item row-menu'>
-                    <div class='icon-box'>
-                        ${icons.menuIcon(null, 'menu')}
-                    </div>
-                </div>
+    this.template = /* html */`
+      <div class='table-info' id='client-row-${id}'>
+        <div class='table-info__options'>
+          <p>Menu</p>
+          <div class='table-info__options-item-box'>
+            ${this.reconnectButton()}
+            <div id='${this.editButtonId}' class='table-info__options-item'>
+                ${icons.editIcon(null, 'edit-table-icon')}
+                <p>Edit</p>
             </div>
-        `;
+            <div id='${this.exportButtonId}' class='table-info__options-item'>
+                ${icons.printIcon(null, 'print-bill-icon')}
+                <p>Export</p>
+            </div>
+            <div id='${this.deleteButtonId}' class='table-info__options-item'>
+                ${icons.binIcon(null, 'bin-icon')}
+                <p>Delete</p>
+            </div>
+          </div>
+        </div>
+        <div class='table-info__item'>
+            <p>${accountNumber ?? ''}</p>
+        </div>
+        <div class='table-info__item'>
+            <p>${fullName ?? ''}</p>
+        </div>
+        <div class='table-info__item'>
+            <p>${fullAddress ?? ''}</p>
+        </div>
+        <div class='table-info__item'>
+            <p>+63${phoneNumbers[0]?.phoneNumber ?? 'XXXXXXXXXX'}</p>
+        </div>
+        <div class='table-info__item'>
+            <p>${birthDate ?? ''}</p>
+        </div>
+        <div class='table-info__item'>
+            <p>${meterNumber ?? ''}</p>
+        </div>
+        <div class='table-info__item'>
+            <p>${this.connectionStatus ?? ''}</p>
+        </div>
+        <div id='${this.rowMenuToggleId}' class='table-info__item row-menu'>
+            <div class='icon-box'>
+                ${icons.menuIcon(null, 'menu')}
+            </div>
+        </div>
+      </div>
+    `;
 
     this.loadScripts();
   }
@@ -129,9 +132,9 @@ export default class {
   reconnectButton() {
     return this.connectionStatus === window.connectionStatusTypes.Disconnected ?
       `
-        <div id='${this.reconnectButtonId}' class='table-info__options-item'>
-            ${icons.printIcon(null, 'print-bill-icon')}
-            <p>Reconnect</p>
+        <div id='${this.reconnectButtonId}' class='table-info__options-item reconnect'>
+          ${icons.printIcon(null, 'print-bill-icon')}
+          <p>Reconnect</p>
         </div>` : '';
   }
 
@@ -143,49 +146,44 @@ export default class {
   loadScripts() {
     setTimeout(() => {
       const reconnectButton = getById(this.reconnectButtonId);
-      const archiveButton = getById(this.archiveButtonId);
+      const deleteButton = getById(this.deleteButtonId);
+      const rowMenuToggle = getById(this.rowMenuToggleId);
       const exportButton = getById(this.exportButtonId);
-      const tableOptions = getById(this.tableOptionsId);
       const editButton = getById(this.editButtonId);
-      const rowMenu = getById(this.rowMenuId);
+      const rowMenu = rowMenuToggle
+          .closest('.table-info')
+          .querySelector('.table-info__options');
 
       editButton.onclick = async () => {
+        rowMenu.classList.remove('active');
         transition(async () => await clientBuilder(true, this.client));
+        return;
       };
 
       exportButton.onclick = async () => {
+        rowMenu.classList.remove('active');
         const exportDateResult = await window.ipcRenderer.invoke('export-record', {
           id: this.clientId
         });
-        makeToastNotification(exportDateResult.toast[0]);
+        makeToastNotification(exportDateResult.toast);
       };
 
-      rowMenu.onclick = () => {
-        if (tableOptions.classList.contains('active')) {
-          tableOptions.classList.remove('active');
-          return;
-        }
-
-        queryElements('.row-menu').forEach(element => {
-          if (element.id !== rowMenu.id) {
-            tableOptions.classList.remove('active');
-            return;
-          }
-          tableOptions.classList.add('active');
-        });
+      rowMenuToggle.onclick = () => {
+        rowMenu.classList.toggle('active');
       };
 
       if (reconnectButton) {
         reconnectButton.onclick = async () => {
+          rowMenu.classList.remove('active');
           const response = await window.ipcRenderer.invoke('get-client', {clientId: this.clientId});
-          if (response.status === 'failed') return makeToastNotification(response.toast[0]);
+          if (response.status === 'failed') return makeToastNotification(response.toast);
 
           const client = JSON.parse(response.data);
           new ReconnectClientForm(client);
         };
       }
 
-      archiveButton.onclick = () => console.log('archive clicked');
+      deleteButton.onclick = () => new DeleteClientDialog(this.clientId);
     }, 0);
   }
 }

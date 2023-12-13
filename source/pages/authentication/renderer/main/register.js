@@ -2,7 +2,6 @@
 import makeToastNotification from '../../../../assets/scripts/toast.js';
 import {
   queryElements,
-  camelToDashed,
   getFormData,
   transition,
   getById
@@ -23,20 +22,18 @@ import login from './login.js';
  */
 export default function() {
   const template = registerTemplate();
-
   getById('container').innerHTML += template;
-  setTimeout(() => getById('register').classList.add('active'), 500);
 
   window.onclick = async event => {
     switch (event.target.id) {
       case 'to-login-prompt':
         transition(login);
-        break;
+        return;
 
       case 'register-button':
         event.preventDefault();
         await registerUser();
-        break;
+        return;
 
       default:
         break;
@@ -79,7 +76,7 @@ async function registerUser() {
     const fieldNames = Object.keys(fieldErrors);
 
     fieldNames.forEach(fieldName => {
-      const fieldElementErrorId = `${camelToDashed(fieldName)}-field__info__error`;
+      const fieldElementErrorId = `${fieldName.toLowerCase()}-field__info__error`;
       getById(fieldElementErrorId).textContent = fieldErrors[fieldName];
     });
   }

@@ -1,25 +1,23 @@
 #client, .content__form {
-    height: 95vh;
     overflow-y: scroll;
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
     align-items: flex-start;
 }
 
-.content__form {
-    height: min-content !important;
-}
-#user-form {
-    gap: 2rem;
+#user.content {
+    grid-template-rows: 5% 95%;
 }
 
 #user-form-title {
     font-size: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 #new-client-form-title {
     font-size: 2.2rem;
-    margin: 0.5rem 0 3rem 0;
+    margin: 1.5rem 0 1.5rem 0;
 }
 
 .content__form-box__group {
@@ -28,7 +26,7 @@
 }
 
 .content__form-box {
-    height: 75vh;
+    height: 80vh;
     overflow-y: scroll;
 }
 
@@ -62,7 +60,7 @@
 }
 
 #duplicate-addresses-box, #duplicate-addresses-box > div {
-    display: flex; 
+    display: flex;
     gap: 0.5rem;
     align-items: center;
 }
@@ -87,7 +85,6 @@ input[name='mainAddressDetails'] {
 
 #client-register-submit-button {
     font-size: 1rem;
-    margin-right: 7rem;
     width: 170px;
 }
 
@@ -189,12 +186,12 @@ input[name='mainAddressDetails'] {
         position: static;
         transform: translateY(0%);
    }
-    
+
     #client-form-video {
         width: 50vw;
         height: 50vw;
    }
-    
+
     form-profile-box__canvas {
         width: 50vw;
         height: 50vw;
@@ -204,7 +201,7 @@ input[name='mainAddressDetails'] {
         pointer-events: none;
         border: 2px solid black;
    }
-    
+
     #client-register-profile {
         position: absolute;
         width: 100%;

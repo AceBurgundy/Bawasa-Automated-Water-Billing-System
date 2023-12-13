@@ -1,6 +1,6 @@
 // models
 const RecoveryCode = require('../../../../models/RecoveryCode');
-const Response = require('../../../utilities/Response');
+const Response = require('../../../utilities/response');
 
 const {randomBytes} = require('crypto');
 const {hashSync, hash} = require('bcrypt');

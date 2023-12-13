@@ -14,10 +14,9 @@ import BillingRow from './BillingRow.js';
 /**
  * Generates a ${this.billType} bill entry form template for a client's billing record.
  *
- * @class BillForm
- * @param {Object} formData - The form data containing client details and bills.
- * @param {boolean} forNewBill - Indicates whether the form is for a ${this.billType} bill entry.
- * @return {string} The HTML template for the ${this.billType} bill entry form.
+ * @name BillForm
+ * @class
+ * @public
  */
 export default class {
   /**
@@ -41,17 +40,17 @@ export default class {
   * @property {string} template - HTML template for the billing form.
   */
   constructor(rowId, billType, formData, forNewBill) {
-    latestBill = formData.bills ? formData.bills[0] : null;
+    const latestBill = formData.bills ? formData.bills[0] : null;
 
     const {lastName, id} = formData;
     this.billType = billType;
     this.rowId = rowId;
 
-    this.billId = latestBill.id ?? null;
+    this.billId = latestBill ? latestBill.id : null;
     this.clientId = id ?? null;
 
     this.formPurpose = `${billType}-bill`;
-    familyName = `Mr/Mrs ${lastName}`;
+    const familyName = `Mr/Mrs ${lastName}`;
 
     this.dialogErrorId = generateUniqueId(`${this.formPurpose}-form-input-box-header-error`);
     this.dialogInputId = generateUniqueId(`${this.formPurpose}-form-input-box-input`);
@@ -60,18 +59,19 @@ export default class {
     this.submitButtonId = generateUniqueId(`${this.formPurpose}-form-submit`);
     this.closeButtonId = generateUniqueId(`${this.formPurpose}-form-close`);
 
-    const [warning, title] = getReadingWarningAndTitle(latestBill, forNewBill, familyName);
+    const formInputLabel = this.billType === 'new' ? 'New Reading' : 'Bill Amount';
+    const [warning, title] = this.getReadingWarningAndTitle(latestBill, forNewBill, familyName);
     /**
     * HTML template for the billing form.
     * @member {string}
     */
-    this.template = `
+    this.template = /* html */`
       <form id='${this.formPurpose}-form'>
         <p id='${this.formPurpose}-form-title'>${title}</p>
         <div id='${this.formPurpose}-form__input-box'>
           <p id='${this.formPurpose}-form__input-box__warning'>${warning}</p>
           <div id='${this.formPurpose}-form-input-box-header'>
-              <label>Reading</label>
+              <label>${formInputLabel}</label>
               <p id='${this.dialogErrorId}'></p>
           </div>
           <input id='${this.dialogInputId}' type='number' name='reading' value='12' required>
@@ -110,7 +110,7 @@ export default class {
     let warning = null;
     let title = null;
 
-    switch (billType) {
+    switch (this.billType) {
       case 'new':
 
         title = `New Reading for ${familyName}`;
@@ -128,17 +128,17 @@ export default class {
         if (!latestBill) break;
 
         title = `Bills payment for ${familyName}`;
-        const paymentStatus = latestBill.paymentStatus;
+        const paymentStatus = latestBill.status;
 
         switch (paymentStatus) {
           case 'unpaid':
-            const billAmount = latestBill.billAmount || 'Not found';
+            const billAmount = latestBill.total || 'unidentifiable';
             warning = `${familyName} current bill is ${billAmount}`;
             break;
 
-          case 'unpaid':
-            const remainingBalance = latestBill.remainingBalance || 'Not found';
-            warning = `${familyName} remaining balance is ${remainingBalance}`;
+          case 'underpaid':
+            const balance = latestBill.balance || 'unidentifiable';
+            warning = `${familyName} remaining balance is ${balance}`;
             break;
 
           default:
@@ -163,9 +163,9 @@ export default class {
   async processForm() {
     const errorElement = getById(this.dialogErrorId);
     const dialogInput = getById(this.dialogInputId);
-    const notFloat = !inputValue.test(/[0-9.]/g);
-
     const inputValue = dialogInput.value;
+
+    const isNumberOrFloat = /^[0-9]+(\.[0-9]+)?$/.test(inputValue);
 
     if (inputValue.trim() === '') {
       errorElement.textContent = 'Payment amount cannot be empty';
@@ -177,7 +177,7 @@ export default class {
       return;
     }
 
-    if (notFloat) {
+    if (!isNumberOrFloat) {
       errorElement.textContent = 'Must be a number';
       return;
     }
@@ -193,10 +193,13 @@ export default class {
       billId: this.billId
     };
 
+    console.log(this.formPurpose);
+
     // process bill
     const processBillArguments = this.billType === 'new' ? newBillData : payBillData;
     const processBill = await window.ipcRenderer.invoke(this.formPurpose, processBillArguments);
 
+    console.log(processBill);
     makeToastNotification(processBill.toast);
 
     if (processBill.status === 'failed') return;

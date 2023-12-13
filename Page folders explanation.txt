@@ -1,0 +1,36 @@
+Page folders explanation
+
+Each section in the app, Login, Register, Billing, Client, ClientBuilder, Profile section has a corresponsing folder inside the page folder Authentication page, Billing page, Client page, ClientBuilder page, Profile page
+
+Lets assume the billing pages folder
+
+|       |   |-- billing/
+|       |   |   |-- process/
+|       |   |   |   |-- functions.js
+|       |   |   |   └-- views.js
+|       |   |   └-- renderer
+|       |   |       |-- components/
+|       |   |       |   |-- BillForm.js
+|       |   |       |   └-- BillingRow.js
+|       |   |       |-- main/
+|       |   |       |   └-- billing.js
+|       |   |       |-- styles/
+|       |   |       |   |-- billing.css
+|       |   |       |   |-- new-bill.css
+|       |   |       |   └-- pay-bill.css
+|       |   |       └-- templates
+|       |   |           └-- billing.js
+
+inside billing folder, there are 2 new folders
+process - which serves as the backend
+renderer - which serves as the frontent
+
+process
+|_ functions.js // the javascript functions, view.js uses
+|_ view.js // contains code which communicates with the frontend (ex: when user clicks 'pay' on the billing form, the frontend send user details to view.js which processes it and saves any changes to the database.
+
+renderer
+|_components // javascript classes which contains, the html template of the form and its functionalities. (ex: BillingRow.js is a component which contain the html code for a table row in the billing table and its corresponding javscript functions
+|_main // starter file. When the user clicks 'billing' at the navigation bar, this file starts and shows the billing section. It does this by loading the template inside templates/ folder
+|_styles // all styles exclusive for the billing section. Any styles that are used by all pages are placed inside assets/styles
+|_templates // the html template for the billing section (A javascript code is used instead of a html code to preprocess the data before rendering the html instead of having another script manually do it.

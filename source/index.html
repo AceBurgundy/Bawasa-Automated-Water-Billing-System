@@ -2,39 +2,47 @@
 
 <html lang='en'>
 
-    <head>
-        <meta charset='UTF-8'>
-        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-        <title>Login</title>
-        <link rel='stylesheet' href='assets/styles/root.css'>
-        <link rel='stylesheet' href='assets/styles/table.css'>
+<head>
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+  <title>Bawasa</title>
+  <link rel='stylesheet' href='assets/styles/root.css'>
+  <link rel='stylesheet' href='assets/styles/table.css'>
 
-        <link rel='stylesheet' href='pages/authentication/static/forget-password-dialog.css'>
-        <link rel='stylesheet' href='pages/authentication/static/recovery-codes-dialog.css'>
-        <link rel='stylesheet' href='pages/authentication/static/authentication.css'>
-        
-        <link rel='stylesheet' href='pages/billing/static/billing.css'>
-        <link rel='stylesheet' href='pages/billing/static/new-bill.css'>
-        <link rel='stylesheet' href='pages/billing/static/pay-bill.css'>
+  <link rel='stylesheet' href='pages/authentication/renderer/styles/forget-password-dialog.css'>
+  <link rel='stylesheet' href='pages/authentication/renderer/styles/recovery-codes-dialog.css'>
+  <link rel='stylesheet' href='pages/authentication/renderer/styles/authentication.css'>
 
-        <link rel='stylesheet' href='pages/clients/static/reconnect-client-form.css'>
-        <link rel='stylesheet' href='pages/clients/static/clients.css'>
+  <link rel='stylesheet' href='pages/billing/renderer/styles/billing.css'>
+  <link rel='stylesheet' href='pages/billing/renderer/styles/new-bill.css'>
+  <link rel='stylesheet' href='pages/billing/renderer/styles/pay-bill.css'>
 
-        <link rel='stylesheet' href='pages/clientBuilder/static/client-builder.css'>
-        
-        <!-- <script type='module' src='./global.js'></script> -->
+  <link rel='stylesheet' href='pages/clients/renderer/styles/delete-client-dialog.css'>
+  <link rel='stylesheet' href='pages/clients/renderer/styles/reconnect-client-form.css'>
+  <link rel='stylesheet' href='pages/clients/renderer/styles/clients.css'>
 
-        <script type='module'>
-            import login from './pages/authentication/renderer/main/login.js'
-            document.addEventListener('DOMContentLoaded', login)
-        </script>
+  <link rel='stylesheet' href='pages/client-builder/renderer/styles/client-builder.css'>
 
-    </head>
+  <script type='module' src='./global.js'></script>
 
-    <body>
-        <div id='container'></div>
-        <div id='dialog-backdrop'></div>
-        <dialog class='form_dialog'></dialog>
-    </body>
+  <script type='module'>
+    import login from './pages/authentication/renderer/main/login.js'
+    import billing from './pages/billing/renderer/main/billing.js'
+    import { transition } from './assets/scripts/helper.js'
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const isLoggedIn = await window.ipcRenderer.invoke('is_logged_in');
+      await transition(isLoggedIn ? billing : login);
+      return;
+    })
+  </script>
+
+</head>
+
+<body>
+  <div id='container'></div>
+  <div id='dialog-backdrop'></div>
+  <dialog class='form_dialog'></dialog>
+</body>
 
 </html>

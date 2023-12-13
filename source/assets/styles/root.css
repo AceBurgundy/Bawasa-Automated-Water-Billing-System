@@ -18,14 +18,14 @@
 
 :root {
 
-    --text: #1f230b;
-    --background: #f7f9ec;
-    --borderlessInputBackground: #e3ebb8;
-    --primary: #98d378;
-    --navHover: #86d35c;
-    --navActive: #74d441;
-    --secondary: #d1f0d5;
-    --accent: #3cb94f;
+    --text: #090f10;
+    --background:  #f8fbfc;
+    --borderlessInputBackground: #dcecf1;
+    --primary: #4ab0bc;
+    --navHover: #3aaebb;
+    --navActive: #2eadbb;
+    --secondary: #96d9e1;
+    --accent: #5bcfdd;
 
     --lighterPrimary: var(--primary);
     --lightestPrimary: var(--primary);
@@ -162,16 +162,20 @@ body {
 .content {
     position: relative;
     padding: 2rem 1.5rem;
-    display: flex;
-    flex-direction: column;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: 5% 14% 81%;
 }
 
 .content__top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 3rem;
     width: 100%;
+}
+
+.content__bottom {
+    margin-top: 1rem;
 }
 
 .content__top > div {

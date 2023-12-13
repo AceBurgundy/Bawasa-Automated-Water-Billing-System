@@ -1,134 +1,195 @@
 // helpers
-import {transition, getById, queryElement, queryElements, getFormData, camelToDashed, toSentenceCase} from '../../../../assets/scripts/helper.js'
-import makeToastNotification from '../../../../assets/scripts/toast.js'
+import makeToastNotification from '../../../../assets/scripts/toast.js';
+import {
+  toSentenceCase,
+  camelToDashed,
+  queryElements,
+  queryElement,
+  getFormData,
+  transition,
+  getById,
+  camelCaseToTitleCase
+} from '../../../../assets/scripts/helper.js';
 
 // user
-import currentUser from '../../../../assets/scripts/current-user.js'
+import currentUser from '../../../../assets/scripts/current-user.js';
 
 // main
-import client from '../../../clients/renderer/main/clients.js'
-import billing from '../../../billing/renderer/main/billing.js'
+import login from '../../../authentication/renderer/main/login.js';
+import billing from '../../../billing/renderer/main/billing.js';
+import client from '../../../clients/renderer/main/clients.js';
 
 // templates
-import profileTemplate from '../templates/profile.js'
+import profileTemplate from '../templates/profile.js';
 
 // constants
-import '../../../../utilities/constants.js'
+import '../../../../utilities/constants.js';
 
 /**
  * Renders and manages a user registration or edit form.
- * 
+ *
  * @async
- * @function profile
- * @param {boolean} edit - Indicates whether the form is in edit mode.
+ * @function
+ * @param {boolean} forEdit - Indicates whether the form is in edit mode.
 */
-export default async function (forEdit = false) {
+export default async function profile(forEdit = false) {
+  const userData = await currentUser();
+  getById('container').innerHTML += profileTemplate(forEdit, userData);
 
-    const userData = await currentUser()
+  // Handle merging addresses
+  let duplicateAddress = false;
 
-	getById('container').innerHTML += profileTemplate(forEdit, userData)
-	setTimeout(() => getById('section-type-container').classList.add('active'), 500)
+  window.onclick = async event => {
+    const {target} = event;
+    const targetText = target.textContent.trim();
+    const elementId = target.id;
 
-	window.onclick = event => {
-		
-		const {target} = event
-		const targetText = target.textContent.trim()
-		const elementId = target.id
+    switch (elementId) {
+      case 'billing':
+        transition(billing);
+        return;
 
-		switch (elementId) {
-			case 'billing':
-				transition(billing)
-				break;
-			
-			case 'clients':
-				transition(client)
-				break
+      case 'clients':
+        transition(client);
+        return;
 
-			case 'user-register-submit-button':
-				event.preventDefault()
+      // removed await as we dont need to wait for anything
+      // when loging out, it can simply logout
+      // while transitioning to the login page
+      case 'logout':
+        window.ipcRenderer.invoke('logout');
+        transition(login);
+        return;
 
-				if (targetText === 'Edit') {
-					transition(async () => await profile(true))
-				} else {
-					handleFormSubmit(userData.id)
-				}
-				break
-		}
+      case 'merge-addresses-checkbox':
+        target.onchange = event => {
+          duplicateAddress = event.target.checked;
+          const addressType = duplicateAddress ? 'present' : 'main';
+          const inputFields = queryElements(`input[name^='${addressType}']`);
 
-        if ((target.tagName === 'INPUT' || target.tagName === 'SELECT') && !forEdit) {
-            makeToastNotification(`Click 'Edit' at the bottom to change values`);
-       }
-	}
+          inputFields.forEach(input => {
+            const targetName = input.name.replace(addressType, 'main');
+            const targetInput = queryElement(`input[name='${targetName}']`);
+            targetInput.value = duplicateAddress ? input.value : '';
+          });
+        };
+        break;
 
-	// Handle merging addresses
-	let duplicateAddress = false
+      case 'user-register-submit-button':
+        event.preventDefault();
 
-    //clears all input if duplicate address was unchecked else refills their values
-    if (document.body.contains(getById('merge-addresses-checkbox'))) {
-        getById('merge-addresses-checkbox').onchange = event => {
-            duplicateAddress = event.target.checked
-            const addressType = duplicateAddress ? 'present' : 'main'
-            const inputFields = queryElements(`input[name^='${addressType}']`)
-    
-            inputFields.forEach(input => {
-                const targetName = input.name.replace(addressType, 'main')
-                const targetInput = queryElement(`input[name='${targetName}']`)
-                targetInput.value = duplicateAddress ? input.value : ''
-           })
-       }    
-   }
-      
-    /*
-        if duplicate address is checked,
-        any values placed inside present address fields also duplicates to main address fields 
+        if (targetText === 'Edit') {
+          transition(async () =>
+            profile(true)
+          );
+        } else {
+          handleFormSubmit(userData.id);
+          return;
+        }
+        break;
+    }
+
+    if ((target.tagName === 'INPUT' || target.tagName === 'SELECT') && !forEdit) {
+      makeToastNotification(`Click 'Edit' at the bottom to change values`);
+    }
+  };
+
+  const userFormForEdit = getById('user-form-edit');
+
+  if (userFormForEdit) {
+    /**
+     * if duplicate address is checked,
+     * any values placed inside present address fields also duplicates to main address fields
     */
-    getById('user-form').onkeyup = ({target}) => {
-		if (duplicateAddress) {
-			const targetName = target.getAttribute('name').replace('present', 'main')
-			queryElement(`input[name='${targetName}']`).value = target.value
-		}
-	}
+    userFormForEdit.oninput = ({target}) => {
+      if (duplicateAddress) {
+        const targetName = target.getAttribute('name').replace('present', 'main');
+        queryElement(`input[name='${targetName}']`).value = target.value;
+      }
+    };
+  }
+  /**
+   * Handles form submission
+   * @param {Object} userId - user form data
+   * @return {void}
+   */
+  async function handleFormSubmit(userId) {
+    const formData = getFormData(userFormForEdit);
 
-	async function handleFormSubmit(userData) {
+    const invalidElements = queryElements('.invalid');
+    if (invalidElements.length > 0) {
+      makeToastNotification('Fix errors first');
+      return;
+    };
 
-        const userId = userData.id
+    const filled = checkIfAddressAreFilled(formData);
 
-		const form = getById('user-form')
-		const formData = getFormData(form)
+    if (!filled) {
+      makeToastNotification(`
+        All fields for both addresses
+        must be filled first especially for new users
+      `);
+      return;
+    }
 
-		const invalidElements = queryElements('.invalid')
-		if (invalidElements.length > 0) return makeToastNotification('Fix errors first')
+    let response = null;
 
-		const imageData = capture.imageData
-		
-		let response = null
-		
-        response = await window.ipcRenderer.invoke('edit-user', {
-            formDataBuffer: {
-                formData: formData,
-                profilePicture: imageData.image
-           },
-            userId: userId
-       })
+    response = await window.ipcRenderer.invoke('edit-user', {
+      formDataBuffer: {
+        formData: formData
+      },
+      userId: userId
+    });
 
-		if (response.status === 'success') {
+    if (response.status === 'success') {
+      makeToastNotification(response.toast);
+      transition(profile);
+      return;
+    }
 
-			response.toast.forEach(toast => makeToastNotification(toast))
-			transition(renderuserSection)
+    if (response.fieldErrors) {
+      Object.entries(response.fieldErrors).forEach(([name, error]) => {
+        if (name.includes('mainAddress') || name.includes('presentAddress')) {
+          const dashedName = camelToDashed(name);
+          const cleanErrorMessage = [camelCaseToTitleCase(name), error[0]].join(' ');
+          getById(`${dashedName}-field__info__error`).textContent = error[0];
+          makeToastNotification(cleanErrorMessage);
+          return;
+        }
 
-		} else {
+        const dashedName = camelToDashed(name);
+        const cleanName = dashedName.includes('-') ? dashedName.split('-').join(' ') : dashedName;
+        const cleanErrorMessage = toSentenceCase([cleanName, error[0]].join(' '));
+        getById(`${dashedName}-field__info__error`).textContent = error[0];
+        makeToastNotification(cleanErrorMessage);
+      });
+    }
 
-			if (response.fieldErrors) {
-				Object.entries(response.fieldErrors).forEach(([name, error]) => {
-					const dashedName = camelToDashed(name)
-					const cleanName = dashedName.includes('-') ? dashedName.split('-').join(' ') : dashedName
-					const cleanErrorMessage = toSentenceCase([cleanName, error[0]].join(' '))
-					getById(`${dashedName}-field__info__error`).textContent = error[0]
-					makeToastNotification(cleanErrorMessage)
-				})
-			}
+    makeToastNotification(response.toast);
+  }
 
-			response.toast.forEach(toast => makeToastNotification(toast))
-		}
-	}
+  /**
+   * The function checks if all address inputs in a form are filled.
+   * @param {Object} formData - Contains key-value pairs representing
+   * form data. The keys are the names of the form inputs,
+   * and the values are the corresponding values
+   * entered by the user.
+   * @return {boolean} indicates whether all address
+   * inputs in the formData object are filled or not.
+   */
+  function checkIfAddressAreFilled(formData) {
+    const addressesSelector = '[name^="mainAddress"], [name^="presentAddress"]';
+    const addressInputsCount = [...queryElements(addressesSelector)].length;
+    let filledAddressesCount = 0;
+
+    for (const [key, value] of Object.entries(formData)) {
+      if (key.includes('mainAddress') || key.includes('presentAddress')) {
+        if (value.trim() !== '') {
+          filledAddressesCount++;
+        }
+      }
+    }
+
+    return filledAddressesCount === addressInputsCount;
+  }
 }

@@ -1,5 +1,7 @@
 const {validateFormData} = require('../../../utilities/validations');
-const Response = require('../../../utilities/Response');
+const {emitEvent} = require('../../../utilities/helpers');
+const Response = require('../../../utilities/response');
+const {db} = require('../../../utilities/sequelize');
 
 const {ipcMain} = require('electron');
 const path = require('path');
@@ -9,40 +11,24 @@ const {
   checkMissingFields,
   updatePhoneNumber,
   updateUserRecord,
-  retrieveUser
+  retrieveUser,
+  checkDuplicateUser
 } = require('./functions');
 
-/**
- * Handles the 'get-user-profile-path' IPC message to retrieve the path of a user's image.
- * @function
- * @param {Electron.Event} event - The IPC event object.
- * @param {string} string - The name of the users image file.
- * @returns {string} The path to the user's image.
- */
 ipcMain.handle('get-user-profile-path', async (event, string) => {
-  return path.join(path.resolve(__dirname, '../../assets/images/admin/profile/'), string);
+  return path.join(path.resolve(__dirname, '../../../assets/images/admin/profile/'), string);
 });
 
-/**
- * Handles the 'get-user-default-profile-path' IPC message to retrieve the path of a user's image.
- * @function
- * @param {Electron.Event} event - The IPC event object.
- * @returns {string} The path to the default user image.
- */
 ipcMain.handle('default-user-image', async event => {
-  return path.resolve(__dirname, '../../assets/images/user.png');
+  return path.resolve(__dirname, '../../../assets/images/user.png');
 });
 
-
-/**
- * Handles the 'edit-user' IPC message to edit an existing user.
- * @function
- * @param {Electron.Event} event - The IPC event object.
- * @param {Object} formDataBuffer - Buffer containing form data.
- * @param {number} userId - The ID of the user being edited.
- * @returns {Promise<Response>} A new Response() object indicating the operation's status.
- */
 ipcMain.handle('edit-user', async (event, data) => {
+  /**
+   * profilePicture will currently always be null as the submission function inside main/profile.js
+   * does not include submission of user profilePicture.
+   * This code is here if such feature will be added in the future.
+   */
   const {formData, profilePicture} = data.formDataBuffer;
   const userId = data.userId;
 
@@ -56,7 +42,7 @@ ipcMain.handle('edit-user', async (event, data) => {
     return new Response().error('User details are missing');
   }
 
-  const duplicateValidation = await checkDuplicateData(formData, true, userId);
+  const duplicateValidation = await checkDuplicateUser(formData, true, userId);
 
   if (duplicateValidation.status === 'failed') {
     return new Response().error(duplicateValidation.toast[0]);
@@ -72,19 +58,14 @@ ipcMain.handle('edit-user', async (event, data) => {
 
   if (formValidation.status === false) {
     const {field, message} = formValidation;
-    return new Response().errorWithData(field, message);
+    return new Response().failed().addFieldError(field, message).getResponse();
   }
 
-  updateUserRecord(user, formData);
-  const oldUserData = user.toJSON();
-
-  const hasProfilePicture = Object.keys(profilePicture).length > 0;
-
-  if (hasProfilePicture) {
+  if (profilePicture) {
     let pictureUpdated = null;
 
     try {
-      pictureUpdated = updateProfilePicture(oldUserData, profilePicture);
+      pictureUpdated = updateProfilePicture(user, profilePicture);
     } catch (error) {
       console.log(error);
       return new Response().error('Failed to update user. Error in updating profile picture');
@@ -97,6 +78,7 @@ ipcMain.handle('edit-user', async (event, data) => {
 
   try {
     await db.transaction(async manager => {
+      await updateUserRecord(user, formData, manager);
       await updatePhoneNumber(user, formData.phoneNumber, manager);
       await user.save({transaction: manager});
     });
@@ -104,6 +86,13 @@ ipcMain.handle('edit-user', async (event, data) => {
     return new Response().ok('User succesfully updated');
   } catch (error) {
     console.log(error);
+    if (error.name = 'SequelizeValidationError') {
+      if (error.errors) {
+        error.errors.forEach(error => {
+          emitEvent(event, error.message);
+        });
+      }
+    }
     const message = error.type === 'phonenumber' ? error.message : 'Failed to update user';
     return new Response().error(message);
   }

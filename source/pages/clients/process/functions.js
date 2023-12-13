@@ -1,5 +1,7 @@
 // models
 const ClientConnectionStatus = require('../../../../models/ClientConnectionStatus');
+const ClientPhoneNumber = require('../../../../models/ClientPhoneNumber');
+const ClientAddress = require('../../../../models/ClientAddress');
 const ClientBill = require('../../../../models/ClientBill');
 const Client = require('../../../../models/Client');
 
@@ -7,8 +9,64 @@ const Client = require('../../../../models/Client');
 const {connectionStatusTypes} = require('../../../utilities/constants');
 
 // utilities
-const Response = require('../../../utilities/Response');
+const exportRecord = require('../../../utilities/export');
+const {emitEvent} = require('../../../utilities/helpers');
+const Response = require('../../../utilities/response');
 const {db} = require('../../../utilities/sequelize');
+
+/**
+ * Retrieves clients based on the provided conditions.
+ * @function
+ * @param {Object} [clauses={}] - Object of objects that contains
+ * conditions to filter the clients.
+ * @return {Promise<Array<Client>>} - A promise that resolves to an array of client instances.
+ */
+async function getClients(clauses = {}) {
+  const extractClause = key => clauses.hasOwnProperty(key) ? clauses[key] : {};
+
+  return await Client.findAll({
+    where: extractClause('whereClause'),
+    include: [
+      {
+        model: ClientPhoneNumber,
+        as: 'phoneNumbers',
+        attributes: ['phoneNumber']
+      },
+      {
+        model: ClientAddress,
+        as: 'mainAddress'
+      },
+      {
+        model: ClientAddress,
+        as: 'presentAddress'
+      },
+      {
+        model: ClientConnectionStatus,
+        as: 'connectionStatuses',
+        attributes: ['status'],
+        where: extractClause('connectionStatusWhereClause')
+      }
+    ],
+    order: [
+      [
+        {
+          model: ClientPhoneNumber,
+          as: 'phoneNumbers'
+        },
+        'createdAt',
+        'DESC'
+      ],
+      [
+        {
+          model: ClientConnectionStatus,
+          as: 'connectionStatuses'
+        },
+        'createdAt',
+        'DESC'
+      ]
+    ]
+  });
+}
 
 /**
  * Retrieves a client with their most recent bill information.
@@ -27,7 +85,7 @@ async function getClientRecentBill(clientId) {
       include: [
         {
           model: ClientBill,
-          as: 'Bills',
+          as: 'bills',
           attributes: ['id', 'total', 'status', 'amountPaid', 'balance'],
           order: [
             ['createdAt', 'DESC']
@@ -64,10 +122,10 @@ async function reconnectClient(clientId) {
       }, {transaction: manager});
     });
 
-    return new Response().success();
+    return new Response().ok();
   } catch (error) {
     console.log(error);
-    return new Response().failed();
+    return new Response().error();
   }
 }
 
@@ -94,11 +152,35 @@ async function updatePaymentStatus(billId, amountPaid, balance) {
     }, {transaction: manager});
   });
 
-  return updatedCount > 0 ? new Response().success() : new Response().failed();
+  return updatedCount > 0 ? new Response().ok() : new Response().error();
+}
+
+/**
+ * Deletes the client from the system
+ * @param {number} clientId - the id of the client
+ * @param {Electron.IpcMainInvokeEvent} event - The ipc invoke
+ * event that called this function.
+ */
+async function deleteClient(clientId, event) {
+  if (!clientId) {
+    emitEvent(event, 'Cannot export client without id');
+    throw new Error('Missing client id');
+  };
+  const exportResponse = await exportRecord(clientId, event, true);
+
+  if (exportResponse.status === 'success') {
+    const client = await Client.findByPk(clientId);
+    if (client) await client.destroy();
+  } else {
+    emitEvent(event, 'Failed to export client data before deletion');
+    throw new Error('Failed to export client');
+  }
 }
 
 module.exports = {
   getClientRecentBill,
   updatePaymentStatus,
-  reconnectClient
+  reconnectClient,
+  deleteClient,
+  getClients
 };

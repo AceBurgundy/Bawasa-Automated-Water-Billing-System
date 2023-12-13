@@ -1,11 +1,16 @@
 // helpers
-import {queryElements, transition, getById} from '../../../../assets/scripts/helper.js';
 import makeToastNotification from '../../../../assets/scripts/toast.js';
+import {
+  queryElements,
+  queryElement,
+  transition,
+  getById
+} from '../../../../assets/scripts/helper.js';
 
 // main
 import clientBuilder from '../../../client-builder/renderer/main/client-builder.js';
-import billing from '../../../billing/renderer/main/billing.js';
 import login from '../../../authentication/renderer/main/login.js';
+import billing from '../../../billing/renderer/main/billing.js';
 import profile from '../../../profile/renderer/main/profile.js';
 
 // templates
@@ -19,28 +24,31 @@ import clientTemplate, {renderTable} from '../templates/clients.js';
  * @return {Promise<void>} Resolves when the client section is fully rendered.
  */
 export default async function() {
-  getById('container').innerHTML += await clientTemplate();
+  const [clients, noClientsMessage] = await retrieveClients();
+  const template = await clientTemplate(clients, noClientsMessage);
+  getById('container').innerHTML += template;
 
-  setUpTableSearch();
-  setTimeout(() => getById('section-type-container').classList.add('active'), 500);
-
-  window.onclick = async event => {
+  queryElement('.client-page').onclick = async event => {
     switch (event.target.id) {
       case 'billing':
         transition(billing);
-        break;
+        return;
 
       case 'profile':
         transition(profile);
-        break;
+        return;
 
+      // removed await as we dont need to wait for anything
+      // when loging out, it can simply logout
+      // while transitioning to the login page
       case 'logout':
+        window.ipcRenderer.invoke('logout');
         transition(login);
-        break;
+        return;
 
       case 'new-connection':
         transition(clientBuilder);
-        break;
+        return;
 
       case 'client-options-toggle':
         getById('client-options-toggle-options-list').classList.toggle('active');
@@ -50,100 +58,106 @@ export default async function() {
         getById('client-filter-toggle-filter-list').classList.toggle('active');
         break;
 
-      case 'filter-button-disconnected-clients':
-        await changeTableByFilter(elementId, 'Disconnected');
+      case 'filter-button-due-clients':
+        await changeTableByFilter(event.target.id, 'Due for Disconnection');
         break;
 
-      case 'filter-button-due-clients':
-        await changeTableByFilter(elementId, 'Due for Disconnection');
+      case 'filter-button-disconnected-clients':
+        await changeTableByFilter(event.target.id, 'Disconnected');
         break;
 
       case 'filter-button-connected-clients':
-        await changeTableByFilter(elementId, 'Disconnected');
+        await changeTableByFilter(event.target.id, 'Connected');
         break;
     }
   };
-}
 
-/**
- * Sets up the client table search functionality.
- * Listens for input changes in the search box and updates the table accordingly.
- */
-function setUpTableSearch() {
-  const filterValue = getById('client-search-box-filter').value;
+  const filterSelect = getById('client-search-box-filter');
   const search = getById('client-search-box-input');
 
   search.oninput = () => {
     const tableRows = queryElements('.table-info');
-    const allowed = inputAllowed(tableRows, search.value, filterValue);
-    if (allowed) updateTable(filterValue, search.value);
+    const allowed = inputAllowed(tableRows, search.value, filterSelect);
+    if (allowed) updateTable(filterSelect.value, search.value);
   };
-}
 
-/**
- * Validates the search value and updates the displayed table rows accordingly.
- *
- * @param {Element[]} tableRows - The table rows to be filtered.
- * @param {string} searchValue - The value to be searched.
- * @param {string} searchFilterValue - The selected filter for the search.
- * @return {boolean} True if validation passed, false otherwise.
- */
-function inputAllowed(tableRows, searchValue, searchFilterValue) {
-  const searchFilters = [
-    'accountNumber',
-    'relationshipStatus',
-    'meterNumber',
-    'fullName',
-    'email',
-    'age'
-  ];
+  window.onkeyup = event => {
+    if (event.key === 'Backspace' && document.activeElement === search) {
+      if (search.value.length === 0) {
+        updateTable();
+      }
+    }
+  };
 
-  if (!tableRows) {
-    makeToastNotification('No clients yet');
-    return false;
+  /**
+   * Validates the search value and updates the displayed table rows accordingly.
+   *
+   * @param {Element[]} tableRows - The table rows to be filtered.
+   * @param {string} searchValue - The value to be searched.
+   * @param {HTMLSelectElement} searchFilter - The filter element for the search.
+   * @return {boolean} True if validation passed, false otherwise.
+   */
+  function inputAllowed(tableRows, searchValue, searchFilter) {
+    const searchFilters = [
+      'accountNumber',
+      'meterNumber',
+      'firstName',
+      'middleName',
+      'lastName',
+      'email',
+      'age'
+    ];
+
+    if (!tableRows) {
+      makeToastNotification('No clients yet');
+      return false;
+    }
+
+    // cursor is still inside the input but empty
+    if (searchValue.trim() === '') {
+      tableRows.forEach(row => row.style.display = 'grid');
+      return false;
+    }
+
+    if (!searchFilters.includes(searchFilter.value)) {
+      makeToastNotification('Choose a filter first');
+      return false;
+    }
+
+    return true;
   }
 
-  // cursor is still inside the input but empty
-  if (searchValue.trim() === '') {
-    tableRows.forEach(row => row.style.display = 'grid');
-    return false;
+  /**
+   * Updates the displayed table rows based on the specified column and data.
+   *
+   * @param {string} column - The column to filter by.
+   * Defaults to an empty object
+   * @param {string} data - The data to filter with.
+   * Defaults to an empty object
+   * @return {void} Resolves when the table rows are updated.
+   */
+  async function updateTable(column, data) {
+    const [clients, message] = await retrieveClients(column, data);
+    const tableRowContainer = getById('table-data-rows');
+    tableRowContainer.innerHTML = renderTable(clients, message);
   }
 
-  if (!searchFilters.includes(searchFilterValue)) {
-    makeToastNotification('Choose a filter first');
-    return false;
+  /**
+   * Changes the displayed table rows based on the specified filter.
+   *
+   * @param {string} elementId - The ID of the clicked filter button.
+   * @param {string} filter - The filter to be applied.
+   * @return {Promise<void>} Resolves when the table rows are updated.
+   */
+  async function changeTableByFilter(elementId, filter) {
+    const filterButtons = queryElements('.client-filter-toggle-filter-list__item');
+
+    filterButtons.forEach(button => {
+      const clickedButton = button.id !== elementId;
+      button.style.backgroundColor = `'var(--${clickedButton ? 'primary' : 'accent'})'`;
+    });
+    updateTable('status', filter);
   }
-
-  return true;
-}
-
-/**
- * Updates the displayed table rows based on the specified column and data.
- *
- * @param {string} column - The column to filter by.
- * @param {string} data - The data to filter with.
- * @return {Promise<void>} Resolves when the table rows are updated.
- */
-async function updateTable(column, data) {
-  const [clients, message] = await retrieveClients(column, data);
-  const tableRowContainer = getById('table-data-rows');
-  tableRowContainer.innerHTML = renderTable(clients, message);
-}
-
-/**
- * Changes the displayed table rows based on the specified filter.
- *
- * @param {string} elementId - The ID of the clicked filter button.
- * @param {string} filter - The filter to be applied.
- * @return {Promise<void>} Resolves when the table rows are updated.
- */
-async function changeTableByFilter(elementId, filter) {
-  const filterButtons = queryElements('.client-filter-toggle-filter-list__item');
-
-  filterButtons.forEach(button => {
-    button.style.backgroundColor = button.id !== elementId ? 'var(--primary)' : 'var(--accent)';
-  });
-  await updateTable('connectionStatuses.status', filter);
 }
 
 /**
@@ -154,15 +168,13 @@ async function changeTableByFilter(elementId, filter) {
  * @return {Promise<Array<Object|null, string|null>>} An array containing the
  * retrieved clients and a message.
  */
-async function retrieveClients(columnName, columnData) {
+export async function retrieveClients(columnName, columnData) {
   const {status, data, message} = await window.ipcRenderer.invoke('clients', {
-    columnName, columnData
+    columnName: columnName,
+    columnData: columnData
   });
 
-  const ok = status === 'success';
-
-  const clients = ok ? JSON.parse(data) : null;
-  const failedMessage = ok ? message : null;
-
+  const clients = status === 'success' ? JSON.parse(data) : null;
+  const failedMessage = status === 'failed' ? message : null;
   return [clients, failedMessage];
 }

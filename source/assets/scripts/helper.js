@@ -1,27 +1,38 @@
+let isTransitioning = false;
 /**
  * Performs a transition to a new section in the application.
  *
  * @param {Function} callback - The function to execute during the transition.
- * @return {void}
+ * @return {Promise<void>}
  */
-export function transition(callback) {
+export async function transition(callback) {
+  if (isTransitioning) return;
+  isTransitioning = true;
+
   const box = getById('container');
-  callback();
+  console.log(callback);
+  await callback();
 
-  setTimeout(() => {
-    if (box) {
-      const lastChild = box.lastElementChild;
-      lastChild.style.zIndex = '3';
-      lastChild.classList.add('active');
-    }
-  }, 200);
+  await new Promise(resolve => setTimeout(resolve, 200));
 
-  setTimeout(() => {
-    if (box) {
-      box.firstElementChild.remove();
-      box.lastElementChild.style.zIndex = '2';
+  if (box) {
+    const lastChild = box.lastElementChild;
+    if (!lastChild) {
+      console.error('Missing element inside container');
+      return;
     }
-  }, 800);
+    lastChild.style.zIndex = '3';
+    lastChild.classList.add('active');
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 500));
+
+  if (box && box.children.length >= 2) {
+    box.firstElementChild.remove();
+    box.lastElementChild.style.zIndex = '2';
+  }
+
+  isTransitioning = false;
 }
 
 
@@ -120,42 +131,6 @@ export function camelToDashed(inputString) {
 };
 
 /**
- * A function that converts a sentence case to camelCase.
- *
- * @param {string} inputString - The input string to be converted.
- * @return {string} The camelCase version
- * @example
- * ```
- * const inputString = "Hello World"
- * const result = sentenceToDashed(inputString)
- * console.log(result) // "helloWorld"
- * ```
- */
-export function sentenceToDashed(inputString) {
-  if (!inputString) {
-    console.error('Missing input for sentenceToDashed');
-    return;
-  }
-
-  if (typeof inputString !== 'string') {
-    console.error('sentenceToDashed only accepts strings as arguments');
-    return;
-  }
-
-  if (inputString.length > 1) {
-    return inputString.split(' ').map((token, index) => {
-      if (index === 0) {
-        token.toLowerCase();
-      } else {
-        token.toLowerCase().charAt(0).toUpperCase();
-      }
-    }).join('');
-  }
-
-  return inputString.toLowerCase();
-}
-
-/**
  * Get form data by manually iterating through form fields.
  *
  * @param {HTMLFormElement} formElement - The HTML form element to extract data from.
@@ -222,10 +197,25 @@ export const clearAndHideDialog = () => {
 };
 
 /**
+ * Converts camelCase string to Title Case
+ * @param {string} inputString - The input to be converted.
+ * @return {string} the converted text
+ */
+export function camelCaseToTitleCase(inputString) {
+  const notCamelCase = !/^[a-z]+([A-Z][a-z]*)*$/.test(inputString);
+  if (notCamelCase) return inputString;
+  // Split the string into words
+  const words = inputString.split(/(?=[A-Z])/);
+  // UpperCase each first letter and join them again into a single string
+  const result = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  return result;
+}
+
+/**
  * Generates a unique input element id attribute value
  *
  * @param {string} name - The string that will be joined to a random number
- * @return {void} the new input element id
+ * @return {string} the new input element id
  */
 export const generateUniqueId = name => {
   if (name === null || name === undefined || typeof name !== 'string') {

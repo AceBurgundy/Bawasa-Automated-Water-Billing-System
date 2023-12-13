@@ -44,7 +44,7 @@
 }
 
 #reconnect-form__input-box__warning {
-    color: white;
+    color: var(--text);
 }
 
 #reconnect-form__input-box > input {

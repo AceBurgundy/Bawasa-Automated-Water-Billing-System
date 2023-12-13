@@ -30,18 +30,18 @@ export default class {
     this.clipBoardBoxId = generateUniqueId(`clipboard-box`);
     this.dialogId = generateUniqueId(`recovery-codes-box`);
 
-    this.template = `
+    this.template = /* html */`
       <form class='recovery-codes-form'>
         <p class='recovery-codes-form__title'>Recovery Codes</p>
         <div class='recovery-codes-form__center'>
           <div class='recovery-codes-form__center__list__header'>
             <p class='recovery-codes-form__center__warning'>
-              This will be the recovery codes for your account. 
-              Without a recovery code you will never be able to recover your account. 
+              This will be the recovery codes for your account.
+              Without a recovery code you will never be able to recover your account.
               Click the icon to copy it and save it somewhere safe.
             </p>
-            <div 
-              id='${this.clipBoardBoxId}' 
+            <div
+              id='${this.clipBoardBoxId}'
               class='recovery-codes-form__center__list__header__clipboard-box'>
               ${ icons.clipboardIcon('clipboard') }
             </div>

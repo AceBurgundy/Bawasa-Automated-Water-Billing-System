@@ -1,20 +1,27 @@
 /* eslint-disable indent */
 
 // icons
-import {icons} from '../../../assets/scripts/icons.js';
+import {icons} from '../../../../assets/scripts/icons.js';
 
 // component
-import Input from '../../../components/Input.js';
+import Input from '../../../../components/Input.js';
 
-const {isEmpty, isEmail, isOverThan} = window;
+// validations
+import '../../../../utilities/validations.js';
+
+const {
+  isOverThan,
+  isEmpty,
+  isEmail
+} = window;
 
 /**
  * @function loginTemplate
  * @return {string} HTML string template of the login section
  */
 export default function() {
-  return `
-    <div id='login' class='page'>
+  return /* html */`
+    <div id='login' class='page' data-current-page='login'>
 
       <form data-action='' id='login-form' class='authentication-form'>
         <p id='login-form-title' class='authentication-form__title'>Welcome</p>
@@ -26,32 +33,30 @@ export default function() {
                 attributes: {
                   name: 'email',
                   label: 'Email',
-                  value: 'JuanDelaCruz@gmail.com',
-                  maxlength: '255'
+                  maxlength: 255
                 }
               }),
 
               new Input([isEmpty], {
                 flags: ['required'],
                 attributes: {
-                    name: 'password',
-                    label: 'Password',
-                    type: 'password',
-                    value: 'JuanDelaCruz1234.',
-                    maxlength: '255'
+                  name: 'password',
+                  label: 'Password',
+                  type: 'password',
+                  maxlength: 255
                 }
               })
             ].join('\n')
           }
         </div>
-        
+
         <div id='login-form-bottom' class='authentication-form__bottom'>
           <p class='authentication-form__bottom__tag'>Login</p>
           <button id='login-button' class='authentication-form__submit'>
             ${ icons.arrowIcon('arrow') }
-          </button>    
+          </button>
         </div>
-        
+
         <p id='forgot-password'>Forgot Password?</p>
 
       </form>

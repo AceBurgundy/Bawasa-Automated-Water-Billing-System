@@ -5,18 +5,17 @@ const ClientAddress = require('../../../../models/ClientAddress');
 const ClientFile = require('../../../../models/ClientFile');
 const Client = require('../../../../models/Client');
 
-// constants
-const {connectionStatusTypes} = require('../../../utilities/constants');
-
 // utilities
+const {connectionStatusTypes} = require('../../../utilities/constants');
 const exportRecord = require('../../../utilities/export');
-const Response = require('../../../utilities/Response');
+const Response = require('../../../utilities/response');
 
 const {
   generateNextAccountOrBillNumber,
   joinAndResolve
 } = require('../../../utilities/helpers');
 
+const {db} = require('../../../utilities/sequelize');
 const {Op} = require('sequelize');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
@@ -44,9 +43,9 @@ const requiredFormFields = {
   age: 'Age'
 };
 
-const PROFILE_PATH = '../../assets/images/clients/profile';
+const PROFILE_PATH = '../../../assets/images/clients/profile';
 
-const getFilePath = filename => joinAndResolve([__dirname, '../../assets/files/'], filename);
+const getFilePath = filename => joinAndResolve([__dirname, '../../../assets/files/'], filename);
 
 /**
  * Creates a new client with the provided form data using Sequelize models.
@@ -189,7 +188,7 @@ async function createNewConnectionStatus(clientId, manager) {
  * @async
  * @function
  * @param {number} clientId - The unique identifier of the client to retrieve for editing.
- * @return {Client|null} A Promise that resolves with the
+ * @return {Promise<Client|null>} A Promise that resolves with the
  * retrieved client object or null if an error occurs.
  */
 async function retrieveClientForEdit(clientId) {
@@ -228,6 +227,8 @@ async function retrieveClientForEdit(clientId) {
  */
 function updateClientRecord(client, formData) {
   for (const key in formData) {
+    if (!formData[key]) continue;
+
     // Skips these fields as this keys have a fixed value on creation
     if (key === 'profilePicture' || key === 'accountNumber') continue;
 
@@ -261,15 +262,13 @@ function updateClientRecord(client, formData) {
  * the connection status creation within a specified transaction.
  */
 async function updatePhoneNumber(client, phoneNumberInputValue, manager) {
+  if (client.phoneNumbers && client.phoneNumbers.length <= 0) return;
+
   const alreadyExists = client.phoneNumbers.filter(eachRecord => {
     return eachRecord.phoneNumber === phoneNumberInputValue;
   }).length > 0;
 
-  if (alreadyExists) {
-    const error = new Error('Failed to update client. Phonenumber already exists');
-    error.type = 'phonenumber';
-    throw error;
-  }
+  if (alreadyExists) return;
 
   const whereClause = {
     clientId: client.id,
@@ -298,7 +297,7 @@ async function updateProfilePicture(oldClientData, profilePicture) {
 
   if (oldClientData.profilePicture) {
     const oldProfilePicturePath = joinAndResolve(
-        [__dirname, '../../assets/images/clients/profile/'],
+        [__dirname, '../../../assets/images/clients/profile/'],
         oldClientData.profilePicture
     );
 
@@ -352,8 +351,12 @@ async function checkDuplicateData(formData, forEdit = false, clientId = null) {
     }
 
     if (duplicates.count > 0) {
-      const data = data.split('-').join(' ');
-      return new Response().error(`Client with the same ${data} is already registered`);
+      field = field.split('-').join(' ');
+      const errorMessage = `Client with the same ${field} is already registered`;
+      return new Response().failed()
+          .addToast(errorMessage)
+          .addFieldError(field, errorMessage)
+          .getResponse();
     }
 
     return new Response().ok();
@@ -374,7 +377,7 @@ async function checkDuplicateData(formData, forEdit = false, clientId = null) {
     },
 
     {
-      field: 'user-email',
+      field: 'email',
       where: {
         [Op.and]: [
           {
@@ -474,24 +477,23 @@ async function deletePicture(imageName) {
  * @return {string[]|null} An array of missing field messages or null if all fields are present.
  */
 function checkMissingFields(formData) {
-  const formDataFieldNames = Object.keys(formData);
+  const formDataFields = Object.keys(formData);
   const requiredFields = Object.keys(requiredFormFields);
 
-  const missingElements = requiredFields.filter(fieldName => {
-    return !formDataFieldNames.includes(fieldName);
-  });
+  const missingFields = requiredFields.reduce((accumulator, fieldName) => {
+    const fieldNotInFormData = !formDataFields.includes(fieldName);
+    const isPresent = formData[fieldName] !== undefined && formData[fieldName] !== null;
+    const isPresentButEmpty = isPresent && formData[fieldName].trim() === '';
+    if (fieldNotInFormData || isPresentButEmpty) accumulator.push(requiredFormFields[fieldName]);
+    return accumulator;
+  }, []);
 
-  if (missingElements.length > 1) {
-    const missingElementFields = missingElements.map(field => {
-      return requiredFormFields[field];
-    }).join(', ');
-
-    return [`${missingElementFields} are required`];
+  if (missingFields.length > 1) {
+    return [`${missingFields.join(', ')} are required`];
   }
 
-  if (missingElements.length === 1) {
-    const missingField = requiredFormFields[missingElements[0]];
-    return [`${missingField} is required`];
+  if (missingFields.length === 1) {
+    return [`${missingFields[0]} is required`];
   }
 
   return null;
@@ -500,26 +502,30 @@ function checkMissingFields(formData) {
 /**
  * Gets the files for a client.
  * @async
- * @param {number} clientId - The client id to associate the files with.
- * @return {ClientFile|null} A ClientFile object or null.
+ * @param {number} clientIdArg - The client id to associate the files with.
+ * @return {Promise<Array<Object>>} Array of clientFile objects or null.
  */
-async function getClientFiles(clientId) {
+async function getClientFiles(clientIdArg) {
+  let clientFiles = null;
+
   try {
-    const clientFiles = await ClientFile.findAll({
+    clientFiles = await ClientFile.findAll({
       attributes: ['name'],
       where: {
-        clientId: clientId
+        clientId: clientIdArg
       }
     });
 
-    return clientFiles.map(file => {
-      return {path: getFilePath(file.name), fileName: file.name};
-    });
+    if (clientFiles) {
+      return clientFiles.map(file => {
+        return {name: file.name};
+      });
+    }
   } catch (error) {
     console.log(error);
   }
 
-  return null;
+  return clientFiles;
 }
 
 /**
@@ -559,6 +565,50 @@ async function saveFiles(client, files, manager) {
 }
 
 /**
+ * Updates files associated with a client.
+ * @async
+ * @function
+ * @param {Client} client - The client object.
+ * @param {Array<Object>} files - Array of file objects to be saved.
+ * @param {TransactionManager} manager - The transaction manager for database operations.
+ * @throws {Error} Throws an error if the file saving process fails.
+ */
+async function updateFiles(client, files, manager) {
+  if (files.length <= 0) return;
+
+  const copiedFiles = [];
+
+  try {
+    const updateFilePromises = files.map(async file => {
+      const fileName = [client.fullName, file.name].join(' ');
+      const endPath = getFilePath(fileName);
+
+      const fileExistRecord = await ClientFile.findOne({
+        where: {
+          name: file.name
+        }
+      });
+
+      if (fs.existsSync(endPath) || !!fileExistRecord) return;
+
+      const whereClause = {
+        clientId: client.id,
+        name: file.name
+      };
+
+      await ClientFile.create(whereClause, {transaction: manager});
+      await fs.copyFile(file.path, endPath);
+      copiedFiles.push(endPath);
+    });
+
+    await Promise.all(updateFilePromises);
+  } catch (error) {
+    console.log(error);
+    throw Error(`Client not added. Error in saving client's documents`);
+  }
+}
+
+/**
  * Deletes multiple files.
  * @async
  * @function
@@ -582,17 +632,42 @@ async function deleteFiles(files) {
  * Deletes a file by its name.
  * @async
  * @function
- * @param {string} fileName - The name of the file to be deleted.
+ * @param {Object} args - Object containing fileName and clientId.
+ * @param {string} args.fileName - The name of the file to be deleted.
+ * @param {string} args.clientId - The id of the client who owns the file.
  * @throws {Error} Throws an error if the file does not exist or if the deletion fails.
  */
-async function deleteFile(fileName) {
-  const filePath = getFilePath(fileName);
+async function deleteFile(args) {
+  const {fileName, clientId} = args;
+
+  const client = await Client.findByPk(clientId);
+  const file = await ClientFile.findOne({
+    where: {
+      name: fileName
+    }
+  });
+
+  if (!file) {
+    const error = new Error('File not found');
+    error.type = 'Not found';
+  }
+
+  if (!client) {
+    const error = new Error('Client not found');
+    error.type = 'Not found';
+  }
+
+  const filePath = getFilePath([client.fullName, fileName].join(' '));
   const fileExists = fs.existsSync(filePath);
 
   const error = new Error('File does not exist');
   error.type = 'Not found';
 
   if (!fileExists) throw error;
+
+  await db.transaction(async manager => {
+    await file.destroy({transaction: manager});
+  });
 
   await fs.unlink(filePath);
 }
@@ -667,6 +742,7 @@ module.exports = {
   deletePicture,
   deleteClient,
   createClient,
+  updateFiles,
   getFilePath,
   savePicture,
   deleteFiles,

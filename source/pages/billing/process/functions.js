@@ -6,29 +6,34 @@ const Client = require('../../../../models/Client');
 
 // utilities
 const {generateNextAccountOrBillNumber} = require('../../../utilities/helpers');
-const Response = require('../../../utilities/Response');
+const Response = require('../../../utilities/response');
 const {db} = require('../../../utilities/sequelize');
 
 // constants
 const {connectionStatusTypes} = require('../../../utilities/constants');
+const ClientAddress = require('../../../../models/ClientAddress');
 
 /**
  * Retrieves all clients with their bills and connection statuses.
  *
  * @async
+ * @param {Object} [whereClause={}] - the where clause for the
  * @return {Promise<Array<Client|null>>} Array of client objects
  * with bills and connection statuses.
  */
-async function getAllClients() {
+async function getAllClients(whereClause) {
   let clients = null;
 
   try {
     clients = await Client.findAll({
-
+      where: whereClause,
       include: [
         {
           model: ClientBill,
           as: 'bills',
+          separate: true,
+          order: [['createdAt', 'DESC']],
+          limit: 1,
           include: [
             {
               model: PartialPayment,
@@ -44,16 +49,6 @@ async function getAllClients() {
           order: [['createdAt', 'DESC']],
           limit: 1
         }
-      ],
-      order: [
-        [
-          {
-            model: ClientBill,
-            as: 'bills'
-          },
-          'createdAt',
-          'DESC'
-        ]
       ]
     });
   } catch (error) {
@@ -113,6 +108,42 @@ async function getBillAndStatus(clientId) {
   return client;
 }
 
+/** Retrieves the bill and connection status for a specific client.
+  *
+  * @async
+  * @param {Object} args  Holds data for clientId and billId
+  * @param {string} args.accountId - The ID of the client.
+  * @param {string} args.billId - The ID of the clients recent bill.
+  * @return {Promise<Client|null>} Returns the client object
+  * with bills and connection status, or null if not found.
+ */
+async function getCompleteData(args) {
+  const {accountId, billId} = args;
+
+  let client = null;
+
+  try {
+    client = await Client.findByPk(accountId, {
+      include: [
+        {
+          model: ClientBill,
+          where: {
+            id: billId
+          },
+          as: 'bills'
+        },
+        {
+          model: ClientAddress,
+          as: 'mainAddress'
+        }
+      ]
+    });
+  } catch (error) {
+    console.log(error);
+  }
+
+  return client;
+}
 /**
  * Retrieves a client bill by its ID.
  *
@@ -149,7 +180,7 @@ async function getPreviousBillExcess(billId) {
       attributes: ['excess']
     });
 
-    bill = bill.excess;
+    bill = bill.excess || 0;
   } catch (error) {
     console.log(error);
   }
@@ -253,6 +284,16 @@ async function insertSecondReading(bill, monthlyReading) {
     const fiveDaysAfterDue = new Date(twoWeeks.getTime() + (5 * 24 * 60 * 60 * 1000));
     bill.disconnectionDate = fiveDaysAfterDue;
 
+    // const currentDate = new Date();
+
+    // // Set dueDate to 1 minute from now
+    // const oneMinute = new Date(currentDate.getTime() + (1 * 60 * 1000));
+    // bill.dueDate = oneMinute;
+
+    // // Set disconnectionDate to 3 minutes from now
+    // const threeMinutes = new Date(currentDate.getTime() + (3 * 60 * 1000));
+    // bill.disconnectionDate = threeMinutes;
+
     await db.transaction(async manager => {
       return await bill.save({transaction: manager});
     });
@@ -295,27 +336,32 @@ async function getBillWithPartialPayments(billId) {
  * Calculate the total amount paid from an array of partial payments.
  *
  * @function
- * @param {ClientBill} billJson - The bill object containing partialPayments array.
- * @param {Array} billJson.partialPayments - An array of partial payments.
- * @param {number} billJson.partialPayments.amountPaid - The amount paid in each partial payment.
- * @return {string} The total amount paid formatted to two decimal places.
+ * @param {ClientBill} bill - The bill object containing partialPayments array.
+ * @param {Array} bill.partialPayments - An array of partial payments.
+ * @param {number} bill.partialPayments.amountPaid - The amount paid in each partial payment.
+ * @return {float|number} The total amount paid formatted to two decimal places.
  * @example
- * const billJson = {
+ * const bill = {
  *   partialPayments: [
  *     {amountPaid: 50},
  *     {amountPaid: 30},
  *     // ... other partial payments
  *   ]
  *};
- * const totalAmountPaid = calculatePartialPaymentsTotal(billJson);
+ * const totalAmountPaid = calculatePartialPaymentsTotal(bill);
  * console.log('Total Amount Paid:', totalAmountPaid);
  */
-function calculatePartialPaymentsTotal(billJson) {
-  const total = billJson.partialPayments.reduce((total, partialPayment) => {
-    return total + partialPayment.amountPaid, 0;
+function calculatePartialPaymentsTotal(bill) {
+  if (!bill.partialPayments) return 0;
+  if (bill.partialPayments.length <= 0) return 0;
+
+  let total = 0;
+
+  bill.partialPayments.forEach(payment => {
+    if (payment.amountPaid) total += payment.amountPaid;
   });
 
-  return parseFloat(total).toFixed(2);
+  return total;
 }
 
 /**
@@ -341,10 +387,10 @@ async function handleUnderpaidBill(bill, totalPartialPayments, amountPaid) {
         ]
       }, {transaction: manager});
 
-      const clientNotConnected = clientConnectionStatus !== connectionStatusTypes.Connected;
-      const clientConnectionStatus = client.status;
+      const clientStatus = client.status;
+      const clientNotConnected = clientStatus !== connectionStatusTypes.Connected;
 
-      const newPaymentAmount = totalPartialPayments + amountPaid;
+      const newPaymentAmount = totalPartialPayments + parseFloat(amountPaid);
 
       if (newPaymentAmount === bill.total) {
         const lastPartialPayment = createNewPartialPayment(bill, amountPaid, manager);
@@ -359,7 +405,7 @@ async function handleUnderpaidBill(bill, totalPartialPayments, amountPaid) {
         message = 'Remaining balance paid';
 
         if (clientNotConnected) {
-          const reconnected = await reconnectClient(bill.clientId, clientConnectionStatus, manager);
+          const reconnected = await reconnectClient(bill.clientId, clientStatus, manager);
 
           if (reconnected) {
             message = 'Remaining balance paid and client reconnected';
@@ -408,7 +454,8 @@ async function handleUnderpaidBill(bill, totalPartialPayments, amountPaid) {
 
     return result;
   } catch (error) {
-
+    console.log(error);
+    return new Response().error('Something went wrong when processing the bill');
   }
 }
 
@@ -436,9 +483,8 @@ async function handleUnpaidBill(billQuery, bill, amountPaid, clientId) {
         ]
       }, {transaction: manager});
 
-
-      const clientNotConnected = clientConnectionStatus !== connectionStatusTypes.Connected;
       const clientConnectionStatus = client.status;
+      const clientNotConnected = clientConnectionStatus !== connectionStatusTypes.Connected;
 
       if (bill.total === amountPaid) {
         billQuery.amountPaid = billQuery.total;
@@ -571,6 +617,7 @@ module.exports = {
   handleUnderpaidBill,
   getBillAndStatus,
   handleUnpaidBill,
+  getCompleteData,
   getAllClients,
   createNewBill,
   getBillById

@@ -1,205 +1,170 @@
 // helpers
-import {queryElements, transition, getById} from '../../../assets/scripts/helper.js';
 import makeToastNotification from '../../../../assets/scripts/toast.js';
-
-// main
-import client from '../../../clients/renderer/main/clients.js';
-import login from '../../../authentication/renderer/main/login.js';
-import profile from '../../../profile/renderer/main/profile.js';
+import {
+  queryElements,
+  queryElement,
+  transition,
+  getById
+} from '../../../../assets/scripts/helper.js';
 
 // templates
-import billingTemplate from '../templates/billing.js';
+import billingTemplate, {renderTable} from '../templates/billing.js';
+
+// main
+import login from '../../../authentication/renderer/main/login.js';
+import profile from '../../../profile/renderer/main/profile.js';
+import clients from '../../../clients/renderer/main/clients.js';
 
 /**
  * @function billing
  * @description renders the billing section, including the table of client accounts and statistics.
  */
 export default async function() {
-  const [accounts, message] = await getAccounts();
+  const [accounts, message, statisticsObject] = await retrieveAccounts();
 
   const template = await billingTemplate(accounts, message);
   getById('container').innerHTML += template;
 
-  const tableOptions = {};
-
-  queryElements('.table-info__options').forEach(option => {
-    tableOptions[option.getAttribute('data-client-id')] = option.classList;
-  });
-
-  setSearchFunctionality(accounts);
-
-  window.onclick = async event => {
-    const targetId = event.target.getAttribute('id');
+  queryElement('.billing-page').onclick = async event => {
+    const targetId = event.target.id;
 
     switch (targetId) {
-      case 'billing':
-        transition(billing);
-        break;
-
       case 'clients':
-        transition(client);
-        break;
+        transition(clients);
+        return;
 
       case 'profile':
         transition(profile);
-        break;
+        return;
 
       case 'logout':
-        login();
-        break;
+        await window.ipcRenderer.invoke('logout');
+        transition(login);
+        return;
     }
   };
-}
 
-/**
- * Retrieves all accounts from the database
- *
- * @function
- * @async
- * @return {Promise<[Array<accounts>, Array<string>]>}
- * an array where the first element is an array of accounts and message is the respose message
- */
-async function getAccounts() {
-  const {status, data, message} = await window.ipcRenderer.invoke('accounts');
-  const ok = status === 'success';
+  setStatistics(statisticsObject);
+  const filterSelect = getById('billing-search-box-filter');
+  const search = getById('billing-search-box-input');
 
-  const accounts = ok ? JSON.parse(data) : [];
-  const failedMessage = !ok ? message : null;
+  search.oninput = () => {
+    const tableRows = queryElements('.table-info');
+    const allowed = inputAllowed(tableRows, search.value, filterSelect);
+    if (allowed) updateTable(filterSelect.value, search.value);
+  };
 
-  return [accounts, failedMessage];
-}
-
-/**
- * Sets the value for paid, unpaid, overpaid statistics element
- *
- * @function
- * @param {Number} paid - holds the value for the number of paid clients
- * @param {Number} unpaid - holds the value for the number of unpaid clients
- * @param {Number} overpaid - holds the value for the number of overpaid clients
- */
-function setStatistics(paid, unpaid, overpaid) {
-  const paidCustomersElement = getById('paid-clients');
-  const unpaidCustomersElement = getById('unpaid-clients');
-  const overpaidCustomersElement = getById('overpaid-clients');
-
-  if (paidCustomersElement) paidCustomersElement.innerHTML = paid;
-  if (unpaidCustomersElement) unpaidCustomersElement.innerHTML = unpaid;
-  if (overpaidCustomersElement) overpaidCustomersElement.innerHTML = overpaid;
-}
-
-/**
- * Sets search functionality
- * @param {Array<Object>} accounts - list of ClientBill objects
- */
-function setSearchFunctionality(accounts) {
-  let paidClients = 0;
-  let unpaidClients = 0;
-  let overpaidClients = 0;
-
-  const meterNumbers = [];
-  const accountNumbers = [];
-  const names = [];
-
-  if (accounts) {
-    accounts.map(account => {
-      const accountBills = account.bills;
-
-      if (accountBills.length > 0) {
-        const recentBill = accountBills[0];
-
-        if (recentBill.paymentStatus !== '') {
-          const recentBillStatus = recentBill.paymentStatus;
-
-          if (recentBillStatus === 'paid') {
-            paidClients += 1;
-          }
-
-          if (recentBillStatus === 'unpaid') {
-            unpaidClients += 1;
-          }
-
-          if (recentBillStatus === 'overpaid') {
-            overpaidClients += 1;
-          }
-        }
+  window.onkeyup = event => {
+    if (event.key === 'Backspace' && document.activeElement === search) {
+      if (search.value.length === 0) {
+        updateTable();
       }
+    }
+  };
 
-      meterNumbers.push(account.meterNumber);
-      accountNumbers.push(account.accountNumber);
-      names.push(account.fullName);
+  /**
+   * Validates the search value and updates the displayed table rows accordingly.
+   *
+   * @param {Element[]} tableRows - The table rows to be filtered.
+   * @param {string} searchValue - The value to be searched.
+   * @param {HTMLSelectElement} searchFilter - The filter element for the search.
+   * @return {boolean} True if validation passed, false otherwise.
+   */
+  function inputAllowed(tableRows, searchValue, searchFilter) {
+    const searchFilters = [
+      'accountNumber',
+      'meterNumber',
+      'firstName',
+      'middleName',
+      'lastName'
+    ];
+
+    if (!tableRows) {
+      makeToastNotification('No accounts yet');
+      return false;
+    }
+
+    // cursor is still inside the input but empty
+    if (searchValue.trim() === '') {
+      tableRows.forEach(row => row.style.display = 'grid');
+      return false;
+    }
+
+    if (!searchFilters.includes(searchFilter.value)) {
+      makeToastNotification('Choose a filter first');
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Updates the displayed table rows based on the specified column and data.
+   *
+   * @param {string} column - The column to filter by.
+   * Defaults to an empty object
+   * @param {string} data - The data to filter with.
+   * Defaults to an empty object
+   * @return {void} Resolves when the table rows are updated.
+   */
+  async function updateTable(column, data) {
+    const [accounts, message] = await retrieveAccounts(column, data);
+    const tableRowContainer = getById('table-data-rows');
+    tableRowContainer.innerHTML = renderTable(accounts, message);
+  }
+
+  /**
+   * Retrieves accounts and their recent bill based on the specified column name and data.
+   *
+   * @param {string|null} columnName - The column to filter by or null.
+   * @param {string|null} columnData - The data to filter with or null.
+   * @return {Promise<Array<Object|null, string|null>>} An array containing the
+   * retrieved accounts and their recent bill and a message.
+   */
+  async function retrieveAccounts(columnName, columnData) {
+    const {status, data, statistics, message} = await window.ipcRenderer.invoke('accounts', {
+      columnName: columnName,
+      columnData: columnData
     });
 
-    setStatistics(paidClients, unpaidClients, overpaidClients);
+    const statisticsObject = status === 'success' ? JSON.parse(statistics) : null;
+    const accounts = status === 'success' ? JSON.parse(data) : null;
+    const failedMessage = status === 'failed' ? message : null;
 
-    const searchFilterOptions = ['Full Name', 'Meter Number', 'Account Number'];
-    const searchFilter = getById('billing-search-box-filter');
-    const searchElement = getById('billing-search-box-input');
+    return [accounts, failedMessage, statisticsObject];
+  }
 
-    /**
-     * Updates the table while user changes the input
-     * @return {void}
-     */
-    searchElement.oninput = () => {
-      const tableRows = queryElements('.table-info');
+  /**
+   * Sets the value for paid, unpaid, overpaid and underpaid statistics element
+   *
+   * @function
+   * @param {Object} statisticsObject - Data containing count for each statistic
+   * @param {Number} statisticsObject.paid - holds the value for the number of paid accounts
+   * @param {Number} statisticsObject.unpaid - holds the value for the number of unpaid accounts
+   * @param {Number} statisticsObject.overpaid - holds the value for
+   * the number of overpaid accounts
+   * @param {Number} statisticsObject.underpaid - holds the value for
+   * the number of underpaid accounts
+   */
+  function setStatistics(statisticsObject) {
+    if (!statisticsObject) return;
 
-      if (!tableRows) {
-        makeToastNotification('No clients yet');
-        return;
-      }
-
-      if (searchElement.value.trim() === '') {
-        tableRows.forEach(row => row.style.display = 'grid');
-        return;
-      }
-
-      if (!searchFilterOptions.includes(searchFilter.value)) {
-        makeToastNotification('Choose a filter first');
-        return;
-      }
-
-      /**
-       * Finds a case-insensitive match of a value within a given data string.
-       * @function
-       * @param {string} data - The data string to search within.
-       * @param {string} value - The value to find within the data string.
-       * @return {boolean} True if the value is found in the data string, otherwise false.
-       */
-      const find = (data, value) => {
-        return data.toLowerCase().includes(value.toLowerCase());
-      };
-
-      /**
-       * Rerenders the table by toggling the display of table rows
-       * based on the filtered clients and the specified attribute.
-       * @function
-       * @param {Array} filteredClients - The array of client identifiers to display in the table.
-       * @param {string} attribute - The attribute used to filter and identify table rows.
-       * @return {void}
-       */
-      const rerenderTable = (filteredClients, attribute) => {
-        const tableRows = queryElements('.table-info');
-        tableRows.forEach(row => {
-          if (!filteredClients.includes(row.getAttribute(attribute))) {
-            row.style.display = 'none';
-          } else {
-            row.style.display = 'grid';
-          }
-        });
-      };
-
-      if (searchFilter.value === 'Full Name') {
-        rerenderTable(names.filter(data => find(data, searchElement.value)), 'data-full-name');
-      }
-
-      if (searchFilter.value === 'Meter Number') {
-        const filteredClients = meterNumbers.filter(data => find(data, searchElement.value));
-        rerenderTable(filteredClients, 'data-meter-number');
-      }
-
-      if (searchFilter.value === 'Account Number') {
-        const filteredClients = accountNumbers.filter(data => find(data, searchElement.value));
-        rerenderTable(filteredClients, 'data-accounts-number');
-      }
+    const statMapping = {
+      'paid-clients': statisticsObject.paid ?? 0,
+      'unpaid-clients': statisticsObject.unpaid ?? 0,
+      'overpaid-clients': statisticsObject.overpaid ?? 0,
+      'underpaid-clients': statisticsObject.underpaid ?? 0
     };
+
+    const statIds = Object.keys(statMapping);
+    statIds.forEach(id => {
+      const statElement = document.getElementById(id);
+      const statValue = statMapping[id];
+      if (statElement) {
+        if (statElement.innerHTML === statValue) return;
+        statElement.innerHTML = statValue;
+      }
+    });
   }
 }
+

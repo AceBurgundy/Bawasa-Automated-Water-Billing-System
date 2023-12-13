@@ -1,8 +1,9 @@
+/* eslint-disable max-len */
 // utilities
 const {validateFormData, isEmail, isEmpty} = require('../../../utilities/validations');
-const Response = require('../../../utilities/Response');
-const {db} = require('../../../utilities/sequelize');
+const Response = require('../../../utilities/response');
 const session = require('../../../utilities/session');
+const {db} = require('../../../utilities/sequelize');
 
 // functions
 const {generateRecoveryCodes, generateAccessKey} = require('./functions');
@@ -156,23 +157,30 @@ ipcMain.handle('login', async (event, formData) => {
     email: 'Email'
   };
 
-  const formDataFieldNames = Object.keys(formData);
-  const defaultFieldNames = Object.keys(fields);
+  const formDataFields = Object.keys(formData);
+  const defaultFields = Object.keys(fields);
 
-  const missingFields = defaultFieldNames.filter(field => {
-    return !formDataFieldNames.includes(field);
-  });
+  const missingFields = defaultFields.reduce((accumulator, fieldName) => {
+    const fieldNotInFormData = !formDataFields.includes(fieldName);
+    const isPresent = formData[fieldName] !== undefined && formData[fieldName] !== null;
+    const isPresentButEmpty = isPresent && formData[fieldName].trim() === '';
+    if (fieldNotInFormData || isPresentButEmpty) accumulator.push(fields[fieldName]);
+    return accumulator;
+  }, []);
 
   if (missingFields.length > 0) {
-    const joinedMissingFields = Object.keys(missingFields).join(', ');
-    return new Response().error(`Missing fields: ${joinedMissingFields}`);
+    return new Response().error(`${missingFields.join(', ')} should not be empty`);
+  }
+
+  if (missingFields.length === 1) {
+    return new Response().error(`${missingFields[0]} should not be empty`);
   }
 
   const validateFormDataResponse = validateFormData(formData);
 
   if (validateFormDataResponse.status === false) {
     const {field, message} = validateFormDataResponse;
-    return new Response().errorWithData(field, message);
+    return new Response().failed().addFieldError(field, message).getResponse();
   }
 
   try {
@@ -209,9 +217,7 @@ ipcMain.handle('login', async (event, formData) => {
 });
 
 ipcMain.handle('register', async (event, formData) => {
-  const formDataIsEmpty = Object.keys(formData).length === 0;
-
-  if (formDataIsEmpty) {
+  if (Object.keys(formData).length === 0) {
     return new Response().error('Form data seems to be empty');
   }
 
@@ -227,23 +233,30 @@ ipcMain.handle('register', async (event, formData) => {
     age: 'Age'
   };
 
-  const formDataFieldNames = Object.keys(formData);
-  const defaultFieldNames = Object.keys(fields);
+  const formDataFields = Object.keys(formData);
+  const defaultFields = Object.keys(fields);
 
-  const missingFields = defaultFieldNames.filter(field => {
-    return !formDataFieldNames.includes(field);
-  });
+  const missingFields = defaultFields.reduce((accumulator, fieldName) => {
+    const fieldNotInFormData = !formDataFields.includes(fieldName);
+    const isPresent = formData[fieldName] !== undefined && formData[fieldName] !== null;
+    const isPresentButEmpty = isPresent && formData[fieldName].trim() === '';
+    if (fieldNotInFormData || isPresentButEmpty) accumulator.push(fields[fieldName]);
+    return accumulator;
+  }, []);
 
   if (missingFields.length > 0) {
-    const joinedMissingFields = Object.keys(missingFields).join(', ');
-    return new Response().error(`Missing fields: ${joinedMissingFields}`);
+    return new Response().error(`${missingFields.join(', ')} should not be empty`);
+  }
+
+  if (missingFields.length === 1) {
+    return new Response().error(`${missingFields[0]} should not be empty`);
   }
 
   const validateFormDataResponse = validateFormData(formData);
 
   if (validateFormDataResponse.status === false) {
     const {field, message} = validateFormDataResponse;
-    return new Response().errorWithData(field, message);
+    return new Response().failed().addFieldError(field, message).getResponse();
   }
 
   try {

@@ -1,6 +1,6 @@
 // utilities
 const {validateFormData} = require('../../../utilities/validations');
-const Response = require('../../../utilities/Response');
+const Response = require('../../../utilities/response');
 const {db} = require('../../../utilities/sequelize');
 
 const {ipcMain} = require('electron');
@@ -20,13 +20,14 @@ const {
   getClientFiles,
   createClient,
   getFilePath,
+  updateFiles,
   savePicture,
   deleteFile,
   saveFiles
 } = require('./functions');
 
-const PROFILE_PATH = '../../assets/images/clients/profile/';
-const ICONS_PATH = '../../assets/images/icons/';
+const PROFILE_PATH = '../../../assets/images/clients/profile/';
+const ICONS_PATH = '../../../assets/images/icons/';
 
 ipcMain.handle('add-client', async (event, formDataBuffer) => {
   const formData = formDataBuffer.formData;
@@ -37,10 +38,10 @@ ipcMain.handle('add-client', async (event, formDataBuffer) => {
     return new Response().error('Client details are missing');
   }
 
-  const clientDuplicate = await checkDuplicateData(formData);
+  const duplicateValidation = await checkDuplicateData(formData);
 
-  if (clientDuplicate.hasDuplicate) {
-    return new Response().error(clientDuplicate.message);
+  if (duplicateValidation.status === 'failed') {
+    return duplicateValidation;
   }
 
   const missingFields = checkMissingFields(formData);
@@ -53,7 +54,11 @@ ipcMain.handle('add-client', async (event, formDataBuffer) => {
 
   if (validateResponse.status === false) {
     const {field, message} = validateResponse;
-    return new Response().errorWithData(field, message);
+    return new Response()
+        .failed()
+        .addToast(message)
+        .addFieldError(field, message)
+        .getResponse();
   }
 
   let profilePictureFileName = null;
@@ -64,12 +69,11 @@ ipcMain.handle('add-client', async (event, formDataBuffer) => {
 
       await saveFiles(client, files, manager);
 
-      const savedPictureFileName = await savePicture(profilePicture);
-
-      client.profilePicture = savedPictureFileName;
-      profilePictureFileName = savedPictureFileName;
-
-      console.log(client.toJSON());
+      if (profilePicture) {
+        const savedPictureFileName = await savePicture(profilePicture);
+        client.profilePicture = savedPictureFileName;
+        profilePictureFileName = savedPictureFileName;
+      }
 
       await client.save({transaction: manager});
     });
@@ -105,8 +109,9 @@ ipcMain.handle('add-client', async (event, formDataBuffer) => {
 ipcMain.handle('edit-client', async (event, data) => {
   const {formData, profilePicture} = data.formDataBuffer;
   const clientId = data.clientId;
+  const files = data.files;
 
-  const client = retrieveClientForEdit(clientId);
+  const client = await retrieveClientForEdit(clientId);
 
   if (!client) {
     return new Response().error('Client not found');
@@ -132,19 +137,16 @@ ipcMain.handle('edit-client', async (event, data) => {
 
   if (formValidation.status === false) {
     const {field, message} = validateResponse;
-    return new Response().errorWithData(field, message);
+    return new Response().failed().addFieldError(field, message).getResponse();
   }
 
   updateClientRecord(client, formData);
-  const oldClientData = client.toJSON();
 
-  const hasProfilePicture = Object.keys(profilePicture).length > 0;
-
-  if (hasProfilePicture) {
+  if (profilePicture) {
     let pictureUpdated = null;
 
     try {
-      pictureUpdated = updateProfilePicture(oldClientData, profilePicture);
+      pictureUpdated = updateProfilePicture(client, profilePicture);
     } catch (error) {
       console.log(error);
       return new Response().error('Failed to update client. Error in updating profile picture');
@@ -158,6 +160,13 @@ ipcMain.handle('edit-client', async (event, data) => {
   try {
     await db.transaction(async manager => {
       await updatePhoneNumber(client, formData.phoneNumber, manager);
+    });
+
+    await db.transaction(async manager => {
+      await updateFiles(client, files, manager);
+    });
+
+    await db.transaction(async manager => {
       await client.save({transaction: manager});
     });
 
@@ -171,8 +180,8 @@ ipcMain.handle('edit-client', async (event, data) => {
 
 ipcMain.handle('get-files', async (event, clientId) => {
   if (clientId) {
-    const files = getClientFiles(clientId);
-    return new Response().okWithData('files', files);
+    const files = await getClientFiles(clientId);
+    return new Response().okWithData('files', JSON.stringify(files));
   } else {
     return new Response().error('Client id is required');
   }
@@ -190,12 +199,12 @@ ipcMain.handle('get-file-path', async (event, filename) => {
   return filename ? getFilePath(filename) : null;
 });
 
-ipcMain.handle('delete-file', async (event, filename) => {
-  if (!filename) return new Response().error('Missing filename');
+ipcMain.handle('delete-file', async (event, args) => {
+  if (!args) return new Response().error('Missing args');
 
   try {
-    await deleteFile(filename);
-    return new Response().ok(`${filename} deleted`);
+    await deleteFile(args);
+    return new Response().ok(`${args.fileName} deleted`);
   } catch (error) {
     console.log(error);
     const message = error.type === 'Not found' ? error.message : 'Failed to delete file';

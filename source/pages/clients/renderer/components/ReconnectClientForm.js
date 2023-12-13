@@ -1,9 +1,18 @@
-import {clearAndHideDialog} from '../../../../assets/scripts/helper.js';
+/* eslint-disable indent */
+
+// helpers
+import makeToastNotification from '../../../../assets/scripts/toast.js';
+import {
+  clearAndHideDialog,
+  fillAndShowDialog,
+  generateUniqueId,
+  getById
+} from '../../../../assets/scripts/helper.js';
 
 /**
- * @class ReconnectClientForm
+ * @class
+ * @name ReconnectClientForm
  * @description generates a reconnection form dialog for a client.
- * @param {Object} client - The client data.
  * @return {string} The HTML template for the reconnection form.
  */
 export default class {
@@ -19,8 +28,9 @@ export default class {
    * @property {string} template - HTML template for the reconnection form.
    */
   constructor(client) {
-    const latestBill = client.Bills ? client.Bills[0] : null;
-    const billAmount = latestBill ? latestBill.billAmount : null;
+    this.clientId = client.id;
+    const hasBill = client.bills && client.bills.length > 0;
+    const billAmount = hasBill ? client.bills[0].total : 0;
 
     this.dialogErrorId = generateUniqueId(`reconnect-form-input-box-header-error`);
     this.dialogInputId = generateUniqueId(`reconnect-form-input-box-input`);
@@ -29,16 +39,19 @@ export default class {
     this.submitButtonId = generateUniqueId(`reconnect-form-submit`);
     this.closeButtonId = generateUniqueId(`reconnect-form-close`);
 
-    this.template = `
+    this.template = /* html */`
       <form id='reconnect-form'>
         <p id='reconnect-form-title'>Reconnection for Mr/Mrs ${client.fullName}</p>
         <div id='reconnect-form__input-box'>
           <p id='${this.dialogErrorId}'></p>
           <p id='reconnect-form__input-box__warning'>
-            total amount of ${billAmount} must be paid first to complete reconnection
+            ${
+              hasBill ?
+              `total amount of ${billAmount} must be paid first to complete reconnection` : ``
+            }
           </p>
-          <input 
-              id='${this.dialogInputId}' 
+          <input
+              id='${this.dialogInputId}'
               type='number'
               name='reconnectAmount'
               data-total='${billAmount}'
@@ -92,12 +105,12 @@ export default class {
     });
 
     if (response.status === 'failed') {
-      makeToastNotification(response.toast[0]);
+      makeToastNotification(response.toast);
       this.revertOriginalRow();
       return;
     }
 
-    makeToastNotification(response.toast[0]);
+    makeToastNotification(response.toast);
   }
 
   /**
@@ -107,7 +120,7 @@ export default class {
   */
   setRowReconnected() {
     const rowElement = getById(`client-row-${this.clientId}`);
-    rowElement.children[6].firstElementChild.textContent = window.connectionStatusTypes.Connected;
+    rowElement.children[7].firstElementChild.textContent = window.connectionStatusTypes.Connected;
     rowElement.removeAttribute(`id`);
     rowElement.querySelector('.table-info__options-item.reconnect').style.display = 'none';
   }
