@@ -1,8 +1,8 @@
 {
-  "name": "bawasaabs",
-  "productName": "bawasaabs",
+  "name": "bawasa-billing-system",
+  "productName": "Bawasa Billing System",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Billing System For Bawasa",
   "main": "source/index.js",
   "scripts": {
     "start": "nodemon --exec electron-forge start",
@@ -11,16 +11,16 @@
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
     "watch": "nodemon --exec electron ."
- },
+  },
   "keywords": [],
   "author": {
     "name": "AceBurgundy",
     "email": "Samadriansabalo99@gmail.com"
- },
+  },
   "license": "MIT",
   "dependencies": {
+    "@npmcli/move-file": "^3.0.0",
     "bcrypt": "^5.1.0",
-    "crypto": "^1.0.1",
     "csv-writer": "^1.6.0",
     "date-fns": "^2.30.0",
     "electron-squirrel-startup": "^1.0.0",
@@ -28,10 +28,14 @@
     "exceljs": "^4.3.0",
     "fs-extra": "^11.1.1",
     "html-to-docx": "^1.8.0",
+    "lit": "^3.1.0",
+    "node-thermal-printer": "^4.4.1",
+    "open": "^9.1.0",
+    "open-file": "^1.0.0",
     "sequelize": "^6.32.1",
     "sqlite3": "^5.1.6",
-    "xlsx": "^0.18.5"
- },
+    "winston": "^3.11.0"
+  },
   "devDependencies": {
     "@electron-forge/cli": "^6.2.1",
     "@electron-forge/maker-deb": "^6.2.1",
@@ -43,5 +47,5 @@
     "eslint": "^8.54.0",
     "eslint-config-google": "^0.14.0",
     "nodemon": "^3.0.1"
- }
+  }
 }
