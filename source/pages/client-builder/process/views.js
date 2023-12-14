@@ -29,10 +29,8 @@ const {
 const PROFILE_PATH = '../../../assets/images/clients/profile/';
 const ICONS_PATH = '../../../assets/images/icons/';
 
-ipcMain.handle('add-client', async (event, formDataBuffer) => {
-  const formData = formDataBuffer.formData;
-  const profilePicture = formDataBuffer.image;
-  const files = formDataBuffer.files;
+ipcMain.handle('add-client', async (event, object) => {
+  const {formData, image, files} = JSON.parse(object);
 
   if (formData === null || Object.keys(formData).length <= 0) {
     return new Response().error('Client details are missing');
@@ -69,8 +67,8 @@ ipcMain.handle('add-client', async (event, formDataBuffer) => {
 
       await saveFiles(client, files, manager);
 
-      if (profilePicture) {
-        const savedPictureFileName = await savePicture(profilePicture);
+      if (image) {
+        const savedPictureFileName = await savePicture(image);
         client.profilePicture = savedPictureFileName;
         profilePictureFileName = savedPictureFileName;
       }
