@@ -117,17 +117,19 @@ export default async function(edit, clientObject) {
 
     const isFieldInput = target.classList.contains('form-field__input');
     const isPhoneNumberInput = isFieldInput && target.name === 'phoneNumber';
-    let errorMessageElement = target.previousElementSibling.children[1];
+    let errorElement = target.previousElementSibling.children[1];
 
-    const hasErrorMessage = !isPhoneNumberInput && errorMessageElement.textContent.trim() !== '';
+    const hasErrorElement = errorElement && errorElement.textContent.trim() !== '';
+    const hasErrorMessage = !isPhoneNumberInput && hasErrorElement;
+
     if (!isPhoneNumberInput && isFieldInput && hasErrorMessage) {
-      errorMessageElement.textContent = '';
+      errorElement.textContent = '';
     }
 
     if (isPhoneNumberInput) {
-      errorMessageElement = target.parentElement.previousElementSibling.children[1];
-      if (errorMessageElement.textContent.trim() !== '') {
-        errorMessageElement.textContent = '';
+      errorElement = target.parentElement.previousElementSibling.children[1];
+      if (errorElement.textContent.trim() !== '') {
+        errorElement.textContent = '';
       }
     }
   };
@@ -176,7 +178,7 @@ export default async function(edit, clientObject) {
 
     const {
       toast, status, fieldErrors
-    } = await window.ipcRenderer.invoke(purpose, options);
+    } = await window.ipcRenderer.invoke(purpose, JSON.stringify(options));
 
     makeToastNotification(toast);
     showErrors(fieldErrors);
