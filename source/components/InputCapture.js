@@ -70,12 +70,11 @@ export default class {
   showHideImageCapture(numWebcams) {
     const input = getById(`${this.dashedName}-form-field__options__input`);
     const imageCapture = getById(`${this.dashedName}-form-field__options__capture`);
+    input.style.display = 'block';
 
     if (numWebcams > 0) {
-      input.style.display = 'none';
       imageCapture.style.display = 'block';
     } else {
-      input.style.display = 'block';
       imageCapture.style.display = 'none';
     }
   }
@@ -84,7 +83,6 @@ export default class {
    * Set the original image on a canvas.
    * @param {HTMLCanvasElement} canvas - The canvas element where the original image
    * will be displayed.
-   * @return {void}
    */
   async setOriginalImage(canvas) {
     const image = new Image();
