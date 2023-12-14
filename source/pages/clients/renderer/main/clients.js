@@ -115,7 +115,9 @@ export default async function() {
 
     // cursor is still inside the input but empty
     if (searchValue.trim() === '') {
-      tableRows.forEach(row => row.style.display = 'grid');
+      tableRows.forEach(row => {
+        if (row) row.style.display = 'grid';
+      });
       return false;
     }
 
