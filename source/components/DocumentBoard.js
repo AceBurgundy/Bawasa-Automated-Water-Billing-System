@@ -260,6 +260,8 @@ export default class {
       dropElement.onclick = () => input.click();
 
       dropElement.addEventListener('drop', event => {
+        event.preventDefault();
+
         const files = event.dataTransfer.files;
 
         const uploadedFilesNames = this.uploadedFiles.map(file => file.name);
