@@ -96,9 +96,6 @@ export default class {
             <p>${account.fullName ?? ''}</p>
         </div>
         <div class='table-info__item'>
-            <p>${account.meterNumber ?? ''}</p>
-        </div>
-        <div class='table-info__item'>
             <p>${firstReading ?? ''}</p>
         </div>
         <div class='table-info__item'>
