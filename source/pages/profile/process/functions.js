@@ -1,4 +1,4 @@
-const {joinAndResolve} = require('../../../utilities/helpers');
+const {joinAndResolve, logAndSave} = require('../../../utilities/helpers');
 const Response = require('../../../utilities/response');
 
 // models
@@ -11,17 +11,17 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const fs = require('fs-extra');
 
-const PROFILE_PATH = '../../../assets/images/users/profile';
+const PROFILE_PATH = '../../../../static/images/users/profile';
 
 const requiredFormFields = {
   presentAddressPostalCode: 'Present Address Postal Code',
   presentAddressBarangay: 'Present Address Barangay',
-  presentAddressProvince: 'Present Address Province',
   mainAddressPostalCode: 'Main Address Postal Code',
-  mainAddressProvince: 'Main Address Province',
+  presentAddressRegion: 'Present Address Region',
   mainAddressBarangay: 'Main Address Barangay',
   presentAddressCity: 'Present Address City',
   relationshipStatus: 'Relationship Status',
+  mainAddressRegion: 'Main Address Region',
   mainAddressCity: 'Main Address City',
   phoneNumber: 'Phone Number',
   middleName: 'Middle Name',
@@ -56,7 +56,7 @@ async function retrieveUser(userId) {
       ]
     });
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
   }
 
   return user;
@@ -119,7 +119,7 @@ async function savePicture(profilePicture) {
 
     return imageName;
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     throw Error('Failed in saving users profile picture');
   }
 }
@@ -160,7 +160,7 @@ async function checkDuplicateUser(formData, forEdit = false, userId = null) {
         duplicates = await User.findAndCountAll({where});
       }
     } catch (error) {
-      console.log(error);
+      logAndSave(error);
       return new Response().error('Error in checking for user duplicates');
     }
 
@@ -310,7 +310,7 @@ async function updateProfilePicture(oldUserData, profilePicture) {
 
   if (oldUserData.profilePicture) {
     const oldProfilePicturePath = joinAndResolve(
-        [__dirname, '../../../assets/images/users/profile/'],
+        [__dirname, '../../../../static/images/users/profile/'],
         oldUserData.profilePicture
     );
 

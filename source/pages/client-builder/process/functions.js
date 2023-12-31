@@ -12,7 +12,8 @@ const Response = require('../../../utilities/response');
 
 const {
   generateNextAccountOrBillNumber,
-  joinAndResolve
+  joinAndResolve,
+  logAndSave
 } = require('../../../utilities/helpers');
 
 const {db} = require('../../../utilities/sequelize');
@@ -26,10 +27,8 @@ const path = require('path');
 const requiredFormFields = {
   presentAddressPostalCode: 'Present Address Postal Code',
   presentAddressBarangay: 'Present Address Barangay',
-  presentAddressProvince: 'Present Address Province',
   mainAddressPostalCode: 'Main Address Postal Code',
   mainAddressBarangay: 'Main Address Barangay',
-  mainAddressProvince: 'Main Address Province',
   presentAddressCity: 'Present Address City',
   relationshipStatus: 'Relationship Status',
   mainAddressCity: 'Main Address City',
@@ -43,9 +42,9 @@ const requiredFormFields = {
   age: 'Age'
 };
 
-const PROFILE_PATH = '../../../assets/images/clients/profile';
+const PROFILE_PATH = '../../../../static/images/clients/profile';
 
-const getFilePath = filename => joinAndResolve([__dirname, '../../../assets/files/'], filename);
+const getFilePath = filename => joinAndResolve([__dirname, '../../../../static/files/'], filename);
 
 /**
  * Creates a new client with the provided form data using Sequelize models.
@@ -63,35 +62,33 @@ async function createClient(formData, manager) {
     client = await Client.create({
 
       accountNumber: await generateNextAccountOrBillNumber('Client'),
-      firstName: formData.firstName,
-      middleName: formData.middleName,
-      lastName: formData.lastName,
-      extension: formData.extension,
       relationshipStatus: formData.relationshipStatus,
-      birthDate: formData.birthDate,
-      age: formData.age,
-      email: formData.email,
-      occupation: formData.occupation,
-      profilePicture: 'user.webp',
+      // meterNumber: formData.meterNumber,
       housePicture: 'template_house.webp',
-      meterNumber: formData.meterNumber,
+      middleName: formData.middleName,
+      occupation: formData.occupation,
+      extension: formData.extension,
+      birthDate: formData.birthDate,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      profilePicture: 'user.webp',
+      email: formData.email,
+      age: formData.age,
       mainAddress: {
-        street: formData.mainAddressStreet,
-        subdivision: formData.mainAddressSubdivision,
-        barangay: formData.mainAddressBarangay,
-        city: formData.mainAddressCity,
-        province: formData.mainAddressProvince,
         postalCode: formData.mainAddressPostalCode,
-        details: formData.mainAddressDetails
+        barangay: formData.mainAddressBarangay,
+        details: formData.mainAddressDetails,
+        street: formData.mainAddressStreet,
+        region: formData.mainAddressRegion ?? '',
+        city: formData.mainAddressCity
       },
       presentAddress: {
-        street: formData.presentAddressStreet,
-        subdivision: formData.presentAddressSubdivision,
-        barangay: formData.presentAddressBarangay,
-        city: formData.presentAddressCity,
-        province: formData.presentAddressProvince,
         postalCode: formData.presentAddressPostalCode,
-        details: formData.presentAddressDetails
+        barangay: formData.presentAddressBarangay,
+        details: formData.presentAddressDetails,
+        street: formData.presentAddressStreet,
+        region: formData.presentAddressRegion ?? '',
+        city: formData.presentAddressCity
       }
     },
     {
@@ -105,7 +102,7 @@ async function createClient(formData, manager) {
     await createNewPhoneNumber(client.id, formData.phoneNumber, manager);
     await createNewConnectionStatus(client.id, manager);
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     if (error.type === 'custom') throw error;
 
     const customError = new Error('Failed to create a new client');
@@ -138,7 +135,7 @@ async function createNewPhoneNumber(clientId, phoneNumber, manager) {
   try {
     await ClientPhoneNumber.create(whereClause, {transaction: manager});
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     const customError = new Error('Client not saved. Error in saving new phone number');
     customError['type'] = 'custom';
     throw customError;
@@ -167,7 +164,7 @@ async function createNewConnectionStatus(clientId, manager) {
   try {
     await ClientConnectionStatus.create(whereClause, {transaction: manager});
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
 
     const customError = new Error('Client not saved. Failed to add connection status.');
     customError['type'] = 'custom';
@@ -280,36 +277,35 @@ async function updatePhoneNumber(client, phoneNumberInputValue, manager) {
 
 /**
 * Updates a client's profile picture by saving the new picture, deleting the old picture
-* if it exists, and returning a success Response object with the new image file name.
+* if it exists, and returning the new image file name.
 * @function
+* @async
 * @param {Object} oldClientData - An object containing the old client data,
 * including the current profile picture path.
 * @param {string|Buffer} profilePicture - The new profile picture data.
 * It could be an image file or any data representing the picture.
-* @return {Response} A new Response object representing the result of the update operation.
+* @return {Promise<string>} the file name of the newly saved image.
 */
 async function updateProfilePicture(oldClientData, profilePicture) {
-  try {
-    await savePicture(profilePicture);
-  } catch (error) {
-    return new Response().error(error.message);
-  }
+  const imageName = await savePicture(profilePicture);
 
   if (oldClientData.profilePicture) {
     const oldProfilePicturePath = joinAndResolve(
-        [__dirname, '../../../assets/images/clients/profile/'],
+        [__dirname, '../../../../static/images/clients/profile/'],
         oldClientData.profilePicture
     );
 
     fs.unlink(oldProfilePicturePath, error => {
       if (error) {
         console.error('Error deleting client old profile picture:', error);
-        return new Response().error('Failed to add new client');
+        throw new Error(`
+          Failed to add new client. Error in removing old profile picture
+        `);
       }
     });
   }
 
-  return new Response().okWithData('imageFileName', saveStatus.imageName);
+  return imageName;
 }
 
 
@@ -346,7 +342,7 @@ async function checkDuplicateData(formData, forEdit = false, clientId = null) {
         duplicates = await Client.findAndCountAll({where});
       }
     } catch (error) {
-      console.log(error);
+      logAndSave(error);
       return new Response().error('Error in checking for client duplicates');
     }
 
@@ -396,18 +392,18 @@ async function checkDuplicateData(formData, forEdit = false, clientId = null) {
           }
         ]
       }
-    },
-
-    {
-      field: 'meter-number',
-      where: {
-        [Op.and]: [
-          {
-            meterNumber: formData.meterNumber
-          }
-        ]
-      }
     }
+
+    // {
+    //   field: 'meter-number',
+    //   where: {
+    //     [Op.and]: [
+    //       {
+    //         meterNumber: formData.meterNumber
+    //       }
+    //     ]
+    //   }
+    // }
   ];
 
   for (const check of duplicateChecks) {
@@ -421,8 +417,10 @@ async function checkDuplicateData(formData, forEdit = false, clientId = null) {
 /**
  * Saves a client's profile picture to the filesystem.
  * @function
+ * @async
  * @param {Object} profilePicture - The profile picture data to be saved.
- * @return {Object} A new Response() object indicating the status of the operation.
+ * @throws {Error} If an error occurs when saving the client profile picture
+ * @return {Promise<string>} the filename of the saved image.
  */
 async function savePicture(profilePicture) {
   const takenFromInput = Boolean(profilePicture.fromInput);
@@ -445,7 +443,7 @@ async function savePicture(profilePicture) {
 
     return imageName;
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     throw Error('Failed in saving clients profile picture');
   }
 }
@@ -522,7 +520,7 @@ async function getClientFiles(clientIdArg) {
       });
     }
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
   }
 
   return clientFiles;
@@ -559,7 +557,7 @@ async function saveFiles(client, files, manager) {
 
     await Promise.all(saveFilePromises);
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     throw Error(`Client not added. Error in saving client's documents`);
   }
 }
@@ -603,7 +601,7 @@ async function updateFiles(client, files, manager) {
 
     await Promise.all(updateFilePromises);
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     throw Error(`Client not added. Error in saving client's documents`);
   }
 }

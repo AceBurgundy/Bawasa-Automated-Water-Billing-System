@@ -20,7 +20,7 @@ const isEmpty = value => {
   }
 
   return value === '' || value === 'N/A'?
-        {passed: false, message: 'Cannot be empty'} :
+        {passed: false, message: 'is empty'} :
         {passed: true};
 };
 
@@ -40,11 +40,11 @@ const isEmail = value => {
   }
 
   if (!value.includes('@')) {
-    return {passed: false, message: `Missing '@'`};
+    return {passed: false, message: `is missing '@' symbol`};
   }
 
   if (!value.includes('.')) {
-    return {passed: false, message: `Missing 'domain' (.domain)`};
+    return {passed: false, message: `is missing 'domain' (.domain)`};
   }
 
   return {passed: true};
@@ -67,7 +67,7 @@ const notIn = (list, value) => {
   }
 
   return !list.includes(value) ?
-        {passed: false, message: `${value} not among the choices ${list.join(', ')}`} :
+        {passed: false, message: `${value} is not among the choices ${list.join(', ')}`} :
         {passed: true};
 };
 
@@ -92,7 +92,7 @@ const hasNoSymbols = value => {
   const result = !regex.test(String(value).trim());
 
   if (!result) {
-    return {passed: false, message: 'String contains symbols'};
+    return {passed: false, message: 'should not have symbols'};
   }
 
   return {passed: true};
@@ -116,7 +116,7 @@ const isBirthDate = value => {
   const enteredDate = new Date(value);
 
   return isNaN(enteredDate.getTime()) ?
-        {passed: false, message: 'Please enter a valid birthdate mm/dd/yyyy'} :
+        {passed: false, message: 'must be a valid birthdate mm/dd/yyyy'} :
         {passed: true};
 };
 
@@ -160,16 +160,15 @@ const isOverThan = (start, limit, value) => {
     };
   }
 
-  const {passed} = isEmpty(value);
-
-  if (!passed) return {passed: false, message: passed.message};
+  const isEmptyValidation = isEmpty(value);
+  if (!isEmptyValidation.passed) return {passed: false, message: isEmptyValidation.message};
 
   const number = isNaN(parseInt(value)) ? value.length : value;
 
   return number > limit ?
-        {passed: false, message: `Cannot be greater than ${limit}`} :
+        {passed: false, message: `must not be greater than ${limit}`} :
     number < start ?
-        {passed: false, message: `Cannot be lesser than ${start}`} :
+        {passed: false, message: `must not be lesser than ${start}`} :
         {passed: true};
 };
 
@@ -199,11 +198,17 @@ function validateFormData(formData) {
       .length;
 
   const validations = {
-    firstName: [[isEmpty], [isOverThan, 2, 255]],
+    firstName: [
+      [isEmpty], [isOverThan, 2, 255]
+    ],
 
-    middleName: [[isEmpty], [isOverThan, 2, 255]],
+    middleName: [
+      [isEmpty], [isOverThan, 2, 255]
+    ],
 
-    lastName: [[isEmpty], [isOverThan, 2, 255]],
+    lastName: [
+      [isEmpty], [isOverThan, 2, 255]
+    ],
 
     relationshipStatus: [
       [isEmpty],
@@ -211,43 +216,73 @@ function validateFormData(formData) {
       [notIn, [...Object.values(userRelationshipTypes)]]
     ],
 
-    birthDate: [[isEmpty], [isBirthDate]],
+    birthDate: [
+      [isEmpty], [isBirthDate]
+    ],
 
-    age: [[isEmpty], [isOverThan, 15, 70]],
+    age: [
+      [isEmpty], [isOverThan, 15, 70]
+    ],
 
-    email: [[isEmpty], [isEmail], [isOverThan, 5, 255]],
+    email: [
+      [isEmpty], [isEmail], [isOverThan, 5, 255]
+    ],
 
-    occupation: [[isEmpty], [isOverThan, 2, 255]],
+    occupation: [
+      [isEmpty], [isOverThan, 2, 255]
+    ],
 
-    phoneNumber: [[isEmpty], [isValidPhoneNumber]],
+    phoneNumber: [
+      [isEmpty], [isValidPhoneNumber]
+    ],
 
-    presentAddressStreet: [[isEmpty], [isOverThan, 5, 9999]],
+    presentAddressStreet: [
+      [isEmpty], [isOverThan, 5, 9999]
+    ],
 
-    presentAddressSubdivision: [[isEmpty], [isOverThan, 5, 255]],
+    // presentAddressRegion: [
+    //   [isOverThan, 5, 255]
+    // ],
 
-    presentAddressBarangay: [[isEmpty], [isOverThan, 5, 255]],
+    presentAddressBarangay: [
+      [isEmpty], [isOverThan, 5, 255]
+    ],
 
-    presentAddressCity: [[isEmpty], [isOverThan, 5, 255]],
+    presentAddressCity: [
+      [isEmpty], [isOverThan, 5, 255]
+    ],
 
-    presentAddressProvince: [[isEmpty], [isOverThan, 5, 255]],
+    presentAddressPostalCode: [
+      [isEmpty], [isOverThan, 5, 9999]
+    ],
 
-    presentAddressPostalCode: [[isEmpty], [isOverThan, 5, 9999]],
+    presentAddressDetails: [
+      [isEmpty], [isOverThan, 5, 255]
+    ],
 
-    presentAddressDetails: [[isEmpty], [isOverThan, 5, 255]],
+    mainAddressStreet: [
+      [isEmpty], [isOverThan, 5, 9999]
+    ],
 
-    mainAddressStreet: [[isEmpty], [isOverThan, 5, 9999]],
+    mainAddressBarangay: [
+      [isEmpty], [isOverThan, 5, 255]
+    ],
 
-    mainAddressSubdivision: [[isEmpty], [isOverThan, 5, 255]],
+    mainAddressCity: [
+      [isEmpty], [isOverThan, 5, 255]
+    ],
 
-    mainAddressBarangay: [[isEmpty], [isOverThan, 5, 255]],
+    mainAddressPostalCode: [
+      [isEmpty], [isOverThan, 5, 9999]
+    ],
 
-    mainAddressCity: [[isEmpty], [isOverThan, 5, 255]],
+    mainAddressDetails: [
+      [isEmpty], [isOverThan, 5, 255]
+    ]
 
-    mainAddressProvince: [[isEmpty], [isOverThan, 5, 255]],
-
-    mainAddressPostalCode: [[isEmpty], [isOverThan, 5, 9999]],
-
-    mainAddressDetails: [[isEmpty], [isOverThan, 5, 255]]
+    // mainAddressRegion: [
+    //   [isOverThan, 5, 255]
+    // ]
   };
 
   const entries = Object.entries(formData);
@@ -263,7 +298,7 @@ function validateFormData(formData) {
           if (response.passed === false) {
             errors['status'] = false;
             errors['field'] = key;
-            errors['message'] = response.message;
+            errors['message'] = `${camelCaseToTitleCase(key)} ${response.message}`;
             break;
           }
         }
@@ -274,23 +309,38 @@ function validateFormData(formData) {
   return errors;
 }
 
+/**
+ * Converts camelCase string to Title Case
+ * @param {string} inputString - The input to be converted.
+ * @return {string} the converted text
+ */
+function camelCaseToTitleCase(inputString) {
+  const notCamelCase = !/^[a-z]+([A-Z][a-z]*)*$/.test(inputString);
+  if (notCamelCase) return inputString;
+  // Split the string into words
+  const words = inputString.split(/(?=[A-Z])/);
+  // UpperCase each first letter and join them again into a single string
+  const result = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  return result;
+}
+
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
   module.exports = {
-    isEmpty,
-    isEmail,
-    notIn,
-    isBirthDate,
     isValidPhoneNumber,
     validateFormData,
-    hasNoSymbols
+    hasNoSymbols,
+    isBirthDate,
+    isEmpty,
+    isEmail,
+    notIn
   };
 } else {
-  window.isEmpty = isEmpty;
-  window.isEmail = isEmail;
-  window.isOverThan = isOverThan;
-  window.notIn = notIn;
-  window.isBirthDate = isBirthDate;
   window.isValidPhoneNumber = isValidPhoneNumber;
   window.validateFormData = validateFormData,
   window.hasNoSymbols = hasNoSymbols;
+  window.isBirthDate = isBirthDate;
+  window.isOverThan = isOverThan;
+  window.isEmpty = isEmpty;
+  window.isEmail = isEmail;
+  window.notIn = notIn;
 }

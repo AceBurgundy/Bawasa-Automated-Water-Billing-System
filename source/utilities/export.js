@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 // utilties
-const {formatDate, joinAndResolve, emitEvent} = require('./helpers');
+const {formatDate, joinAndResolve, emitEvent, logAndSave} = require('./helpers');
 const Response = require('./response');
 
 const {ipcMain, dialog} = require('electron');
@@ -90,7 +90,7 @@ ipcMain.handle('full-user-data', async (event, args) => {
       ]
     });
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error('User not found');
   }
 
@@ -141,7 +141,7 @@ const retrieveClientData = async id => {
       ]
     });
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error('Client not found');
   }
 
@@ -178,7 +178,7 @@ async function exportRecord(id, event, move=false) {
       age,
       relationshipStatus,
       accountNumber,
-      meterNumber,
+      // meterNumber,
       birthDate,
       email,
       occupation
@@ -196,7 +196,7 @@ async function exportRecord(id, event, move=false) {
     const workbook = new ExcelJS.Workbook();
 
     const worksheet = workbook.addWorksheet(`${fullName}'s Data`);
-    emitEvent(event, 'export', 'Creating new excel worksheet');
+    emitEvent('Creating new excel worksheet');
 
     worksheet.properties.defaultColWidth = 25.67;
     worksheet.properties.defaultRowHeight = 27.75;
@@ -206,7 +206,9 @@ async function exportRecord(id, event, move=false) {
     worksheet.addRow([]);
 
     worksheet.addRow(['', 'Account Number', 'Meter Number', 'Full Name', 'Relationship Status', 'Birth Date', 'Age', 'Email', 'Occupation', 'Present Address', 'Main Address', 'Phone Numbers']);
-    worksheet.addRow(['', accountNumber, meterNumber, fullName, relationshipStatus, formatDate(birthDate), age, email, occupation, presentAddress.fullAddress, mainAddress.fullAddress, phoneNumber ? ['0', phoneNumber].join('') : '']);
+    // meter number commented out
+    // worksheet.addRow(['', accountNumber, meterNumber, fullName, relationshipStatus, formatDate(birthDate), age, email, occupation, presentAddress.fullAddress, mainAddress.fullAddress, phoneNumber ? ['0', phoneNumber].join('') : '']);
+    worksheet.addRow(['', accountNumber, fullName, relationshipStatus, formatDate(birthDate), age, email, occupation, presentAddress.fullAddress, mainAddress.fullAddress, phoneNumber ? ['0', phoneNumber].join('') : '']);
 
     // Additional data
     if (bills) {
@@ -222,7 +224,7 @@ async function exportRecord(id, event, move=false) {
 
       const clientBillHeaders = ['', 'Bill Number', 'First Reading', 'Second Reading', 'Consumption', 'Bill Amount', 'Payment Status', 'Paid Amount', 'Remaining Balance', 'Excess', 'Payment Date', 'Penalty', 'Due Date', 'Disconnection Date'];
       newRow(worksheet, clientBillHeaders, currentColor);
-      emitEvent(event, 'export', 'Adding bills data');
+      emitEvent('Adding bills data');
 
       bills.forEach((bill, index) => {
         currentIndex = index;
@@ -275,7 +277,7 @@ async function exportRecord(id, event, move=false) {
 
     fs.ensureDir(fullDirectoryPath, error => {
       if (error) {
-        console.log(error);
+        logAndSave(error);
         return new Response().error(`Error in creating new folder for ${fullName}'s export data`);
       }
     });
@@ -288,15 +290,15 @@ async function exportRecord(id, event, move=false) {
 
       fs.ensureDir(destinationFilePath, error => {
         if (error) {
-          console.log(error);
+          logAndSave(error);
           return new Response().error(`Error in creating files folder for ${fullName}'s export data`);
         }
       });
 
-      emitEvent(event, 'export', 'Moving client files');
+      emitEvent('Moving client files');
       const filesToMove = client.files.map(async file => {
         const fileName = [client.fullName, file.name].join(' ');
-        const currentFilePath = joinAndResolve([__dirname, '../../source/assets/files/'], fileName);
+        const currentFilePath = joinAndResolve([__dirname, '../../static/files/'], fileName);
         const newFilePath = path.join(`${destinationFilePath}`, file.name);
 
         const fileExists = await fs.pathExists(currentFilePath).catch(() => false);
@@ -318,7 +320,7 @@ async function exportRecord(id, event, move=false) {
 
     return new Response().ok('Client data exported');
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error('Failed to export client data');
   }
 }

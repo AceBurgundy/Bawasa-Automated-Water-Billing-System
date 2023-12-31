@@ -166,19 +166,6 @@ const city = [
   'Harbor City'
 ];
 
-const province = [
-  'State A',
-  'State B',
-  'State C',
-  'State D',
-  'State E',
-  'State F',
-  'State G',
-  'State H',
-  'State I',
-  'State J'
-];
-
 const details = [
   'Blue House, Wrought Iron Gate',
   'Yellow House, Wooden Gate',
@@ -215,7 +202,6 @@ export const getSampleForm = () => {
     subdivision: getRandomElement(subdivision),
     barangay: getRandomElement(barangay),
     city: getRandomElement(city),
-    province: getRandomElement(province),
     details: getRandomElement(details)
   };
 };

@@ -3,15 +3,16 @@ const {
   getClientRecentBill,
   updatePaymentStatus,
   reconnectClient,
-  getClients,
-  deleteClient
+  deleteClient,
+  getClients
 } = require('./functions');
 
 // utilities
 const Response = require('../../../../source/utilities/response');
+const {logAndSave} = require('../../../utilities/helpers');
 
-const {ipcMain} = require('electron');
 const {Sequelize} = require('sequelize');
+const {ipcMain} = require('electron');
 
 ipcMain.handle('clients', async (event, table) => {
   const whereClause = {};
@@ -53,7 +54,7 @@ ipcMain.handle('clients', async (event, table) => {
       }
     }
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().errorWithData('message', 'Error in searching for clients');
   }
 
@@ -128,7 +129,7 @@ ipcMain.handle('reconnect-client', async (event, args) => {
       return new Response().error('Client reconnection failed');
     }
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error('Failed in reconnecting client');
   }
 });
@@ -138,7 +139,7 @@ ipcMain.handle('delete-client', async (event, clientId) => {
     await deleteClient(clientId, event);
     return new Response().ok('Client succesfully deleted');
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error('Error in deleting client');
   }
 });

@@ -4,6 +4,9 @@ const UserPhoneNumber = require('../../models/UserPhoneNumber');
 const UserAddress = require('../../models/UserAddress');
 const User = require('../../models/User');
 
+// utilities
+const {logAndSave} = require('./helpers');
+
 const SESSION_KEY = 'user_session';
 
 /**
@@ -66,34 +69,35 @@ class SessionManager {
           accessKey: accessKey
         },
         attributes: {
-          exclude: [
-            'password',
-            'updatedAt'
-          ]
+          exclude: ['password', 'updatedAt']
         },
         include: [
           {
             model: UserPhoneNumber,
             as: 'phoneNumbers',
-            order: [
-              ['createdAt', 'DESC']
-            ],
+            order: [['createdAt', 'DESC']],
             limit: 1
           },
           {
             model: UserAddress,
-            as: 'mainAddress'
+            as: 'mainAddress',
+            attributes: {
+              exclude: ['mainAddressId', 'presentAddressId']
+            }
           },
           {
             model: UserAddress,
-            as: 'presentAddress'
+            as: 'presentAddress',
+            attributes: {
+              exclude: ['mainAddressId', 'presentAddressId']
+            }
           }
         ]
       });
 
       return user ? user.toJSON() : null;
     } catch (error) {
-      console.log(error);
+      logAndSave(error);
       return null;
     }
   }

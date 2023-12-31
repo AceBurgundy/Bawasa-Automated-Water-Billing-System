@@ -74,14 +74,14 @@ export default function(forEdit, user) {
 
           <div class='content__top'>
             <div>
-                <img src='assets/images/Logo.png' alt=''>
+                <img src='../static/images/Logo.png' alt=''>
                 <p class='content__top-title'>BAWASA Automated Billing System</p>
             </div>
-            <img src='assets/images/Logo.png' alt=''>
+            <img src='../static/images/Logo.png' alt=''>
           </div>
 
           <form class='content__form content__center' id='user-form${forEdit ? '-edit' : ''}'>
-            <p id='user-form-title'>Admin ${forEdit ? 'Edit Form' : user.fullName}</p>
+            <p id='user-form-title'>Admin ${forEdit ? 'Edit Form' : user?.fullName ? 'User' : ''}</p>
             <div class='content__form-box'>
               <div class='content__form-box__group'>
                 <div class='content__form-box__group__left'>
@@ -122,7 +122,6 @@ export default function(forEdit, user) {
                           }),
 
                           new Input([isEmpty, [isOverThan, 2, 255]], {
-                            flags: ['required'],
                             classes: [forEdit ? '' : 'input-readonly'],
                             attributes: {
                               label: 'Extension',
@@ -238,17 +237,6 @@ export default function(forEdit, user) {
                       }),
 
                       new Input([isEmpty, [isOverThan, 5, 255]], {
-                        classes: [forEdit ? '' : 'input-readonly'],
-                        attributes: {
-                          name: 'presentAddressSubdivision',
-                          label: 'Subdivision',
-                          value: user.presentAddress ? user.presentAddress.subdivision : '',
-                          maxLength: 255,
-                          minLength: 5
-                        }
-                      }),
-
-                      new Input([isEmpty, [isOverThan, 5, 255]], {
                         flags: ['required'],
                         classes: [forEdit ? '' : 'input-readonly'],
                         attributes: {
@@ -272,15 +260,14 @@ export default function(forEdit, user) {
                         }
                       }),
 
-                      new Input([isEmpty, [isOverThan, 5, 255]], {
-                        flags: ['required'],
+                      new Input([], {
                         classes: [forEdit ? '' : 'input-readonly'],
                         attributes: {
-                          name: 'presentAddressProvince',
-                          label: 'Province',
-                          value: user.presentAddress ? user.presentAddress.province : '',
+                          name: 'presentAddressRegion',
+                          label: 'Region',
+                          value: user.presentAddress ? user.presentAddress.region : '',
                           maxLength: 255,
-                          minLength: 10
+                          minLength: 2
                         }
                       }),
 
@@ -332,17 +319,6 @@ export default function(forEdit, user) {
                       }),
 
                       new Input([isEmpty, [isOverThan, 5, 255]], {
-                        classes: [forEdit ? '' : 'input-readonly'],
-                        attributes: {
-                          name: 'mainAddressSubdivision',
-                          label: 'Subdivision',
-                          value: user.mainAddress ? user.mainAddress.subdivision : '',
-                          maxlength: 50,
-                          minLength: 5
-                        }
-                      }),
-
-                      new Input([isEmpty, [isOverThan, 5, 255]], {
                         flags: ['required'],
                         classes: [forEdit ? '' : 'input-readonly'],
                         attributes: {
@@ -366,15 +342,14 @@ export default function(forEdit, user) {
                         }
                       }),
 
-                      new Input([isEmpty, [isOverThan, 5, 255]], {
-                        flags: ['required'],
+                      new Input([], {
                         classes: [forEdit ? '' : 'input-readonly'],
                         attributes: {
-                          name: 'mainAddressProvince',
-                          label: 'Province',
-                          value: user.mainAddress ? user.mainAddress.province : '',
-                          maxlength: 50,
-                          minLength: 10
+                          name: 'mainAddressRegion',
+                          label: 'Region',
+                          value: user.mainAddress ? user.mainAddress.region : '',
+                          maxlength: 255,
+                          minLength: 2
                         }
                       }),
 

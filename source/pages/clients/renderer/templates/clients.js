@@ -30,7 +30,7 @@ export default async function(clients, noClientsMessage) {
 
   const searchOptions = {
     accountNumber: 'Account Number',
-    meterNumber: 'Meter Number',
+    // meterNumber: 'Meter Number',
     firstName: 'First Name',
     middleName: 'Middle Name',
     lastName: 'Last Name',
@@ -66,12 +66,12 @@ export default async function(clients, noClientsMessage) {
 
           <div class='content__top'>
             <div>
-              <img src='assets/images/Logo.png' alt=''>
+              <img src='../static/images/Logo.png' alt=''>
               <p class='content__top-title'>
                 ${ userWelcome }
               </p>
             </div>
-            <img src='assets/images/Logo.png' alt=''>
+            <img src='../static/images/Logo.png' alt=''>
           </div>
 
           <div class='content__center'>
@@ -157,7 +157,7 @@ export default async function(clients, noClientsMessage) {
                     'Main Address',
                     'Contact',
                     'Birth Date',
-                    'Meter Number',
+                    // 'Meter Number',
                     'Status',
                     'Menu'
                   ].map(header => {

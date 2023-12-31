@@ -34,6 +34,12 @@ import '../../../../utilities/constants.js';
 */
 export default async function profile(forEdit = false) {
   const userData = await currentUser();
+
+  if (!userData && forEdit) {
+    console.error('Cannot find user for the profile');
+    return;
+  }
+
   getById('container').innerHTML += profileTemplate(forEdit, userData);
 
   // Handle merging addresses
@@ -87,10 +93,6 @@ export default async function profile(forEdit = false) {
           return;
         }
         break;
-    }
-
-    if ((target.tagName === 'INPUT' || target.tagName === 'SELECT') && !forEdit) {
-      makeToastNotification(`Click 'Edit' at the bottom to change values`);
     }
   };
 

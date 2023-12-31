@@ -1,13 +1,11 @@
 // utilities
+const {joinAndResolve, logAndSave} = require('../../../utilities/helpers');
 const {validateFormData} = require('../../../utilities/validations');
 const Response = require('../../../utilities/response');
 const {db} = require('../../../utilities/sequelize');
 
 const {ipcMain} = require('electron');
 const fs = require('fs-extra');
-
-// helpers
-const {joinAndResolve} = require('../../../utilities/helpers');
 
 // functions
 const {
@@ -26,11 +24,24 @@ const {
   saveFiles
 } = require('./functions');
 
-const PROFILE_PATH = '../../../assets/images/clients/profile/';
-const ICONS_PATH = '../../../assets/images/icons/';
+const PROFILE_PATH = '../../../../static/images/clients/profile/';
+const ICONS_PATH = '../../../../static/images/icons/';
 
-ipcMain.handle('add-client', async (event, object) => {
-  const {formData, image, files} = JSON.parse(object);
+ipcMain.handle('add-client', async (event, formDataArg) => {
+  if (!formDataArg) new Response().error('Form data is missing');
+
+  const sentFormData = formDataArg ? JSON.parse(formDataArg) : null;
+  const {image, files} = sentFormData;
+
+  if (image) {
+    delete sentFormData.image;
+  }
+
+  if (files) {
+    delete sentFormData.files;
+  }
+
+  const formData = sentFormData;
 
   if (formData === null || Object.keys(formData).length <= 0) {
     return new Response().error('Client details are missing');
@@ -78,7 +89,7 @@ ipcMain.handle('add-client', async (event, object) => {
 
     return new Response().ok('Client Succesfully registered');
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
 
     if (profilePictureFileName) {
       await deletePicture(profilePictureFileName);
@@ -104,10 +115,24 @@ ipcMain.handle('add-client', async (event, object) => {
   }
 });
 
-ipcMain.handle('edit-client', async (event, data) => {
-  const {formData, profilePicture} = data.formDataBuffer;
-  const clientId = data.clientId;
-  const files = data.files;
+// eslint-disable-next-line max-len
+ipcMain.handle('edit-client', async (event, formDataArg) => {
+  if (!formDataArg) new Response().error('Form data is missing');
+
+  const formData = formDataArg ? JSON.parse(formDataArg) : null;
+  const {profilePicture, files, clientId} = formData;
+
+  if (profilePicture) {
+    delete formData.profilePicture;
+  }
+
+  if (files) {
+    delete formData.files;
+  }
+
+  if (clientId) {
+    delete formData.clientId;
+  }
 
   const client = await retrieveClientForEdit(clientId);
 
@@ -141,17 +166,12 @@ ipcMain.handle('edit-client', async (event, data) => {
   updateClientRecord(client, formData);
 
   if (profilePicture) {
-    let pictureUpdated = null;
-
     try {
-      pictureUpdated = updateProfilePicture(client, profilePicture);
+      const newImageFileName = await updateProfilePicture(client, profilePicture);
+      client.profilePicture = newImageFileName;
     } catch (error) {
-      console.log(error);
+      logAndSave(error);
       return new Response().error('Failed to update client. Error in updating profile picture');
-    }
-
-    if (pictureUpdated && pictureUpdated.status === 'success') {
-      client.profilePicture = pictureUpdated.imageFileName;
     }
   }
 
@@ -170,7 +190,8 @@ ipcMain.handle('edit-client', async (event, data) => {
 
     return new Response().ok('Client succesfully updated');
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
+
     const message = error.type === 'phonenumber' ? error.message : 'Failed to update client';
     return new Response().error(message);
   }
@@ -204,7 +225,7 @@ ipcMain.handle('delete-file', async (event, args) => {
     await deleteFile(args);
     return new Response().ok(`${args.fileName} deleted`);
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     const message = error.type === 'Not found' ? error.message : 'Failed to delete file';
     return new Response().error(message);
   }

@@ -9,8 +9,8 @@ const Client = require('../../../../models/Client');
 const {connectionStatusTypes} = require('../../../utilities/constants');
 
 // utilities
+const {emitEvent, logAndSave} = require('../../../utilities/helpers');
 const exportRecord = require('../../../utilities/export');
-const {emitEvent} = require('../../../utilities/helpers');
 const Response = require('../../../utilities/response');
 const {db} = require('../../../utilities/sequelize');
 
@@ -99,7 +99,7 @@ async function getClientRecentBill(clientId) {
       ]
     });
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
   }
 
   return client;
@@ -124,7 +124,7 @@ async function reconnectClient(clientId) {
 
     return new Response().ok();
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error();
   }
 }
@@ -163,7 +163,7 @@ async function updatePaymentStatus(billId, amountPaid, balance) {
  */
 async function deleteClient(clientId, event) {
   if (!clientId) {
-    emitEvent(event, 'Cannot export client without id');
+    emitEvent('Cannot export client without id');
     throw new Error('Missing client id');
   };
   const exportResponse = await exportRecord(clientId, event, true);
@@ -172,7 +172,7 @@ async function deleteClient(clientId, event) {
     const client = await Client.findByPk(clientId);
     if (client) await client.destroy();
   } else {
-    emitEvent(event, 'Failed to export client data before deletion');
+    emitEvent('Failed to export client data before deletion');
     throw new Error('Failed to export client');
   }
 }

@@ -1,5 +1,5 @@
+const {emitEvent, logAndSave} = require('../../../utilities/helpers');
 const {validateFormData} = require('../../../utilities/validations');
-const {emitEvent} = require('../../../utilities/helpers');
 const Response = require('../../../utilities/response');
 const {db} = require('../../../utilities/sequelize');
 
@@ -9,18 +9,18 @@ const path = require('path');
 const {
   updateProfilePicture,
   checkMissingFields,
+  checkDuplicateUser,
   updatePhoneNumber,
   updateUserRecord,
-  retrieveUser,
-  checkDuplicateUser
+  retrieveUser
 } = require('./functions');
 
 ipcMain.handle('get-user-profile-path', async (event, string) => {
-  return path.join(path.resolve(__dirname, '../../../assets/images/admin/profile/'), string);
+  return path.join(path.resolve(__dirname, '../../../../static/images/admin/profile/'), string);
 });
 
 ipcMain.handle('default-user-image', async event => {
-  return path.resolve(__dirname, '../../../assets/images/user.png');
+  return path.resolve(__dirname, '../../../../static/images/user.png');
 });
 
 ipcMain.handle('edit-user', async (event, data) => {
@@ -67,7 +67,7 @@ ipcMain.handle('edit-user', async (event, data) => {
     try {
       pictureUpdated = updateProfilePicture(user, profilePicture);
     } catch (error) {
-      console.log(error);
+      logAndSave(error);
       return new Response().error('Failed to update user. Error in updating profile picture');
     }
 
@@ -85,11 +85,11 @@ ipcMain.handle('edit-user', async (event, data) => {
 
     return new Response().ok('User succesfully updated');
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     if (error.name = 'SequelizeValidationError') {
       if (error.errors) {
         error.errors.forEach(error => {
-          emitEvent(event, error.message);
+          emitEvent(error.message);
         });
       }
     }

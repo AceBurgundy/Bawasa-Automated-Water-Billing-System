@@ -87,6 +87,7 @@ module.exports = function(client) {
         </div>
       </div>
 
+      <!--
       <div
         class="receipt__data"
         style="
@@ -101,6 +102,7 @@ module.exports = function(client) {
             ${client.meterNumber ?? ''}
         </div>
       </div>
+      -->
 
       <div
         class="divider"

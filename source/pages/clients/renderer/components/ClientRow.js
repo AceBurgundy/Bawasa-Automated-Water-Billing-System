@@ -43,7 +43,8 @@ export default class {
       connectionStatuses,
       accountNumber,
       phoneNumbers,
-      meterNumber,
+      profilePicture,
+      // meterNumber,
       mainAddress,
       fullName,
       birthDate,
@@ -62,9 +63,18 @@ export default class {
     this.reconnectButtonId = generateUniqueId('reconnect');
     this.exportButtonId = generateUniqueId('export');
     this.editButtonId = generateUniqueId('edit');
+    this.rowId = generateUniqueId('client-row');
+
+    const profilePath = '../static/images/clients/profile';
+    const backupProfilePath = `${profilePath}/user.webp`;
+    const clientProfilePath = `${profilePath}/${profilePicture}`;
+    const finalProfilePath = profilePicture ? clientProfilePath : backupProfilePath;
 
     this.template = /* html */`
-      <div class='table-info' id='client-row-${id}'>
+      <div class='table-info' id='${this.rowId}'>
+        <div class='table-info__profile'>
+          <img src="${finalProfilePath}" alt="${fullName ?? 'Client'}">
+        </div>
         <div class='table-info__options'>
           <p>Menu</p>
           <div class='table-info__options-item-box'>
@@ -97,9 +107,6 @@ export default class {
         </div>
         <div class='table-info__item'>
             <p>${birthDate ?? ''}</p>
-        </div>
-        <div class='table-info__item'>
-            <p>${meterNumber ?? ''}</p>
         </div>
         <div class='table-info__item'>
             <p>${this.connectionStatus ?? ''}</p>
@@ -146,13 +153,31 @@ export default class {
   loadScripts() {
     setTimeout(() => {
       const reconnectButton = getById(this.reconnectButtonId);
-      const deleteButton = getById(this.deleteButtonId);
       const rowMenuToggle = getById(this.rowMenuToggleId);
+      const deleteButton = getById(this.deleteButtonId);
       const exportButton = getById(this.exportButtonId);
       const editButton = getById(this.editButtonId);
-      const rowMenu = rowMenuToggle
-          .closest('.table-info')
-          .querySelector('.table-info__options');
+
+      const row = getById(this.rowId);
+      const profileDiv = row.querySelector('.table-info__profile');
+      const rowMenu = row.querySelector('.table-info__options');
+
+      row.onmouseover = event => {
+        if (!profileDiv) return;
+        if (rowMenuToggle && event.target === rowMenuToggle) {
+          profileDiv.classList.remove('active');
+          return;
+        };
+
+        const mouseX = event.clientX;
+        profileDiv.style.left = `${mouseX - profileDiv.offsetWidth}px`;
+        profileDiv.classList.add('active');
+      };
+
+      row.onmouseleave = () => {
+        if (!profileDiv) return;
+        profileDiv.classList.remove('active');
+      };
 
       editButton.onclick = async () => {
         rowMenu.classList.remove('active');

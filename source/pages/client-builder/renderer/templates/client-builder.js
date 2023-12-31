@@ -149,10 +149,10 @@ export default function(forEdit, clientData) {
 
           <div class='content__top'>
             <div>
-                <img src='assets/images/Logo.png' alt=''>
+                <img src='../static/images/Logo.png' alt=''>
                 <p class='content__top-title'>BAWASA Automated Billing System</p>
             </div>
-            <img src='assets/images/Logo.png' alt=''>
+            <img src='../static/images/Logo.png' alt=''>
           </div>
 
           <form class='content__form content__center' id='client-form'>
@@ -273,14 +273,14 @@ export default function(forEdit, clientData) {
                               }
                             }),
 
-                            new Input([], {
-                              flags: ['required'],
-                              attributes: {
-                                name: 'meterNumber',
-                                label: 'Meter Number',
-                                value: provideValue('meterNumber')
-                              }
-                            }),
+                            // new Input([], {
+                            //   flags: ['required'],
+                            //   attributes: {
+                            //     name: 'meterNumber',
+                            //     label: 'Meter Number',
+                            //     value: provideValue('meterNumber')
+                            //   }
+                            // }),
 
                             new Input([isEmpty, isValidPhoneNumber], {
                               flags: ['required'],
@@ -322,13 +322,13 @@ export default function(forEdit, clientData) {
                           }
                         }),
 
-                        new Input([isEmpty, [isOverThan, 5, 255]], {
+                        new Input([], {
                           attributes: {
-                            name: 'presentAddressSubdivision',
-                            label: 'Subdivision',
-                            value: provideValue('subdivision', addressType.PRESENT),
+                            name: 'presentAddressRegion',
+                            label: 'Region',
+                            value: '',
                             maxLength: 255,
-                            minLength: 5
+                            minLength: 2
                           }
                         }),
 
@@ -351,17 +351,6 @@ export default function(forEdit, clientData) {
                             value: provideValue('city', addressType.PRESENT),
                             maxLength: 255,
                             minLength: 5
-                          }
-                        }),
-
-                        new Input([isEmpty, [isOverThan, 5, 255]], {
-                          flags: ['required'],
-                          attributes: {
-                            name: 'presentAddressProvince',
-                            label: 'Province',
-                            value: provideValue('province', addressType.PRESENT),
-                            maxLength: 255,
-                            minLength: 10
                           }
                         }),
 
@@ -408,13 +397,13 @@ export default function(forEdit, clientData) {
                           }
                         }),
 
-                        new Input([isEmpty, [isOverThan, 5, 255]], {
+                        new Input([], {
                           attributes: {
-                            name: 'mainAddressSubdivision',
-                            label: 'Subdivision',
-                            value: provideValue('subdivision', addressType.MAIN),
-                            maxlength: 50,
-                            minLength: 5
+                            name: 'mainAddressRegion',
+                            label: 'Region',
+                            value: '',
+                            maxlength: 255,
+                            minLength: 2
                            }
                         }),
 
@@ -437,17 +426,6 @@ export default function(forEdit, clientData) {
                             value: provideValue('city', addressType.MAIN),
                             maxlength: 50,
                             minLength: 5
-                          }
-                        }),
-
-                        new Input([isEmpty, [isOverThan, 5, 255]], {
-                          flags: ['required'],
-                          attributes: {
-                            name: 'mainAddressProvince',
-                            label: 'Province',
-                            value: provideValue('province', addressType.MAIN),
-                            maxlength: 50,
-                            minLength: 10
                           }
                         }),
 

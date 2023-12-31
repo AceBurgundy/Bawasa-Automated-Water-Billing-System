@@ -83,9 +83,11 @@ export default async function(edit, clientObject) {
   // Handle form submission
   submitButton.onclick = event => {
     event.preventDefault();
-    const forEditingClient = forEdit && clientData !== null;
-    const submitArguments = forEditingClient ? [forEdit, clientData.id] : [];
-    handleFormSubmit(...submitArguments);
+    if ( forEdit && clientData !== null) {
+      handleFormSubmit(forEdit, clientData.id);
+    } else {
+      handleFormSubmit();
+    }
   };
 
   // Handle merging addresses
@@ -105,19 +107,26 @@ export default async function(edit, clientObject) {
     });
   };
 
-  clientBuilderForm.onkeyup = ({target}) => {
+  clientBuilderForm.onkeyup = event => {
+    const target = event.target;
     /*
       if duplicate address is checked,
       any values placed inside present address fields also duplicates to main address fields
     */
     if (duplicateAddress) {
-      const targetName = target.getAttribute('name').replace('present', 'main');
-      queryElement(`input[name='${targetName}']`).value = target.value;
+      const targetName = target.getAttribute('name');
+      console.log('target name is: ', targetName ?? 'Cannot be found');
+
+      if (!targetName) return;
+      const oppositeElement = targetName.replace('present', 'main');
+      queryElement(`input[name='${oppositeElement}']`).value = target.value;
     }
 
     const isFieldInput = target.classList.contains('form-field__input');
     const isPhoneNumberInput = isFieldInput && target.name === 'phoneNumber';
-    let errorElement = target.previousElementSibling.children[1];
+    const hasSibling = !!target.previousElementSibling;
+    const siblingHasChildren = hasSibling && target.previousElementSibling.children.length > 0;
+    let errorElement = siblingHasChildren ? target.previousElementSibling.children[1] : null;
 
     const hasErrorElement = errorElement && errorElement.textContent.trim() !== '';
     const hasErrorMessage = !isPhoneNumberInput && hasErrorElement;
@@ -156,36 +165,35 @@ export default async function(edit, clientObject) {
     const submittedFilesList = extractFileData(clipBoardComponent.getFiles());
     const capturedPhoto = captureComponent.imageData;
 
-    const purpose = forEdit && clientId ? 'edit-client' : 'add-client';
-    let options = {};
+    try {
+      let purpose = 'add-client';
 
-    if (forEdit && clientId) {
-      options = {
-        formDataBuffer: {
-          formData: formData,
-          profilePicture: capturedPhoto.image
-        },
-        files: submittedFilesList,
-        clientId: clientId
-      };
-    } else {
-      options = {
-        formData: formData,
-        image: capturedPhoto.image,
-        files: submittedFilesList
-      };
-    }
+      if (forEdit && clientId) {
+        purpose = 'edit-client';
+        formData['profilePicture'] = capturedPhoto.image ?? null;
+        formData['files'] = submittedFilesList ?? null;
+        formData['clientId'] = clientId;
+      } else {
+        formData['image'] = capturedPhoto.image ?? null;
+        formData['files'] = submittedFilesList ?? null;
+      }
 
-    const {
-      toast, status, fieldErrors
-    } = await window.ipcRenderer.invoke(purpose, JSON.stringify(options));
+      const {toast, status, fieldErrors} = await window.ipcRenderer.invoke(purpose,
+          JSON.stringify(formData)
+      );
 
-    makeToastNotification(toast);
-    showErrors(fieldErrors);
+      console.log(toast);
 
-    if (status === 'success') {
-      clipBoardComponent.clear();
-      transition(client);
+      makeToastNotification(toast);
+      showErrors(fieldErrors);
+
+      if (status === 'success') {
+        clipBoardComponent.clear();
+        transition(client);
+        return;
+      }
+    } catch (error) {
+      console.log(error);
       return;
     }
   }

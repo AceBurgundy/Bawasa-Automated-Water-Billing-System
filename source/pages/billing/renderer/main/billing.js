@@ -73,7 +73,7 @@ export default async function() {
   function inputAllowed(tableRows, searchValue, searchFilter) {
     const searchFilters = [
       'accountNumber',
-      'meterNumber',
+      // 'meterNumber',
       'firstName',
       'middleName',
       'lastName'

@@ -25,7 +25,7 @@ const os = require('os');
  * ```
  */
 function throwAndLogError(error, customMessage = null) {
-  console.log(error);
+  logAndSave(error);
   return customMessage ? new Error(customMessage) : error;
 }
 
@@ -48,13 +48,12 @@ function formatDate(date, length = 'short') {
 /**
  * Emits an event to the sender with a specified key and value.
  * @function
- * @param {Electron.IpcMainInvokeEvent} event - The event object from Electron.
  * @param {string} value - The value to be sent with the event.
  * @param {string|null} key - The key to identify the event.
  * default='toast'
  * @throws {Error} For missing arguments
  */
-function emitEvent(event, value, key='toast') {
+function emitEvent(value, key='toast') {
   if (!key && !value) {
     throw new Error('Cannot emit a blank message');
   }
@@ -63,12 +62,8 @@ function emitEvent(event, value, key='toast') {
     throw new Error('An emit even key must have a value');
   }
 
-  if (!event) {
-    console.log('Missing event for emit');
-    return;
-  }
-
-  event.sender.send(key, value);
+  const window = BrowserWindow.getFocusedWindow();
+  window.webContents.send(key, value);
 }
 
 /**
@@ -146,7 +141,7 @@ function getMonth(date) {
  * @throws {Error} - Throws an error if the filename is missing,
  * saving the file fails, or printing the receipt fails
  */
-async function printReceipt(template, fileName, event) {
+async function saveReceipt(template, fileName, event) {
   if (!fileName) throw new Error('Missing filename');
 
   const window = new BrowserWindow({show: false});
@@ -169,7 +164,7 @@ async function printReceipt(template, fileName, event) {
     throw new Error('Failed in saving receipt');
   }
 
-  emitEvent(event, 'Attempting to open file');
+  emitEvent('Attempting to open file');
   openFile(filePath);
 }
 
@@ -192,7 +187,7 @@ async function saveToPdf(window, filePath, event=null) {
   } catch (error) {
     console.log(!!event, error.code);
     if (event && error.code === 'EBUSY') {
-      emitEvent(event, 'A different pdf file might have been opened');
+      emitEvent('A different pdf file might have been opened');
     }
     message = `Save ${error}`;
     saved = false;
@@ -242,7 +237,7 @@ async function openFile(filePath) {
   // Execute the command
   exec(command, error => {
     if (error) {
-      console.log(error);
+      logAndSave(error);
       throw new Error(`Failed to open file ${filePath}`);
     } else {
       console.log(`File ${filePath} opened successfully`);
@@ -256,12 +251,23 @@ const logger = winston.createLogger({
   ]
 });
 
+/**
+ * Logs and saves error to file
+ * @param {Error} error - an instance of Error
+ */
+function logAndSave(error) {
+  console.log(error);
+  emitEvent(error.toString(), 'console');
+  logger.error(`${new Date().toISOString()} : ${error}`);
+}
+
 module.exports = {
   generateNextAccountOrBillNumber,
   throwAndLogError,
   joinAndResolve,
-  printReceipt,
   formatDate,
+  saveReceipt,
+  logAndSave,
   emitEvent,
   openFile,
   getMonth,
