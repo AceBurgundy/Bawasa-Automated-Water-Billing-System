@@ -33,7 +33,7 @@ export default async function(bills, noBillsMessage) {
 
   const searchOptions = {
     accountNumber: 'Account Number',
-    meterNumber: 'Meter Number',
+    // meterNumber: 'Meter Number',
     firstName: 'First Name',
     middleName: 'Middle Name',
     lastName: 'Last Name'
@@ -68,12 +68,12 @@ export default async function(bills, noBillsMessage) {
 
           <div class='content__top'>
             <div>
-            <img src='assets/images/Logo.png' alt=''>
+            <img src='../static/images/Logo.png' alt=''>
               <p class='content__top-title'>
                 ${ userWelcome }
               </p>
             </div>
-            <img src='assets/images/Logo.png' alt=''>
+            <img src='../static/images/Logo.png' alt=''>
           </div>
 
           <div class='content__center'>
@@ -137,7 +137,7 @@ export default async function(bills, noBillsMessage) {
                   [
                     'Account #',
                     'Name',
-                    'Meter Number',
+                    // 'Meter Number',
                     '1st Reading',
                     '2nd Reading',
                     'Consumed',
