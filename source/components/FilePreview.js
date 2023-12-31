@@ -10,7 +10,8 @@ const fileTypeIcons = {
 };
 
 const getFileIcon = fileType => {
-  return Object.keys(fileTypeIcons).find(type => fileType.includes(type)) || 'default-icon.png';
+  const fileIcon = fileTypeIcons[fileType];
+  return fileIcon ?? 'default-icon.png';
 };
 
 /* eslint-disable max-len */
