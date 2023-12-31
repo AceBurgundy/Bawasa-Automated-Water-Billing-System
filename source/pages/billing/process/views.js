@@ -1,13 +1,11 @@
 
 // utilities
 const {connectionStatusTypes} = require('../../../utilities/constants');
-const receiptTemplate = require('../../../utilities/receipt-template');
-const {printReceipt, getMonth} = require('../../../utilities/helpers');
+const {logAndSave} = require('../../../utilities/helpers');
 const Response = require('../../../utilities/response');
 
 const {Sequelize} = require('sequelize');
 const {ipcMain} = require('electron');
-const {getYear} = require('date-fns');
 
 // functions
 const {
@@ -16,6 +14,7 @@ const {
   processZeroPaymentBill,
   insertSecondReading,
   handleUnderpaidBill,
+  startPrintByExcel,
   getBillAndStatus,
   handleUnpaidBill,
   getCompleteData,
@@ -47,7 +46,7 @@ ipcMain.handle('accounts', async (event, table) => {
       }
     }
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().errorWithData('message', 'Error in searching for accounts');
   }
 
@@ -105,16 +104,28 @@ ipcMain.handle('print-bill', async (event, args) => {
   const clientWithBill = await getCompleteData(args);
   if (!clientWithBill) return new Response().error('Client not found');
 
-  const fullName = clientWithBill.fullName;
-  const billMonth = getMonth(clientWithBill.bills[0].createdAt);
-  const billYear = getYear(clientWithBill.bills[0].createdAt);
-  const receiptFileName = [fullName, billMonth, billYear, 'receipt'].join(' ');
-  const template = receiptTemplate(clientWithBill);
+  /**
+   * Import necessary code after uncommenting this code
+   *
+   * const fullName = clientWithBill.fullName;
+   * const billMonth = getMonth(clientWithBill.bills[0].createdAt);
+   * const billYear = getYear(clientWithBill.bills[0].createdAt);
+   * const receiptFileName = [fullName, billMonth, billYear, 'receipt'].join(' ');
+   * const template = receiptTemplate(clientWithBill);
+   */
 
   try {
-    await printReceipt(template, receiptFileName, event);
-    return new Response().ok(`${receiptFileName} has been printed`);
+    await startPrintByExcel(clientWithBill);
+
+    /**
+     * Uncomment this code along with the commented variables above
+     * if the client receipt needs to be saved.
+     * await saveReceipt(template, receiptFileName, event);
+     * return new Response().ok(`${receiptFileName} has been printed`);
+     */
+    return new Response().ok();
   } catch (error) {
+    logAndSave(error);
     return new Response().error(error.message);
   }
 });

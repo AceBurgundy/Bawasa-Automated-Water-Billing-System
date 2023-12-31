@@ -1,17 +1,28 @@
 // models
 const ClientConnectionStatus = require('../../../../models/ClientConnectionStatus');
 const PartialPayment = require('../../../../models/PartialPayment');
+const ClientAddress = require('../../../../models/ClientAddress');
 const ClientBill = require('../../../../models/ClientBill');
 const Client = require('../../../../models/Client');
 
+const {spawn} = require('child_process');
+const ExcelJS = require('exceljs');
+const {app} = require('electron');
+const path = require('path');
+
 // utilities
-const {generateNextAccountOrBillNumber} = require('../../../utilities/helpers');
+const {connectionStatusTypes} = require('../../../utilities/constants');
 const Response = require('../../../utilities/response');
 const {db} = require('../../../utilities/sequelize');
+const {
+  generateNextAccountOrBillNumber,
+  logAndSave,
+  formatDate,
+  openFile,
+  getMonth
+} = require('../../../utilities/helpers');
 
-// constants
-const {connectionStatusTypes} = require('../../../utilities/constants');
-const ClientAddress = require('../../../../models/ClientAddress');
+const DOCUMENTS = app.getPath('documents');
 
 /**
  * Retrieves all clients with their bills and connection statuses.
@@ -52,7 +63,7 @@ async function getAllClients(whereClause) {
       ]
     });
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
   }
 
   return clients;
@@ -102,7 +113,7 @@ async function getBillAndStatus(clientId) {
       ]
     });
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
   }
 
   return client;
@@ -139,7 +150,7 @@ async function getCompleteData(args) {
       ]
     });
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
   }
 
   return client;
@@ -158,7 +169,7 @@ async function getBillById(billId) {
   try {
     bill = await ClientBill.findByPk(billId);
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
   }
 
   return bill;
@@ -182,7 +193,7 @@ async function getPreviousBillExcess(billId) {
 
     bill = bill.excess || 0;
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
   }
 
   return bill;
@@ -215,7 +226,7 @@ async function createNewBill(clientId, monthlyReading) {
         .addObject('billId', newBill.id)
         .getResponse();
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     let message = 'Failed to create new client bill';
 
     if (error.name === 'SequelizeValidationError') {
@@ -245,7 +256,7 @@ async function processZeroPaymentBill(bill) {
 
     return new Response().ok('No payments as water consumption is 0');
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error('Failed to update to zero payment bill');
   }
 }
@@ -300,7 +311,7 @@ async function insertSecondReading(bill, monthlyReading) {
 
     return new Response().ok(message);
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error('Failed on updating clients 2nd reading');
   }
 }
@@ -325,7 +336,7 @@ async function getBillWithPartialPayments(billId) {
       ]
     });
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
   }
 
   return client;
@@ -454,7 +465,7 @@ async function handleUnderpaidBill(bill, totalPartialPayments, amountPaid) {
 
     return result;
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error('Something went wrong when processing the bill');
   }
 }
@@ -569,7 +580,7 @@ async function createNewPartialPayment(bill, amountPaid, manager) {
   try {
     partialPayment = await PartialPayment.create(...createArguments);
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
   }
 
   return partialPayment;
@@ -600,10 +611,166 @@ async function reconnectClient(clientId, connectionStatus, manager = null) {
   try {
     reconnected = await ClientConnectionStatus.create(...createArguments);
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
   }
 
   return reconnected ? true : false;
+}
+
+/**
+ * Prints the clients bill through excel
+ * @param {Object} client - clients bill data
+ */
+async function startPrintByExcel(client) {
+  if (!client) throw new Error('Missing client data');
+  const bill = client.bills.length > 0 ? client.bills[0] : null;
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheetName = `${client.firstName}-temporary-receipt`;
+
+  const worksheet = workbook.addWorksheet(worksheetName);
+
+  worksheet.columns = [
+    {key: 'col1', width: 17},
+    {key: 'col2', width: 17}
+  ];
+
+  let rowNumber = 0;
+
+  /**
+   * Inserts a new row data and increments rowNumber
+   * @param {Array} data - the array to be inserted
+   * @return {ExcelJS.Row} the inserted row
+   */
+  const insert = data => {
+    rowNumber++;
+    return worksheet.addRow(data ?? []);
+  };
+
+  /**
+   * Inserts a new row with a centered bold text for the header.
+   * @param {Array} data - the array to be inserted
+   * @return {ExcelJS.Row} the inserted row
+   */
+  const insertHeader = data => {
+    const row = insertAndMergeCenter(data);
+    row.getCell(1).font = {bold: true};
+    return row;
+  };
+
+  /**
+   * Inserts a new row data with a reduced font
+   * @param {Array} data - the array to be inserted
+   * @param {number} [defaultSize=9] - The default font size of the row
+   * @return {ExcelJS.Row} the inserted row
+   */
+  const insertBody = (data, defaultSize=9) => {
+    const row = insert(data);
+    row.font = {size: defaultSize};
+    return row;
+  };
+
+  /**
+   * Insert 2 rows where the first row has a thin bottom border.
+   */
+  const insertDivider = () => {
+    const topMargin = insert();
+    topMargin.height = 10;
+    const row = worksheet.getRow(rowNumber);
+    row.getCell(1).border = {bottom: {style: 'thin'}};
+    row.getCell(2).border = {bottom: {style: 'thin'}};
+    const bottomMargin = insert();
+    bottomMargin.height = 10;
+  };
+
+  /**
+   * Merges and centers the current row number
+   */
+  const mergeAndCenter = () => {
+    worksheet.mergeCells(`A${rowNumber}:B${rowNumber}`);
+    worksheet.getCell(`A${rowNumber}`).alignment = {horizontal: 'center', wrapText: true};
+  };
+
+  /**
+   * Inserts a new row data, increments the rowNumber,
+   * then merges and centers the current row
+   * @param {Array} data - the array to be inserted
+   * @return {ExcelJS.Row} - the inserted row
+   */
+  const insertAndMergeCenter = data => {
+    const row = insert(data);
+    mergeAndCenter();
+    return row;
+  };
+
+  insert();
+
+  const title = insertHeader(['Barangay Water and Sanitation Association']);
+  title.height = 30;
+
+  insertHeader(['WATER BILL']);
+  insertHeader([`MONTH OF ${getMonth(bill.createdAt) ?? ''}`]);
+
+  insertHeader([client.fullName ?? '']);
+
+  insertBody(['Account no: ', client.accountNumber ?? '']);
+  const addressRow = insertBody(['Address: ', client.mainAddress.fullAddress ?? '']);
+  addressRow.height = 30;
+  // insertBody(['Meter Number: ', client.meterNumber ?? '']);
+
+  insertDivider();
+
+  insertBody(['Due Date: ', formatDate(bill.dueDate, 'long') ?? '']);
+  insertBody(['Disonnection Date: ', formatDate(bill.disconnectionDate, 'long') ?? '']);
+  insertBody(['Covered From: ', formatDate(bill.createdAt, 'long') ?? '']);
+  insertBody(['Covered To: ', formatDate(bill.updatedAt, 'long') ?? '']);
+
+  insertDivider();
+
+  insertBody(['Pres Reading: ', bill.secondReading ?? '']);
+  insertBody(['Prev Reading: ', bill.firstReading ?? '']);
+  insertBody(['Consumption: ', bill.consumption ?? '']);
+
+  insertDivider();
+
+  insertBody(['Bill Amount: ', `₱${parseFloat(bill.total).toFixed(2) ?? 0.00}`]);
+
+  insertDivider();
+
+  insertBody(['Total Amount: ', `₱${parseFloat(bill.total).toFixed(2) ?? 0.00}`]);
+  insertBody(['Penalty After Due: ', '5']);
+  insertBody(['Total After Due: ', `₱${parseFloat(bill.total + 5).toFixed(2) ?? 0.00}`]);
+
+  insertDivider();
+
+  const messageRow = insertAndMergeCenter([
+    'Kindly bring this statement when paying at the office.',
+    'A penalty of 5 pesos penalty charge will be added to the bill',
+    'after due date. You can pay your bill starting tomorrow'
+  ].join(' '));
+
+  messageRow.height = 77;
+  messageRow.font = {size: 9};
+
+  worksheet.pageSetup.printArea = `A1:B${rowNumber}`;
+  const filePath = path.join(DOCUMENTS, `${worksheetName}.xlsx`);
+
+  await workbook.xlsx.writeFile(filePath);
+
+  const powershellCommand = `start-process -filepath '${filePath}' -verb print`;
+
+  // Spawn a new PowerShell process
+  const powershellProcess = spawn('powershell.exe', ['-command', powershellCommand]);
+
+  powershellProcess.stderr.on('data', data => {
+    logAndSave(error);
+    openFile(filePath);
+  });
+
+  powershellProcess.on('error', error => {
+    logAndSave(error);
+    openFile(filePath);
+  });
 }
 
 module.exports = {
@@ -615,6 +782,7 @@ module.exports = {
   getPreviousBillExcess,
   insertSecondReading,
   handleUnderpaidBill,
+  startPrintByExcel,
   getBillAndStatus,
   handleUnpaidBill,
   getCompleteData,

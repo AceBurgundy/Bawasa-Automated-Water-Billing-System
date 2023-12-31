@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 // utilities
 const {validateFormData, isEmail, isEmpty} = require('../../../utilities/validations');
+const {logAndSave} = require('../../../utilities/helpers');
 const Response = require('../../../utilities/response');
 const session = require('../../../utilities/session');
 const {db} = require('../../../utilities/sequelize');
@@ -65,7 +66,7 @@ ipcMain.handle('reset-password', async (event, formData) => {
       ]
     });
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error('Error in searching for user');
   }
 
@@ -89,7 +90,7 @@ ipcMain.handle('reset-password', async (event, formData) => {
 
     return matched ? new Response().ok(matchFound) : new Response().error(noMatches);
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error('Error in comparing recovery codes');
   }
 });
@@ -140,7 +141,7 @@ ipcMain.handle('change-password', async (event, args) => {
 
     return new Response().ok('Password changed successfully');
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error('Error in updating the password');
   }
 });
@@ -211,7 +212,7 @@ ipcMain.handle('login', async (event, formData) => {
 
     return new Response().ok(`Welcome ${user.firstName}`);
   } catch (error) {
-    console.error(error.message);
+    logAndSave(error);
     return new Response().error('Failed to log the user in');
   }
 });
@@ -268,7 +269,7 @@ ipcMain.handle('register', async (event, formData) => {
 
     if (user) return new Response().error(`User ${formData.email} is already registered`);
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error('Failed to find duplicated user');
   }
 
@@ -316,7 +317,7 @@ ipcMain.handle('register', async (event, formData) => {
         .addObject('recoveryCodes', recoveryCodes)
         .getResponse();
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
 
     if (error.type === FAILED_RECOVERY_CODE_CREATE) {
       return new Response().error(error.message);
