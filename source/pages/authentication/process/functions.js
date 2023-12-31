@@ -1,9 +1,12 @@
 // models
 const RecoveryCode = require('../../../../models/RecoveryCode');
+
+// utilities
+const {logAndSave} = require('../../../utilities/helpers');
 const Response = require('../../../utilities/response');
 
-const {randomBytes} = require('crypto');
 const {hashSync, hash} = require('bcrypt');
+const {randomBytes} = require('crypto');
 
 /**
  * Generates a secure access key.
@@ -65,7 +68,7 @@ async function generateRecoveryCodes(userId, manager) {
     await Promise.all(promises);
     return new Response().okWithData('recoveryCodes', codes);
   } catch (error) {
-    console.log(error);
+    logAndSave(error);
     return new Response().error(`Failed to add recovery codes`);
   }
 }
