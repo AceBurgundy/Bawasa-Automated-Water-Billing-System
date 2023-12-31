@@ -10,7 +10,6 @@ export async function transition(callback) {
   isTransitioning = true;
 
   const box = getById('container');
-  console.log(callback);
   await callback();
 
   await new Promise(resolve => setTimeout(resolve, 200));
