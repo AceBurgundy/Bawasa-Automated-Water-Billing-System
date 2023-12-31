@@ -29,6 +29,8 @@
     border-bottom: var(--borderDefaultGray);
 }
 
+/* For table data with meter number */
+/*
 #table-data-headers, .table-info {
     display: grid;
     grid-template-columns: 10% 15% 30% 10% 10% 10% 10% 5%;
@@ -36,6 +38,16 @@
 
 #table-data-headers.account, .table-info.account {
     grid-template-columns: 6% 12% 6% 6% 6% 7% 6% 8% 6% 5% 5% 6% 7% 10% 4%;
+}
+*/
+
+#table-data-headers, .table-info {
+    display: grid;
+    grid-template-columns: 10% 20% 35% 10% 10% 10% 5%;
+}
+
+#table-data-headers.account, .table-info.account {
+    grid-template-columns: 6% 15% 6% 6% 7% 6% 8% 6% 5% 5% 6% 7% 13% 4%;
 }
 
 .table-info {
@@ -64,6 +76,34 @@
     border-radius: 10px;
     transition: 250ms ease-out;
     z-index: 2;
+}
+
+.table-info__profile {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 80%;
+    padding: 0.5rem;
+    width: 150px;
+    height: 150px;
+    background-color: var(--borderlessInputBackground);
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    transition: 250ms ease-out;
+    z-index: 2;
+}
+
+/* client profile picture */
+.table-info__profile img {
+    object-fit: contain;
+    width: 100%;
+}
+
+.table-info__profile.active {
+    opacity: 1;
+    pointer-events: all;
+    top: 95%;
 }
 
 .table-info__options.active {
