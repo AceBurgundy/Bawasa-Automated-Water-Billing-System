@@ -4,8 +4,6 @@ const {relationshipOptions} = require('../source/utilities/constants');
 const {db} = require('../source/utilities/sequelize');
 const {DataTypes} = require('sequelize');
 
-const ClientAddress = require('./ClientAddress');
-
 const Client = db.define(
     'Client',
 
@@ -180,41 +178,10 @@ const Client = db.define(
       },
 
       meterNumber: {
-        type: DataTypes.STRING(25),
-        allowNull: false,
-        validate: {
-          notNull: {
-            msg: 'Meter number is required'
-          },
-          notEmpty: {
-            msg: 'Meter number cannot be left blank'
-          }
-        }
+        type: DataTypes.STRING(25)
       }
     }
 );
-
-Client.hasOne(ClientAddress, {
-  foreignKey: 'mainAddressId',
-  as: 'mainAddress',
-  onDelete: 'CASCADE'
-});
-
-Client.hasOne(ClientAddress, {
-  foreignKey: 'presentAddressId',
-  as: 'presentAddress',
-  onDelete: 'CASCADE'
-});
-
-ClientAddress.belongsTo(Client, {
-  foreignKey: 'mainAddressId',
-  as: 'mainAddress'
-});
-
-ClientAddress.belongsTo(Client, {
-  foreignKey: 'presentAddressId',
-  as: 'presentAddress'
-});
 
 Client.sync()
     .then(() => {

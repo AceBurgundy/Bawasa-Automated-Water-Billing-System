@@ -3,8 +3,6 @@ const {relationshipOptions} = require('../source/utilities/constants');
 const {db} = require('../source/utilities/sequelize');
 const {DataTypes} = require('sequelize');
 
-const UserAddress = require('./UserAddress');
-
 const User = db.define(
     'User',
     {
@@ -179,26 +177,6 @@ const User = db.define(
       }
     }
 );
-
-User.hasOne(UserAddress, {
-  foreignKey: 'mainAddressId',
-  as: 'mainAddress'
-});
-
-User.hasOne(UserAddress, {
-  foreignKey: 'presentAddressId',
-  as: 'presentAddress'
-});
-
-UserAddress.belongsTo(User, {
-  foreignKey: 'mainAddressId',
-  as: 'mainAddress'
-});
-
-UserAddress.belongsTo(User, {
-  foreignKey: 'presentAddressId',
-  as: 'presentAddress'
-});
 
 User.sync()
     .then(() => {

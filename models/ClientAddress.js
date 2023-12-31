@@ -1,6 +1,7 @@
 /* eslint-disable new-cap */
 const {db} = require('../source/utilities/sequelize');
 const {DataTypes} = require('sequelize');
+const Client = require('./Client');
 
 const ClientAddress = db.define(
     'ClientAddress',
@@ -17,16 +18,6 @@ const ClientAddress = db.define(
           is: {
             args: /^[A-Za-z\s0-9.]+$/,
             msg: 'Street can only contain letters numbers and spaces'
-          }
-        }
-      },
-
-      subdivision: {
-        type: DataTypes.STRING(50),
-        validate: {
-          is: {
-            args: /^[A-Za-z\s0-9.]+$/,
-            msg: 'Subdivision can only contain letters numbers and spaces'
           }
         }
       },
@@ -65,23 +56,6 @@ const ClientAddress = db.define(
         }
       },
 
-      province: {
-        type: DataTypes.STRING(50),
-        allowNull: false,
-        validate: {
-          is: {
-            args: /^[A-Za-z\s0-9.]+$/,
-            msg: 'Province can only contain letters numbers and spaces'
-          },
-          notNull: {
-            msg: 'Province is required'
-          },
-          notEmpty: {
-            msg: 'Province cannot be left blank'
-          }
-        }
-      },
-
       postalCode: {
         type: DataTypes.STRING(4),
         allowNull: false,
@@ -96,6 +70,10 @@ const ClientAddress = db.define(
             msg: 'Postal Code cannot be left blank'
           }
         }
+      },
+
+      region: {
+        type: DataTypes.STRING(255)
       },
 
       details: {
@@ -116,11 +94,9 @@ const ClientAddress = db.define(
         get() {
           return [
             this.details,
-            this.subdivision ?? '',
             this.street ?? '',
             this.barangay,
             this.city,
-            this.province,
             this.postalCode
           ].join(' ');
         },
@@ -130,6 +106,28 @@ const ClientAddress = db.define(
       }
     }
 );
+
+Client.hasOne(ClientAddress, {
+  foreignKey: 'mainAddressId',
+  as: 'mainAddress',
+  onDelete: 'CASCADE'
+});
+
+Client.hasOne(ClientAddress, {
+  foreignKey: 'presentAddressId',
+  as: 'presentAddress',
+  onDelete: 'CASCADE'
+});
+
+ClientAddress.belongsTo(Client, {
+  foreignKey: 'mainAddressId',
+  as: 'mainAddress'
+});
+
+ClientAddress.belongsTo(Client, {
+  foreignKey: 'presentAddressId',
+  as: 'presentAddress'
+});
 
 ClientAddress.sync()
     .then(() => {

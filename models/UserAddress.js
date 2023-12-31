@@ -2,6 +2,7 @@
 
 const {db} = require('../source/utilities/sequelize');
 const {DataTypes} = require('sequelize');
+const User = require('./User');
 
 const UserAddress = db.define(
     'UserAddress',
@@ -18,16 +19,6 @@ const UserAddress = db.define(
           is: {
             args: /^[A-Za-z\s0-9.]+$/,
             msg: 'Street can only contain letters numbers and spaces'
-          }
-        }
-      },
-
-      subdivision: {
-        type: DataTypes.STRING(50),
-        validate: {
-          is: {
-            args: /^[A-Za-z\s0-9.]+$/,
-            msg: 'Subdivision can only contain letters numbers and spaces'
           }
         }
       },
@@ -66,23 +57,6 @@ const UserAddress = db.define(
         }
       },
 
-      province: {
-        type: DataTypes.STRING(50),
-        allowNull: false,
-        validate: {
-          is: {
-            args: /^[A-Za-z\s0-9.]+$/,
-            msg: 'Province can only contain letters numbers and spaces'
-          },
-          notNull: {
-            msg: 'Province is required'
-          },
-          notEmpty: {
-            msg: 'Province cannot be left blank'
-          }
-        }
-      },
-
       postalCode: {
         type: DataTypes.STRING(4),
         allowNull: false,
@@ -99,6 +73,10 @@ const UserAddress = db.define(
         }
       },
 
+      region: {
+        type: DataTypes.STRING(255)
+      },
+
       details: {
         type: DataTypes.STRING(255),
         allowNull: false,
@@ -113,6 +91,28 @@ const UserAddress = db.define(
       }
     }
 );
+
+User.hasOne(UserAddress, {
+  foreignKey: 'mainAddressId',
+  as: 'mainAddress',
+  onDelete: 'CASCADE'
+});
+
+User.hasOne(UserAddress, {
+  foreignKey: 'presentAddressId',
+  as: 'presentAddress',
+  onDelete: 'CASCADE'
+});
+
+UserAddress.belongsTo(User, {
+  foreignKey: 'mainAddressId',
+  as: 'mainAddress'
+});
+
+UserAddress.belongsTo(User, {
+  foreignKey: 'presentAddressId',
+  as: 'presentAddress'
+});
 
 UserAddress.sync()
     .then(() => {
