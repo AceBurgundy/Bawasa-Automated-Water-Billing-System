@@ -49,7 +49,7 @@ This system was **developed for a client who works for the barangay**, specifica
 * **Electron** – Desktop application shell
 * **JavaScript / HTML / CSS** – User interface and logic
 * **Node.js** – Backend processing
-* **SQLite** or **JSON-based local storage** – Local data handling (depending on your setup)
+* **SQLite3** or **JSON-based local storage** – Local data handling (depending on your setup)
 
 ## 🚀 Installation & Setup
 
@@ -71,30 +71,6 @@ npm install
 # Start the app
 npm start
 ```
-
-## 🗃️ Suggested File Structure
-
-```
-bawasa-water-billing/
-├── src/
-│   ├── renderer/          # Frontend UI files
-│   ├── main.js            # Electron main process
-│   ├── database/          # Local database or storage files
-│   └── assets/            # Logos, icons, stylesheets
-├── package.json
-├── README.md
-└── ...
-```
-
-## 🖼️ Screenshots (Optional)
-
-*Add sample images to show:*
-
-* ✅ Main dashboard
-* 🧾 Water connection form
-* 📄 Monthly bill layout
-* 🗂️ History viewer
-* 🖨️ Bill print preview
 
 ## 🔧 Future Enhancements
 
