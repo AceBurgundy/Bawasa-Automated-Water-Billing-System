@@ -4,8 +4,6 @@
 
 This system was **developed for a client who works for the barangay**, specifically to address the challenges of manual billing, tracking water connections, and managing historical records. With a simple and intuitive interface, BAWASA makes water billing efficient, accurate, and easier to manage at the barangay level.
 
----
-
 ## 📌 Key Features
 
 ### 📝 Water Connection Application
@@ -38,8 +36,6 @@ This system was **developed for a client who works for the barangay**, specifica
 * Supports both individual and bulk bill printing
 * Includes official headers and standardized formats
 
----
-
 ## 👥 Who It's For
 
 * Barangay personnel and officials managing water services
@@ -48,16 +44,12 @@ This system was **developed for a client who works for the barangay**, specifica
 
 > 🎯 This project was specifically developed for a **client residing in the area and working for the barangay**, ensuring the system fits real, day-to-day operational needs in a local government unit (LGU) context.
 
----
-
 ## 🖥️ Tech Stack
 
 * **Electron** – Desktop application shell
 * **JavaScript / HTML / CSS** – User interface and logic
 * **Node.js** – Backend processing
 * **SQLite** or **JSON-based local storage** – Local data handling (depending on your setup)
-
----
 
 ## 🚀 Installation & Setup
 
@@ -80,8 +72,6 @@ npm install
 npm start
 ```
 
----
-
 ## 🗃️ Suggested File Structure
 
 ```
@@ -96,8 +86,6 @@ bawasa-water-billing/
 └── ...
 ```
 
----
-
 ## 🖼️ Screenshots (Optional)
 
 *Add sample images to show:*
@@ -108,8 +96,6 @@ bawasa-water-billing/
 * 🗂️ History viewer
 * 🖨️ Bill print preview
 
----
-
 ## 🔧 Future Enhancements
 
 * 🔐 User authentication with role-based access
@@ -117,8 +103,6 @@ bawasa-water-billing/
 * 🌐 Integration with SMS or email reminders
 * ☁️ Cloud backup & multi-device sync
 * 💳 Payment logging and receipt generation
-
----
 
 ## 🇵🇭 Local Context
 
@@ -128,16 +112,12 @@ BAWASA was created with the **Philippine barangay system** in mind, offering:
 * **Simple UI** for non-technical users
 * Customizability based on local water policies or billing schemes
 
----
-
 ## 📬 Contact
 
 For technical support, customization, or feedback, contact:
 
 * **Email**: [samadriansabalo99@gmail.com](mailto:samadriansabalo99@gmail.com)
 * **GitHub**: [AceBurgundy](https://github.com/AceBurgundy)
-
----
 
 ## 📄 License
 
