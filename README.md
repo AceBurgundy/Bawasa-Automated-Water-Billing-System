@@ -1,4 +1,4 @@
-# 💧 BAWASA Water Billing Management System
+# 💧 BAWASA Automated Water Billing Management System
 
 **BAWASA** (*Barangay Water System Administration*) is a cross-platform desktop application built with **Electron**, designed to streamline water billing operations for local barangays in the Philippines.
 
